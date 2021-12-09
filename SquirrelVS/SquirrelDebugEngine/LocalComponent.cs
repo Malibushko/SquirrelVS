@@ -178,10 +178,10 @@ namespace SquirrelDebugEngine
 
         var ProcessStartInfo = new ProcessStartInfo(ExePathName, $"{_Process.LivePart.Id} {_ProcessData.LoadLibraryWAddress} {DLLNameAddress} \"{DLLPathName}\"")
         {
-          CreateNoWindow = true,
-          RedirectStandardError = true,
+          CreateNoWindow = false,
+          RedirectStandardError = false,
           RedirectStandardInput = true,
-          RedirectStandardOutput = true,
+          RedirectStandardOutput = false,
           UseShellExecute = false
         };
 
@@ -220,12 +220,11 @@ namespace SquirrelDebugEngine
       HelperBreaks.SquirrelHelperStepInto      = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepInto").GetValueOrDefault(Guid.Empty);
       HelperBreaks.SquirrelHelperStepOut       = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepOut").GetValueOrDefault(Guid.Empty);
       HelperBreaks.SquirrelHelperAsyncBreak    = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperAsyncBreak").GetValueOrDefault(Guid.Empty);
-      HelperBreaks.SquirrelHelperAsyncBreak    = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperInitialized").GetValueOrDefault(Guid.Empty);
-
+      
       _ProcessData.HelperStartAddress = _Module.BaseAddress;
       _ProcessData.HelperEndAddress   = _ProcessData.HelperStartAddress + _Module.Size;
 
-      _ProcessData.DebugHookAddress = AttachmentHelpers.FindFunctionAddress(_Module, "SquirrelDebugHook_3_1") + _Module.BaseAddress;
+      _ProcessData.DebugHookAddress = AttachmentHelpers.FindFunctionAddress(_Module, "SquirrelDebugHook_3_1");
 
       var Process          = _Module.Process;
       var InitializedValue = Utility.ReadUintVariable(Process, IsInitialzeAddress.CPUInstructionPart.InstructionPointer);
@@ -234,7 +233,7 @@ namespace SquirrelDebugEngine
       {
         switch (InitializedValue.Value)
         {
-          case 0: // Not Initialized
+          case 127: // Not Initialized
           {
             var OnInitializedBreakpoint = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperInitialized");
 
@@ -285,19 +284,28 @@ namespace SquirrelDebugEngine
       if (!_debughook_native.HasValue || !_debughook.HasValue)
         return;
 
-      HookData Data = new HookData
+      LocalData.HookData = new HookData
       {
         DebugHookNativeAddress = _debughook_native.Value,
         DebugHookNative        = _debughook.Value,
         HelperHookAddress      = LocalData.DebugHookAddress
       };
 
+      if (LocalData.HelperState != HelperState.Initialized)
+      {
+        LocalData.SquirrelThread = _Thread;
+
+        _Thread.Suspend(true);
+
+        return;
+      }
+
       DkmCustomMessage.Create(
           _Process.Connection,
           _Process,
           MessageToRemote.Guid,
           (int)MessageToRemote.MessageType.RegisterState,
-          Data.Encode(),
+          LocalData.HookData.Encode(),
           null
         ).SendLower();
     }
@@ -312,11 +320,29 @@ namespace SquirrelDebugEngine
         )
     {
       SquirrelBreakpoints KnownBreakpoints = Utility.GetOrCreateDataItem<SquirrelBreakpoints>(_Process);
-      
+      LocalProcessData    ProcessData      = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
+      DkmThread           Thread           = _Process.GetThreads().FirstOrDefault(_Thread => _Thread.UniqueId == _BreakpointData.ThreadID);
+
+      if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperInitialized)
+      {
+        ProcessData.HelperState = HelperState.Initialized;
+
+        DkmCustomMessage.Create(
+            _Process.Connection,
+            _Process,
+            MessageToRemote.Guid,
+            (int)MessageToRemote.MessageType.RegisterState,
+            ProcessData.HookData.Encode(),
+            null
+          ).SendLower();
+
+        ProcessData.SquirrelThread.Resume(true);
+
+        return true;
+      }
+
       if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelOpenBreakpoint)
       {
-        DkmThread Thread = _Process.GetThreads().FirstOrDefault(_Thread => _Thread.UniqueId == _BreakpointData.ThreadID);
-
         var InspectionSession = EvaluationHelpers.CreateInspectionSession(_Process, Thread, _BreakpointData, out DkmStackWalkFrame _Frame);
         
         ulong? SquirrelHandleAddress = EvaluationHelpers.TryEvaluateAddressExpression(
@@ -329,7 +355,7 @@ namespace SquirrelDebugEngine
 
         if (!SquirrelHandleAddress.HasValue)
           SquirrelHandleAddress = EvaluationHelpers.TryEvaluateAddressExpression("@rax", InspectionSession, Thread, _Frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
-
+        
         if (SquirrelHandleAddress != 0)
           RegisterSquirrelState(_Process, InspectionSession, Thread, _Frame, SquirrelHandleAddress);
 
@@ -338,6 +364,11 @@ namespace SquirrelDebugEngine
         return true;
       }
       
+      if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperAsyncBreak)
+      {
+        return true;
+      }
+
       return false;
     }
     #endregion

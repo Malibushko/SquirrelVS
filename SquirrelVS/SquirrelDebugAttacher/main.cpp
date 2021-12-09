@@ -91,9 +91,8 @@ int main(int argc, char** argv)
 	char *dllPath = argv[4];
 
 	char buf[256];
-	sprintf(buf, "Attacher %s %s %s\n", argv[1], argv[2], argv[3]);
-	OutputDebugStringA(buf);
-
+	printf("Attacher %s %s %s %s\n", argv[1], argv[2], argv[3], argv[4]);
+	
 	HANDLE process = OpenProcess(0x001F0FFF, false, processId);
 
 	if(process == nullptr)
@@ -104,6 +103,7 @@ int main(int argc, char** argv)
 		FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (char*)&msgBuf, 0, NULL);
 		OutputDebugStringA(msgBuf);
 
+		system("pause");
 		return 1;
 	}
 
@@ -120,8 +120,9 @@ int main(int argc, char** argv)
 		FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (char*)&msgBuf, 0, NULL);
 		OutputDebugStringA(msgBuf);
 
+		system("pause");
 		return 2;
 	}
-
+	
 	return 0;
 }

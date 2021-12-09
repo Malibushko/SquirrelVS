@@ -1,8 +1,9 @@
-#include <windows.h>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 extern "C"
 {
-  __declspec(dllexport) volatile char IsInitialized;
+  __declspec(dllexport) volatile char IsInitialized = 127;
 
   __declspec(dllexport) char WorkingDirectory[1024] = {};
 
@@ -92,7 +93,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
       break;
     default:
-      break;
+      return 0;
   }
 
   return TRUE;

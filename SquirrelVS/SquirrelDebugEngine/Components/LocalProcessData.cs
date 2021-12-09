@@ -32,6 +32,9 @@ namespace SquirrelDebugEngine
     
     public ulong                    DebugHookAddress;
     public HelperState              HelperState = HelperState.NotInitialized;
+    public HookData                 HookData;
+
+    public DkmThread                SquirrelThread;
   }
 
   public class SquirrelBreakpoints : DkmDataItem
