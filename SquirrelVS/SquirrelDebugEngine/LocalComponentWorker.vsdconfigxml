@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="GuidLocalWorkerComponent"  Value="83AACC60-7459-4F1A-A814-E6541C5E5847"/>
+  <DefineGuid Name="GuidMessageToLocalWorker"  Value="F59348DD-8760-49C4-B2D7-EF76E8AD51F9"/>
+
+  <ManagedComponent
+    ComponentId="GuidLocalWorkerComponent"
+    ComponentLevel="1999100"
+    AssemblyName="SquirrelDebugEngine">
+
+    <Class Name="SquirrelDebugEngine.LocalWorkerComponent">
+      <Implements>
+        <InterfaceGroup>
+          <Filter>
+            <SourceId RequiredValue="GuidMessageToLocalWorker"/>
+          </Filter>
+          <Interface Name="IDkmCustomMessageForwardReceiver"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+  </ManagedComponent>
+</Configuration>
