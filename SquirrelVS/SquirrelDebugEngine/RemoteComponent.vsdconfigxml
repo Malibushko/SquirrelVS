@@ -2,7 +2,7 @@
 <Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
   <DefineGuid Name="GuidRemoteDebuggerComponent"     Value="1B0A9D0C-DC6D-485F-BCDB-843690517114"/>
   <DefineGuid Name="GuidMessageToRemote"             Value="A84822CB-A3B4-41A7-853E-9C83EA0A900F"/>
-  <DefineGuid Name="GuidRuntime"                     Value="510B336E-6933-4F4D-985F-6FB15CB41302"/>
+  <DefineGuid Name="GuidRuntime"                     Value="F0BD6D38-5132-4CC1-B97B-BF5FAC380EDC"/>
   <DefineGuid Name="GuidHelperSquirrelBreakpointHit" Value="D58A34F5-0573-4A23-B2BE-39486E6DACAA"/>
 
   <ManagedComponent
@@ -26,6 +26,12 @@
           <Interface Name="IDkmRuntimeBreakpointReceived"/>
         </InterfaceGroup>
 
+        <InterfaceGroup>
+          <Filter>
+            <RuntimeId RequiredValue="GuidRuntime"/>
+          </Filter>
+          <Interface Name="IDkmRuntimeMonitorBreakpointHandler"/>
+        </InterfaceGroup>
       </Implements>
     </Class>
   </ManagedComponent>

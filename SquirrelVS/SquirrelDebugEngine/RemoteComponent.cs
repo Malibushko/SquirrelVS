@@ -13,7 +13,7 @@ using System.Text;
 
 namespace SquirrelDebugEngine
 {
-  public class RemoteComponent : IDkmCustomMessageForwardReceiver, IDkmRuntimeBreakpointReceived
+  public class RemoteComponent : IDkmCustomMessageForwardReceiver, IDkmRuntimeBreakpointReceived, IDkmRuntimeMonitorBreakpointHandler
   {
     void IDkmRuntimeBreakpointReceived.OnRuntimeBreakpointReceived(
         DkmRuntimeBreakpoint _Breakpoint, 
@@ -22,27 +22,34 @@ namespace SquirrelDebugEngine
         DkmEventDescriptorS  _EventDescriptior
       )
     {
-      DkmProcess Process = _Thread.Process;
-
-      _Thread.GetCurrentFrameInfo(out ulong _ReturnAddress, out ulong _FrameBase, out ulong _VFrame);
-
-      BreakpointHitData Data = new BreakpointHitData
+      try
       {
-        BreakpointID  = _Breakpoint.UniqueId,
-        ThreadID      = _Thread.UniqueId,
-        ReturnAddress = _ReturnAddress,
-        FrameBase     = _FrameBase,
-        vFrame        = _VFrame
-      };
+        DkmProcess Process = _Thread.Process;
 
-      DkmCustomMessage.Create(
-            _Thread.Process.Connection,
-            _Thread.Process,
-            MessageToLocal.Guid,
-            (int)MessageToLocal.MessageType.BreakpointHit,
-            Data.Encode(),
-            null
-          ).SendHigher();
+        _Thread.GetCurrentFrameInfo(out ulong _ReturnAddress, out ulong _FrameBase, out ulong _VFrame);
+
+        BreakpointHitData Data = new BreakpointHitData
+        {
+          BreakpointID = _Breakpoint.UniqueId,
+          ThreadID = _Thread.UniqueId,
+          ReturnAddress = _ReturnAddress,
+          FrameBase = _FrameBase,
+          vFrame = _VFrame
+        };
+
+        DkmCustomMessage.Create(
+              _Thread.Process.Connection,
+              _Thread.Process,
+              MessageToLocal.Guid,
+              (int)MessageToLocal.MessageType.BreakpointHit,
+              Data.Encode(),
+              null
+            ).SendHigher();
+      }
+      catch (Exception)
+      {
+
+      }
     }
 
     #region Interface
@@ -159,6 +166,49 @@ namespace SquirrelDebugEngine
     {
       Utility.TryWritePointerVariable(_Process, _Data.DebugHookNativeAddress, _Data.HelperHookAddress);
       Utility.TryWriteByteVariable(_Process, _Data.DebugHookNative, 1);
+    }
+
+    #endregion
+
+    #region RuntimeMonitorHandler
+
+    void IDkmRuntimeMonitorBreakpointHandler.EnableRuntimeBreakpoint(
+        DkmRuntimeBreakpoint _Breakpoint
+      )
+    {
+      DkmCustomMessage.Create(
+        _Breakpoint.Process.Connection,
+        _Breakpoint.Process,
+        MessageToLocal.Guid,
+        (int)MessageToLocal.MessageType.Symbols,
+        "enable breakpoint",
+        null).SendHigher();
+    }
+
+    void IDkmRuntimeMonitorBreakpointHandler.TestRuntimeBreakpoint(
+        DkmRuntimeBreakpoint _Breakpoint
+      )
+    {
+      DkmCustomMessage.Create(
+        _Breakpoint.Process.Connection,
+        _Breakpoint.Process,
+        MessageToLocal.Guid,
+        (int)MessageToLocal.MessageType.Symbols,
+        "test breakpoint",
+        null).SendHigher();
+    }
+
+    void IDkmRuntimeMonitorBreakpointHandler.DisableRuntimeBreakpoint(
+        DkmRuntimeBreakpoint _Breakpoint
+      )
+    {
+      DkmCustomMessage.Create(
+        _Breakpoint.Process.Connection,
+        _Breakpoint.Process,
+        MessageToLocal.Guid,
+        (int)MessageToLocal.MessageType.Symbols,
+        "disable breakpoint",
+        null).SendHigher();
     }
     #endregion
   }

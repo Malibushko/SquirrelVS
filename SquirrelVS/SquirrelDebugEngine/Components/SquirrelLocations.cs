@@ -12,5 +12,8 @@ namespace SquirrelDebugEngine
 
     public ulong CloseStartLocation;
     public ulong CloseEndLocation;
+
+    public ulong LoadFileStartLocation;
+    public ulong LoadFileEndLocation;
   }
 }

@@ -38,6 +38,9 @@ namespace SquirrelDebugEngine
               Locations.CloseStartLocation = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_close", out _).GetValueOrDefault(0);
               Locations.CloseEndLocation   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "sq_close", out _).GetValueOrDefault(0);
 
+              Locations.LoadFileStartLocation  = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sqstd_loadfile", out _).GetValueOrDefault(0);
+              Locations.LoadFileEndLocation    = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "sqstd_loadfile", out _).GetValueOrDefault(0);
+
               return DkmCustomMessage.Create(
                   Process.Connection,
                   Process,

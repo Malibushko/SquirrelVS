@@ -1,18 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 
 <Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="GuidMessageToLocal" Value="E98BF0CF-D479-4F2F-9B05-F0A5B2877175"/>
+  <DefineGuid Name="GuidSymbolProvider" Value="3AFE0003-855D-48EA-8C56-1024CB473B52"/>
+
   <ManagedComponent
     ComponentId="890F3CD9-729B-40EC-924A-D44403F242F4"
     ComponentLevel="9995000"
     AssemblyName="SquirrelDebugEngine">
-
+  
     <Class Name="SquirrelDebugEngine.LocalComponent">
       <Implements>
         <InterfaceGroup>
           <NoFilter/>
           <Interface Name="IDkmModuleInstanceLoadNotification"/>
+        </InterfaceGroup>
+        
+        <InterfaceGroup>
+          <Filter>
+            <SourceId RequiredValue="GuidMessageToLocal"/>
+          </Filter>
           <Interface Name="IDkmCustomMessageCallbackReceiver"/>
         </InterfaceGroup>
+
+        <InterfaceGroup>
+          <Filter>
+            <SymbolProviderId RequiredValue="GuidSymbolProvider"/>
+          </Filter>
+          <Interface Name="IDkmSymbolQuery"/>
+          <Interface Name="IDkmSymbolCompilerIdQuery"/>
+          <Interface Name="IDkmSymbolDocumentCollectionQuery"/>
+          <Interface Name="IDkmSymbolDocumentSpanQuery"/>
+          <Interface Name="IDkmModuleUserCodeDeterminer"/>
+          <Interface Name="IDkmSymbolHiddenAttributeQuery"/>
+        </InterfaceGroup>
+        
       </Implements>
     </Class>
   </ManagedComponent>

@@ -13,10 +13,12 @@ using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.Debugger.Symbols;
 
 namespace SquirrelDebugEngine
 {
-  public class LocalComponent : IDkmModuleInstanceLoadNotification, IDkmCustomMessageCallbackReceiver
+  public class LocalComponent : IDkmModuleInstanceLoadNotification, IDkmCustomMessageCallbackReceiver, 
+                                IDkmSymbolQuery, IDkmSymbolCompilerIdQuery, IDkmSymbolDocumentCollectionQuery, IDkmSymbolDocumentSpanQuery, IDkmModuleUserCodeDeterminer, IDkmSymbolHiddenAttributeQuery
   {
     private bool IsInjectRequested = false;
 
@@ -89,6 +91,13 @@ namespace SquirrelDebugEngine
               return null;
             break;
         }
+
+        case MessageToLocal.MessageType.Symbols:
+        {
+          string Message = _Message.Parameter1 as string;
+          
+          return null;
+        }
       }
 
       return _Message.SendHigher();
@@ -157,6 +166,13 @@ namespace SquirrelDebugEngine
           "Close squirrel vm",
           _ProcessData.SquirrelLocations.CloseStartLocation).GetValueOrDefault(Guid.Empty);
 
+        BreakpointsInfo.SquirrelLoadFile = AttachmentHelpers.CreateTargetFunctionBreakpointAtAddress(
+          _Process,
+          _ProcessData.SquirrelModule,
+          "sq_compilebuffer",
+          "Loads a new script",
+          _ProcessData.SquirrelLocations.LoadFileEndLocation).GetValueOrDefault(Guid.Empty);
+
         string AssemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         string DLLPathName = Path.Combine(AssemblyFolder, "SquirrelDebugHelper.dll");
@@ -221,6 +237,9 @@ namespace SquirrelDebugEngine
       HelperBreaks.SquirrelHelperStepOut       = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepOut").GetValueOrDefault(Guid.Empty);
       HelperBreaks.SquirrelHelperAsyncBreak    = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperAsyncBreak").GetValueOrDefault(Guid.Empty);
       
+      HelperBreaks.WorkingDirectoryAddress       = AttachmentHelpers.FindVariableAddress(_Module, "WorkingDirectory");
+      HelperBreaks.SquirrelBreakpointDataAddress = AttachmentHelpers.FindVariableAddress(_Module, "BreakpointData");
+
       _ProcessData.HelperStartAddress = _Module.BaseAddress;
       _ProcessData.HelperEndAddress   = _ProcessData.HelperStartAddress + _Module.Size;
 
@@ -233,7 +252,7 @@ namespace SquirrelDebugEngine
       {
         switch (InitializedValue.Value)
         {
-          case 127: // Not Initialized
+          case 0: // Not Initialized
           {
             var OnInitializedBreakpoint = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperInitialized");
 
@@ -293,12 +312,14 @@ namespace SquirrelDebugEngine
 
       if (LocalData.HelperState != HelperState.Initialized)
       {
-        LocalData.SquirrelThread = _Thread;
-
+        LocalData.SquirrelThread        = _Thread;
+        LocalData.SquirrelHandleAddress = _SquirrelHandleAddress.Value;
         _Thread.Suspend(true);
 
         return;
       }
+
+      LocalData.Symbols.FetchOrCreate(_SquirrelHandleAddress.Value);
 
       DkmCustomMessage.Create(
           _Process.Connection,
@@ -308,6 +329,135 @@ namespace SquirrelDebugEngine
           LocalData.HookData.Encode(),
           null
         ).SendLower();
+    }
+
+    bool HasPendingBreakpoint(DkmProcess process, LocalProcessData processData, string filePath)
+    {
+        foreach (var pendingBreakpoint in process.GetPendingBreakpoints())
+        {
+          if (pendingBreakpoint is DkmPendingFileLineBreakpoint pendingFileLineBreakpoint)
+          {
+            var sourcePosition = pendingFileLineBreakpoint.GetCurrentSourcePosition();
+
+          if (sourcePosition != null && sourcePosition.DocumentName == filePath)
+            return true;
+          }
+      }
+
+      return false;
+    }
+
+    #endregion
+
+    #region Symbol Provider
+    object IDkmSymbolQuery.GetSymbolInterface(
+        DkmModule _Module, 
+        Guid      _InterfaceID
+      )
+    {
+      return _Module.GetSymbolInterface(_InterfaceID);
+    }
+
+    DkmSourcePosition IDkmSymbolQuery.GetSourcePosition(
+        DkmInstructionSymbol   _Instruction, 
+        DkmSourcePositionFlags _Flags, 
+        DkmInspectionSession   _Session, 
+        out bool               _StartOfLine
+      )
+    {
+      return _Instruction.GetSourcePosition(_Flags, _Session, out _StartOfLine);
+    }
+
+    DkmCompilerId IDkmSymbolCompilerIdQuery.GetCompilerId(
+        DkmInstructionSymbol _Instruction, 
+        DkmInspectionSession _Session
+      )
+    {
+      return new DkmCompilerId(Guids.SquirrelCompilerID, Guids.SquirrelLanguageID);
+    }
+
+    DkmResolvedDocument[] IDkmSymbolDocumentCollectionQuery.FindDocuments(
+        DkmModule       _Module, 
+        DkmSourceFileId _SourceField
+      )
+    {
+      DkmModuleInstance ModuleInstance = _Module.GetModuleInstances()
+                                          .OfType<DkmModuleInstance>()
+                                          .FirstOrDefault(Module => Module.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
+
+      if (ModuleInstance == null)
+        return _Module.FindDocuments(_SourceField);
+
+      DkmProcess       Process     = ModuleInstance.Process;
+      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
+
+      lock (ProcessData.Symbols)
+      {
+        foreach (var SquirrelVM in ProcessData.Symbols.SquirrelHandles)
+        {
+          foreach (var Source in SquirrelVM.Value.Scripts)
+          {
+            if (Source.Value.ResolvedFilename == null)
+            {
+              var ScriptSource = ProcessData.Symbols.FetchScriptSource(Source.Key);
+
+              if (ScriptSource?.ResolvedFilename != null)
+                Source.Value.ResolvedFilename = ScriptSource.ResolvedFilename;
+              else
+                throw new NotImplementedException($"Unable to locate {Source.Key}");
+            }
+
+            var Filename = Source.Value.ResolvedFilename;
+
+            if (Filename == _SourceField.DocumentName)
+            {
+              var DataItem = new ResolvedDocumentItem
+              {
+                ScriptData = Source.Value
+              };
+
+              return new DkmResolvedDocument[1] {
+                DkmResolvedDocument.Create(
+                    _Module,
+                    _SourceField.DocumentName,
+                    null,
+                    DkmDocumentMatchStrength.FullPath,
+                    DkmResolvedDocumentWarning.None,
+                    false,
+                    DataItem)
+              };
+            }
+          }
+        }
+      }
+
+      /* 
+        Compare by SHA1 hash also 
+       */
+
+      return _Module.FindDocuments(_SourceField);
+    }
+
+    DkmInstructionSymbol[] IDkmSymbolDocumentSpanQuery.FindSymbols(
+        DkmResolvedDocument _ResolvedDocument, 
+        DkmTextSpan         _TextSpan, 
+        string              _Text, 
+        out DkmSourcePosition[] _SymbolLocation
+      )
+    {
+      var SourceFileID = DkmSourceFileId.Create(_ResolvedDocument.DocumentName, null, null, null);
+
+      var ResultSpan = new DkmTextSpan(_TextSpan.StartLine, _TextSpan.EndLine, 0, 0);
+
+      _SymbolLocation = new DkmSourcePosition[1] { DkmSourcePosition.Create(SourceFileID, ResultSpan) };
+
+      return new DkmInstructionSymbol[1] { DkmCustomInstructionSymbol.Create(_ResolvedDocument.Module, Guids.SquirrelRuntimeID, null, (ulong)((_TextSpan.StartLine << 16) + 0), null) };
+    }
+    bool IDkmModuleUserCodeDeterminer.IsUserCode(
+        DkmModuleInstance _Module
+      )
+    {
+      return true;
     }
 
     #endregion
@@ -335,6 +485,8 @@ namespace SquirrelDebugEngine
             ProcessData.HookData.Encode(),
             null
           ).SendLower();
+
+        ProcessData.WorkingDirectory = Utility.ReadStringVariable(_Process, KnownBreakpoints.WorkingDirectoryAddress, 1024);
 
         ProcessData.SquirrelThread.Resume(true);
 
@@ -364,13 +516,66 @@ namespace SquirrelDebugEngine
         return true;
       }
       
+      if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelLoadFile)
+      {
+        var InspectionSession = EvaluationHelpers.CreateInspectionSession(_Process, Thread, _BreakpointData, out DkmStackWalkFrame Frame);
+
+        var SourceNameAddress = EvaluationHelpers.TryEvaluateAddressExpression("filename", InspectionSession, Thread, Frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
+        
+        if (!SourceNameAddress.HasValue)
+          throw new Exception("Unable to locate source name");
+
+        string SourceName = Utility.ReadStringVariable(_Process, SourceNameAddress.Value, 256);
+
+        string SourcePath = Path.Combine(ProcessData.WorkingDirectory, SourceName);
+
+        string ScriptContent = File.ReadAllText(SourcePath);
+        
+        var Message = DkmCustomMessage.Create(
+            _Process.Connection,
+            _Process,
+            Guid.Empty,
+            1,
+            Encoding.UTF8.GetBytes(SourcePath),
+            null
+          );
+
+        SymbolsVM Symbols = ProcessData.Symbols.FetchOrCreate(ProcessData.SquirrelHandleAddress);
+        
+        Symbols.AddScriptSource(SourceName, ScriptContent, null);
+        Symbols.FetchScriptSource(SourceName).ResolvedFilename = SourcePath;
+
+        Message.SendToVsService(Guids.SquirelDebuggerComponentID, true);
+      }
+
       if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperAsyncBreak)
       {
+        SquirrelBreakpointData Data = new SquirrelBreakpointData(_Process, KnownBreakpoints.SquirrelBreakpointDataAddress);
+
         return true;
       }
 
       return false;
     }
+
+    void IDkmSymbolHiddenAttributeQuery.IsHiddenCode(
+        DkmInstructionSymbol instruction, 
+        DkmWorkList workList, 
+        DkmInspectionSession inspectionSession, 
+        DkmInstructionAddress instructionAddress, 
+        DkmCompletionRoutine<DkmIsHiddenCodeAsyncResult> completionRoutine
+      )
+    {
+      try
+      {
+        completionRoutine.Invoke(new DkmIsHiddenCodeAsyncResult());
+        
+      } catch (Exception Exception)
+      {
+        Debug.WriteLine($"Expection thrown in IsHiddenCode: ${Exception.Message}");
+      }
+    }
+
     #endregion
   }
 }

@@ -1,9 +1,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <cstdint>
 
 extern "C"
 {
-  __declspec(dllexport) volatile char IsInitialized = 127;
+  __declspec(dllexport) volatile char IsInitialized = 0;
 
   __declspec(dllexport) char WorkingDirectory[1024] = {};
 
@@ -101,6 +102,16 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
 #include "squirrel/3.1/squirrel.h"
 
+struct SquirrelBreakpointData
+{
+  SQInteger      Type;
+  const SQChar * SourceName;
+  SQInteger      Line;
+  const SQChar * FunctionName;
+};
+
+extern "C" __declspec(dllexport) SquirrelBreakpointData BreakpointData = {};
+
 extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     HSQUIRRELVM    _SquirrelVM,
     SQInteger      _Type,
@@ -109,5 +120,7 @@ extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     const SQChar * _FunctionName
   )
 {
+  BreakpointData = SquirrelBreakpointData{ _Type, _SourceName, _Line, _FunctionName };
+
   OnSquirrelHelperAsyncBreak();
 }

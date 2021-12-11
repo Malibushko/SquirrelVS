@@ -35,12 +35,18 @@ namespace SquirrelDebugEngine
     public HookData                 HookData;
 
     public DkmThread                SquirrelThread;
+    public ulong                    SquirrelHandleAddress;
+
+    public SymbolStore              Symbols = new SymbolStore();
+
+    public string                   WorkingDirectory;
   }
 
   public class SquirrelBreakpoints : DkmDataItem
   {
     public Guid SquirrelOpenBreakpoint;
     public Guid SquirrelCloseBreakpoint;
+    public Guid SquirrelLoadFile;
 
     public Guid SquirrelHelperBreakpointHit;
     public Guid SquirrelHelperStepComplete;
@@ -48,5 +54,8 @@ namespace SquirrelDebugEngine
     public Guid SquirrelHelperStepOut;
     public Guid SquirrelHelperAsyncBreak;
     public Guid SquirrelHelperInitialized;
+
+    public ulong WorkingDirectoryAddress;
+    public ulong SquirrelBreakpointDataAddress;
   }
 }

@@ -8,6 +8,8 @@ namespace SquirrelDebugEngine
 {
   static public class Guids
   {
+    public static readonly Guid SquirrelPackageID          = new Guid("A391C18F-274F-4F9C-A8B1-F053E3C0738F");
+    public static readonly Guid SquirelDebuggerComponentID = new Guid("A5A48B02-119E-4DD3-9FFE-2B0D67C06EC0");
     public static readonly Guid SquirrelLocalComponentID  = new Guid("8557CDDA-FC8B-4BB3-A47B-BBBC86F36402");
     public static readonly Guid SquirrelRemoteComponentID = new Guid("8086DEE7-4FCD-4C9E-9F6F-8C4B8237E7A3");
 
