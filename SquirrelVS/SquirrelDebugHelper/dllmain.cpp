@@ -8,6 +8,16 @@ extern "C"
 
   __declspec(dllexport) char WorkingDirectory[1024] = {};
 
+  __declspec(dllexport) __declspec(noinline) void OnSquirrelFunctionCall()
+  {
+    volatile char dummy = 0;
+  }
+
+  __declspec(dllexport) __declspec(noinline) void OnSquirrelFunctionReturn()
+  {
+    volatile char dummy = 0;
+  }
+
   __declspec(dllexport) __declspec(noinline) void OnSquirrelHelperInitialized()
   {
     volatile char dummy = 0;
@@ -105,9 +115,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 struct SquirrelBreakpointData
 {
   SQInteger      Type;
-  SQChar *       SourceName;
+  const SQChar * SourceName;
   SQInteger      Line;
-  SQChar *       FunctionName;
+  const SQChar * FunctionName;
 };
 
 static_assert(sizeof(SquirrelBreakpointData) == 32, "Unexpected align");
@@ -117,6 +127,8 @@ extern "C" __declspec(dllexport) SQInteger              ActiveBreakpointCount = 
 extern "C" __declspec(dllexport) SquirrelBreakpointData ActiveBreakpoints[256] = {};
 extern "C" __declspec(dllexport) char                   BreakpointsStringBuffer[256 * 256] = {};
 
+extern "C" __declspec(dllexport) SquirrelBreakpointData StackInfo = {};
+
 extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     HSQUIRRELVM    _SquirrelVM,
     SQInteger      _Type,
@@ -125,6 +137,17 @@ extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     const SQChar * _FunctionName
   )
 {
+  StackInfo.Type         = _Type;
+  StackInfo.SourceName   = _SourceName;
+  StackInfo.Line         = _Line;
+  StackInfo.FunctionName = _FunctionName;
+
+  if (_Type == 'c')
+    OnSquirrelFunctionCall();
+  else
+  if (_Type == 'r')
+    OnSquirrelFunctionReturn();
+
   for (int i = 0; i < ActiveBreakpointCount; i++)
   {
     if (!_SourceName || !ActiveBreakpoints[i].SourceName)
@@ -135,7 +158,8 @@ extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     {
       HitBreakpointIndex = i;
 
-      OnSquirrelHelperAsyncBreak();
+      if (_Type == 'l')
+        OnSquirrelHelperAsyncBreak();
 
       break;
     }

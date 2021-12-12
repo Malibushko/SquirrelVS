@@ -13,11 +13,11 @@ using System.IO;
 using System.Reflection;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.VisualStudio.Debugger.Symbols;
+using System.Collections.Generic;
 
 namespace SquirrelDebugEngine
 {
-  public class LocalComponent : IDkmModuleInstanceLoadNotification, IDkmCustomMessageCallbackReceiver, 
+  public class LocalComponent : IDkmCallStackFilter, IDkmModuleInstanceLoadNotification, IDkmCustomMessageCallbackReceiver, 
                                 IDkmSymbolQuery, IDkmSymbolCompilerIdQuery, IDkmSymbolDocumentCollectionQuery, IDkmSymbolDocumentSpanQuery, IDkmModuleUserCodeDeterminer, IDkmSymbolHiddenAttributeQuery
   {
     private bool IsInjectRequested = false;
@@ -92,10 +92,11 @@ namespace SquirrelDebugEngine
             break;
         }
 
-        case MessageToLocal.MessageType.Symbols:
+        case MessageToLocal.MessageType.ComponentException:
         {
-          string Message = _Message.Parameter1 as string;
-          
+          string Message = Encoding.UTF8.GetString(_Message.Parameter1 as byte[]);
+
+          Debug.WriteLine($"Exception in RemoteComponent: '{Message}'");
           break;
         }
       }
@@ -237,12 +238,17 @@ namespace SquirrelDebugEngine
       HelperBreaks.SquirrelHelperStepInto      = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepInto").GetValueOrDefault(Guid.Empty);
       HelperBreaks.SquirrelHelperStepOut       = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepOut").GetValueOrDefault(Guid.Empty);
       HelperBreaks.SquirrelHelperAsyncBreak    = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperAsyncBreak").GetValueOrDefault(Guid.Empty);
-      
+
+      HelperBreaks.SquirrelHelperFunctionCall   = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelFunctionCall").GetValueOrDefault(Guid.Empty);
+      HelperBreaks.SquirrelHelperFunctionReturn = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelFunctionReturn").GetValueOrDefault(Guid.Empty);
+
       HelperBreaks.WorkingDirectoryAddress               = AttachmentHelpers.FindVariableAddress(_Module, "WorkingDirectory");
       HelperBreaks.SquirrelHitBreakpointIndexAddress     = AttachmentHelpers.FindVariableAddress(_Module, "HitBreakpointIndex");
       HelperBreaks.SquirrelActiveBreakpointsCountAddress = AttachmentHelpers.FindVariableAddress(_Module, "ActiveBreakpointCount");
       HelperBreaks.SquirrelActiveBreakpointsAddress      = AttachmentHelpers.FindVariableAddress(_Module, "ActiveBreakpoints");
       HelperBreaks.SquirrelBreakpointsBufferAddress      = AttachmentHelpers.FindVariableAddress(_Module, "BreakpointsStringBuffer");
+
+      HelperBreaks.SquirrelStackInfoAddress      = AttachmentHelpers.FindVariableAddress(_Module, "StackInfo");
 
       DkmCustomMessage.Create(
           Process.Connection,
@@ -343,23 +349,8 @@ namespace SquirrelDebugEngine
         ).SendLower();
     }
 
-    bool HasPendingBreakpoint(DkmProcess process, LocalProcessData processData, string filePath)
-    {
-        foreach (var pendingBreakpoint in process.GetPendingBreakpoints())
-        {
-          if (pendingBreakpoint is DkmPendingFileLineBreakpoint pendingFileLineBreakpoint)
-          {
-            var sourcePosition = pendingFileLineBreakpoint.GetCurrentSourcePosition();
-
-          if (sourcePosition != null && sourcePosition.DocumentName == filePath)
-            return true;
-          }
-      }
-
-      return false;
-    }
-
     #endregion
+
 
     #region Symbol Provider
     object IDkmSymbolQuery.GetSymbolInterface(
@@ -377,6 +368,39 @@ namespace SquirrelDebugEngine
         out bool               _StartOfLine
       )
     {
+      var Process = _Session?.Process;
+
+      if (Process == null)
+      {
+        DkmCustomModuleInstance ModuleInstance = _Instruction.Module.GetModuleInstances()
+                                                    .OfType<DkmCustomModuleInstance>()
+                                                    .FirstOrDefault(el => el.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
+
+        if (ModuleInstance == null)
+          return _Instruction.GetSourcePosition(_Flags, _Session, out _StartOfLine);
+
+        Process = ModuleInstance.Process;
+      }
+
+      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
+
+      var InstructionSymbol = _Instruction as DkmCustomInstructionSymbol;
+
+      if (InstructionSymbol != null && InstructionSymbol.EntityId != null)
+      {
+        SquirrelBreakpointData CallData = new SquirrelBreakpointData();
+        
+        CallData.ReadFrom(InstructionSymbol.EntityId.ToArray());
+
+        string FilePath = Path.Combine(ProcessData.WorkingDirectory, CallData.SourceName);
+
+        _StartOfLine = true;
+
+        return DkmSourcePosition.Create(
+            DkmSourceFileId.Create(FilePath, null, null, null),
+            new DkmTextSpan((int)CallData.Line, (int)CallData.Line, 0, 0)
+          );
+      }
       return _Instruction.GetSourcePosition(_Flags, _Session, out _StartOfLine);
     }
 
@@ -427,13 +451,13 @@ namespace SquirrelDebugEngine
               {
                 ScriptData = Source.Value
               };
-
+              
               return new DkmResolvedDocument[1] {
                 DkmResolvedDocument.Create(
                     _Module,
                     _SourceField.DocumentName,
                     null,
-                    DkmDocumentMatchStrength.FullPath,
+                    DkmDocumentMatchStrength.FileName,
                     DkmResolvedDocumentWarning.None,
                     false,
                     DataItem)
@@ -459,7 +483,7 @@ namespace SquirrelDebugEngine
     {
       var SourceFileID = DkmSourceFileId.Create(_ResolvedDocument.DocumentName, null, null, null);
 
-      var ResultSpan = new DkmTextSpan(_TextSpan.StartLine, _TextSpan.EndLine, 0, 0);
+      var ResultSpan = new DkmTextSpan(_TextSpan.StartLine, _TextSpan.StartLine, 0, 0);
 
       _SymbolLocation = new DkmSourcePosition[1] { DkmSourcePosition.Create(SourceFileID, ResultSpan) };
 
@@ -566,6 +590,22 @@ namespace SquirrelDebugEngine
         Message.SendToVsService(Guids.SquirelDebuggerComponentID, true);
       }
 
+      if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionCall || 
+          _BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionReturn)
+      {
+        if (KnownBreakpoints.SquirrelStackInfoAddress == 0)
+          return false;
+
+        var Address = KnownBreakpoints.SquirrelStackInfoAddress;
+
+        SquirrelBreakpointData BreakpointData = new SquirrelBreakpointData(_Process, Address);
+
+        if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionCall)
+          Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process).Callstack.Push(BreakpointData);
+        else
+          Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process).Callstack.Pop();
+      }
+
       return false;
     }
 
@@ -579,12 +619,153 @@ namespace SquirrelDebugEngine
     {
       try
       {
-        completionRoutine.Invoke(new DkmIsHiddenCodeAsyncResult());
+        completionRoutine.Invoke(new DkmIsHiddenCodeAsyncResult(Microsoft.VisualStudio.Debugger.Clr.DkmNonUserCodeFlags.None, null));
         
       } catch (Exception Exception)
       {
         Debug.WriteLine($"Expection thrown in IsHiddenCode: ${Exception.Message}");
       }
+    }
+
+    DkmStackWalkFrame[] IDkmCallStackFilter.FilterNextFrame(
+        DkmStackContext   _StackContext, 
+        DkmStackWalkFrame _Input
+      )
+    {
+      if (_Input == null)
+        return null; // End of stack
+
+      if (_Input.InstructionAddress == null)
+        return new DkmStackWalkFrame[1] { _Input };
+
+      if (_Input.InstructionAddress.ModuleInstance == null)
+        return new DkmStackWalkFrame[1] { _Input };
+
+      var StackContextData = Utility.GetOrCreateDataItem<SquirrelStackContextData>(_StackContext);
+
+      if (_Input.ModuleInstance != null && _Input.ModuleInstance.Name == "SquirrelDebugHelper.dll")
+      {
+        StackContextData.HideTopLibraryFrames = true;
+
+        return new DkmStackWalkFrame[1] { DkmStackWalkFrame.Create(
+            _StackContext.Thread,
+            _Input.InstructionAddress, 
+            _Input.FrameBase,
+            _Input.FrameSize,
+            DkmStackWalkFrameFlags.NonuserCode | DkmStackWalkFrameFlags.Hidden,
+            "[Squirrel Debugger Helper]",
+            _Input.Registers, 
+            _Input.Annotations
+          ) };
+      }
+
+      DkmProcess       Process     = _StackContext.InspectionSession.Process;
+      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
+
+      string MethodName = GetFrameMethodName(_Input);
+
+      if (MethodName == null)
+        return new DkmStackWalkFrame[1] { _Input };
+
+      if (MethodName == "sq_call")
+      {
+        if (ProcessData.SquirrelHandleAddress != StackContextData.HandleAddress)
+        {
+          StackContextData.HandleAddress      = ProcessData.SquirrelHandleAddress;
+          StackContextData.SeenSquirrelFrames = false;
+          StackContextData.SkipFramesCount    = 0;
+          StackContextData.SeenFramesCount    = 0;
+        }
+
+        if (ProcessData.RuntimeInstance == null)
+        {
+          ProcessData.RuntimeInstance = Process.GetRuntimeInstances().OfType<DkmCustomRuntimeInstance>().FirstOrDefault(el => el.Id.RuntimeType == Guids.SquirrelRuntimeID);
+
+          if (ProcessData.RuntimeInstance == null)
+            return new DkmStackWalkFrame[1] { _Input };
+
+          ProcessData.ModuleInstance = ProcessData.RuntimeInstance.GetModuleInstances().OfType<DkmCustomModuleInstance>().FirstOrDefault(el => el.Module != null && el.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
+
+          if (ProcessData.ModuleInstance == null)
+            return new DkmStackWalkFrame[1] { _Input };
+        }
+
+        var SquirrelFrameFlags = _Input.Flags;
+
+        SquirrelFrameFlags &= ~(DkmStackWalkFrameFlags.NonuserCode | DkmStackWalkFrameFlags.UserStatusNotDetermined);
+
+        if ((_Input.Flags | DkmStackWalkFrameFlags.TopFrame) != 0)
+          SquirrelFrameFlags |= DkmStackWalkFrameFlags.TopFrame;
+
+        var Callstack      = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process).Callstack;
+        var SquirrelFrames = new List<DkmStackWalkFrame>();
+
+        foreach (var Call in Callstack)
+        {
+          if (StackContextData.SkipFramesCount != 0)
+          {
+            StackContextData.SkipFramesCount--;
+            continue;
+          }
+
+          DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
+              ProcessData.RuntimeInstance, 
+              ProcessData.ModuleInstance, 
+              Call.Encode(), 
+              0, 
+              null, 
+              null
+            );
+
+          SquirrelFrames.Add(DkmStackWalkFrame.Create(
+            _StackContext.Thread,
+            InstructionAddress,
+            _Input.FrameBase,
+            _Input.FrameSize,
+            SquirrelFrameFlags,
+            $"[{Call.SourceName} {Call.FunctionName}:{Call.Line}]",
+            _Input.Registers,
+            _Input.Annotations
+          ));
+
+          StackContextData.SeenFramesCount++;
+        }
+
+        StackContextData.SkipFramesCount = StackContextData.SeenFramesCount;
+        return SquirrelFrames.ToArray();
+      }
+      else 
+      if (MethodName.StartsWith("SQVM") || MethodName.StartsWith("sq_") || MethodName.StartsWith("sqstd_"))
+      {
+        var Flags = (_Input.Flags & ~DkmStackWalkFrameFlags.UserStatusNotDetermined) | DkmStackWalkFrameFlags.NonuserCode;
+
+        Flags |= DkmStackWalkFrameFlags.Hidden;
+
+        return new DkmStackWalkFrame[1] { 
+          DkmStackWalkFrame.Create(
+              _StackContext.Thread, 
+              _Input.InstructionAddress,
+              _Input.FrameBase,
+              _Input.FrameSize, 
+              Flags,
+              _Input.Description,
+              _Input.Registers,
+              _Input.Annotations
+            ) };
+      }
+
+      return new DkmStackWalkFrame[1] { _Input };
+    }
+    string GetFrameMethodName(
+        DkmStackWalkFrame _Input
+      )
+    {
+      string MethodName = null;
+
+      if (_Input.BasicSymbolInfo != null)
+          MethodName = _Input.BasicSymbolInfo.MethodName;
+
+      return MethodName;
     }
 
     #endregion

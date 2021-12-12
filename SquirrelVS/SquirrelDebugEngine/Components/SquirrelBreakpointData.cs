@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.VisualStudio.Debugger;
+using System.Collections.ObjectModel;
+using System.IO;
 
 namespace SquirrelDebugEngine
 {
@@ -14,6 +12,11 @@ namespace SquirrelDebugEngine
     public ulong  Line;
     public string FunctionName;
 
+    public bool IsShown = false;
+    public SquirrelBreakpointData()
+    {
+
+    }
     public SquirrelBreakpointData(
         DkmProcess _Process,
         ulong      _BreakpointDataAddress
@@ -39,6 +42,39 @@ namespace SquirrelDebugEngine
 
       if (FunctionNameAddress.HasValue)
         FunctionName = Utility.ReadStringVariable(_Process, FunctionNameAddress.Value, 256);
+    }
+    public ReadOnlyCollection<byte> Encode()
+    {
+      using (var Stream = new MemoryStream())
+      {
+        using (var Writer = new BinaryWriter(Stream))
+        {
+          Writer.Write(Type);
+          Writer.Write(SourceName);
+          Writer.Write(Line);
+          Writer.Write(FunctionName);
+
+          Writer.Flush();
+
+          return new ReadOnlyCollection<byte>(Stream.ToArray());
+        }
+      }
+    }
+
+    public bool ReadFrom(byte[] _Data)
+    {
+      using (var Stream = new MemoryStream(_Data))
+      {
+        using (var Reader = new BinaryReader(Stream))
+        {
+          Type         = Reader.ReadUInt64();
+          SourceName   = Reader.ReadString();
+          Line         = Reader.ReadUInt64();
+          FunctionName = Reader.ReadString();
+        }
+      }
+
+      return true;
     }
   }
 }

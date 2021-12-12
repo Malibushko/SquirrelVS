@@ -13,6 +13,11 @@
       <Implements>
         <InterfaceGroup>
           <NoFilter/>
+          <Interface Name="IDkmCallStackFilter"/>
+        </InterfaceGroup>
+        
+        <InterfaceGroup>
+          <NoFilter/>
           <Interface Name="IDkmModuleInstanceLoadNotification"/>
         </InterfaceGroup>
         

@@ -183,7 +183,7 @@ namespace SquirrelVS
 
                 string breakpointPath = breakpoint3.File;
 
-                if (breakpointPath == Path)
+                if (breakpointPath.EndsWith(".nut"))
                 {
                   reload.Add(new BreakpointData
                   {
@@ -205,9 +205,7 @@ namespace SquirrelVS
             }
 
             foreach (var breakpoint in reload)
-            {
               breakpoint.source.Delete();
-            }
 
             foreach (var breakpoint in reload)
             {

@@ -36,11 +36,14 @@ namespace SquirrelDebugEngine
           
           if (BreakpointIndex.HasValue)
           {
-            if (BreakpointIndex.Value < (ulong)ProcessData.ActiveBreakpoints.Count)
+            if (BreakpointIndex.Value < (ulong)ProcessData.ActiveBreakpoints.Count && BreakpointIndex.Value != ulong.MaxValue)
             {
               if (ProcessData.ActiveBreakpoints[(int)BreakpointIndex.Value].Breakpoint != null)
               {
                 ProcessData.ActiveBreakpoints[(int)BreakpointIndex.Value].Breakpoint.OnHit(_Thread, false);
+                
+                Utility.TryWriteUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndexAddress, ulong.MaxValue);
+
                 return;
               }
             }
@@ -67,9 +70,16 @@ namespace SquirrelDebugEngine
               null
             ).SendHigher();
       }
-      catch (Exception)
+      catch (Exception Exception)
       {
-
+        DkmCustomMessage.Create(
+          _Thread.Process.Connection,
+          _Thread.Process,
+          MessageToLocal.Guid,
+          (int)MessageToLocal.MessageType.ComponentException,
+          Encoding.UTF8.GetBytes(Exception.Message),
+          null
+        ).SendHigher();
       }
     }
 

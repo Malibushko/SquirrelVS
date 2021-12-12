@@ -56,12 +56,17 @@ namespace SquirrelDebugEngine
     public Guid SquirrelHelperAsyncBreak;
     public Guid SquirrelHelperInitialized;
 
+    public Guid SquirrelHelperFunctionCall;
+    public Guid SquirrelHelperFunctionReturn;
+    
     public ulong WorkingDirectoryAddress;
 
     public ulong SquirrelHitBreakpointIndexAddress;
     public ulong SquirrelActiveBreakpointsCountAddress;
     public ulong SquirrelActiveBreakpointsAddress;
     public ulong SquirrelBreakpointsBufferAddress;
+
+    public ulong SquirrelStackInfoAddress;
 
     public byte[] Encode()
     {
@@ -79,11 +84,16 @@ namespace SquirrelDebugEngine
           Writer.Write(SquirrelHelperAsyncBreak.ToByteArray());
           Writer.Write(SquirrelHelperInitialized.ToByteArray());
 
+          Writer.Write(SquirrelHelperFunctionCall.ToByteArray());
+          Writer.Write(SquirrelHelperFunctionReturn.ToByteArray());
+
           Writer.Write(WorkingDirectoryAddress);
           Writer.Write(SquirrelHitBreakpointIndexAddress);
           Writer.Write(SquirrelActiveBreakpointsCountAddress);
           Writer.Write(SquirrelActiveBreakpointsAddress);
           Writer.Write(SquirrelBreakpointsBufferAddress);
+
+          Writer.Write(SquirrelStackInfoAddress);
 
           Writer.Flush();
 
@@ -108,11 +118,16 @@ namespace SquirrelDebugEngine
           SquirrelHelperAsyncBreak    = new Guid(Reader.ReadBytes(16));
           SquirrelHelperInitialized   = new Guid(Reader.ReadBytes(16));
 
+          SquirrelHelperFunctionCall   = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperFunctionReturn = new Guid(Reader.ReadBytes(16));
+
           WorkingDirectoryAddress               = Reader.ReadUInt64();
           SquirrelHitBreakpointIndexAddress     = Reader.ReadUInt64();
           SquirrelActiveBreakpointsCountAddress = Reader.ReadUInt64();
-          SquirrelActiveBreakpointsAddress      = Reader.ReadUInt64();
-          SquirrelBreakpointsBufferAddress      = Reader.ReadUInt64();
+          SquirrelActiveBreakpointsAddress = Reader.ReadUInt64();
+          SquirrelBreakpointsBufferAddress = Reader.ReadUInt64();
+
+          SquirrelStackInfoAddress      = Reader.ReadUInt64();
         }
       }
 

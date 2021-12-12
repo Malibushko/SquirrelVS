@@ -52,7 +52,9 @@
     <Compile Include="Components\LocalProcessData.cs" />
     <Compile Include="Components\RemoteProcessData.cs" />
     <Compile Include="Components\SquirrelBreakpointData.cs" />
+    <Compile Include="Components\SquirrelCallStack.cs" />
     <Compile Include="Components\SquirrelLocations.cs" />
+    <Compile Include="Components\StackContextData.cs" />
     <Compile Include="Components\SymbolsVM.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="LocalComponent.cs" />
