@@ -36,6 +36,7 @@ namespace SquirrelDebugEngine
       Offset += sizeof(ulong);
 
       var FunctionNameAddress = Utility.ReadPointerVariable(_Process, _BreakpointDataAddress + Offset);
+
       if (FunctionNameAddress.HasValue)
         FunctionName = Utility.ReadStringVariable(_Process, FunctionNameAddress.Value, 256);
     }

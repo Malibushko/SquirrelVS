@@ -87,8 +87,8 @@ namespace SquirrelDebugEngine
             
             Data.Decode(_Message.Parameter1 as byte[]);
 
-            if (OnBreakPointHit(_Message.Process, Data))
-              return null;
+            OnBreakPointHit(_Message.Process, Data);
+
             break;
         }
 
@@ -96,11 +96,11 @@ namespace SquirrelDebugEngine
         {
           string Message = _Message.Parameter1 as string;
           
-          return null;
+          break;
         }
       }
 
-      return _Message.SendHigher();
+      return null;
     }
     #endregion
 
@@ -166,7 +166,7 @@ namespace SquirrelDebugEngine
           "Close squirrel vm",
           _ProcessData.SquirrelLocations.CloseStartLocation).GetValueOrDefault(Guid.Empty);
 
-        BreakpointsInfo.SquirrelLoadFile = AttachmentHelpers.CreateTargetFunctionBreakpointAtAddress(
+        BreakpointsInfo.SquirrelLoadFileBreakpoint = AttachmentHelpers.CreateTargetFunctionBreakpointAtAddress(
           _Process,
           _ProcessData.SquirrelModule,
           "sq_compilebuffer",
@@ -225,6 +225,7 @@ namespace SquirrelDebugEngine
       )
     {
       var IsInitialzeAddress = _Module.FindExportName("IsInitialized", false);
+      var Process            = _Module.Process;
 
       if (IsInitialzeAddress == null)
         return false;
@@ -237,15 +238,26 @@ namespace SquirrelDebugEngine
       HelperBreaks.SquirrelHelperStepOut       = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepOut").GetValueOrDefault(Guid.Empty);
       HelperBreaks.SquirrelHelperAsyncBreak    = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperAsyncBreak").GetValueOrDefault(Guid.Empty);
       
-      HelperBreaks.WorkingDirectoryAddress       = AttachmentHelpers.FindVariableAddress(_Module, "WorkingDirectory");
-      HelperBreaks.SquirrelBreakpointDataAddress = AttachmentHelpers.FindVariableAddress(_Module, "BreakpointData");
+      HelperBreaks.WorkingDirectoryAddress               = AttachmentHelpers.FindVariableAddress(_Module, "WorkingDirectory");
+      HelperBreaks.SquirrelHitBreakpointIndexAddress     = AttachmentHelpers.FindVariableAddress(_Module, "HitBreakpointIndex");
+      HelperBreaks.SquirrelActiveBreakpointsCountAddress = AttachmentHelpers.FindVariableAddress(_Module, "ActiveBreakpointCount");
+      HelperBreaks.SquirrelActiveBreakpointsAddress      = AttachmentHelpers.FindVariableAddress(_Module, "ActiveBreakpoints");
+      HelperBreaks.SquirrelBreakpointsBufferAddress      = AttachmentHelpers.FindVariableAddress(_Module, "BreakpointsStringBuffer");
+
+      DkmCustomMessage.Create(
+          Process.Connection,
+          Process, 
+          MessageToRemote.Guid,
+          (int)MessageToRemote.MessageType.BreakpointsInfo,
+          HelperBreaks.Encode(),
+          null
+        ).SendLower();
 
       _ProcessData.HelperStartAddress = _Module.BaseAddress;
       _ProcessData.HelperEndAddress   = _ProcessData.HelperStartAddress + _Module.Size;
 
       _ProcessData.DebugHookAddress = AttachmentHelpers.FindFunctionAddress(_Module, "SquirrelDebugHook_3_1");
 
-      var Process          = _Module.Process;
       var InitializedValue = Utility.ReadUintVariable(Process, IsInitialzeAddress.CPUInstructionPart.InstructionPointer);
 
       if (InitializedValue.HasValue)
@@ -451,7 +463,13 @@ namespace SquirrelDebugEngine
 
       _SymbolLocation = new DkmSourcePosition[1] { DkmSourcePosition.Create(SourceFileID, ResultSpan) };
 
-      return new DkmInstructionSymbol[1] { DkmCustomInstructionSymbol.Create(_ResolvedDocument.Module, Guids.SquirrelRuntimeID, null, (ulong)((_TextSpan.StartLine << 16) + 0), null) };
+      var BreakpointData = new BreakpointData
+      {
+        SourceName = _ResolvedDocument.GetDataItem<ResolvedDocumentItem>().ScriptData.SourceName,
+        Line       = (ulong)_TextSpan.StartLine
+      };
+
+      return new DkmInstructionSymbol[1] { DkmCustomInstructionSymbol.Create(_ResolvedDocument.Module, Guids.SquirrelRuntimeID, BreakpointData.Encode(), (ulong)((_TextSpan.StartLine << 16) + 0), null) };
     }
     bool IDkmModuleUserCodeDeterminer.IsUserCode(
         DkmModuleInstance _Module
@@ -516,7 +534,7 @@ namespace SquirrelDebugEngine
         return true;
       }
       
-      if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelLoadFile)
+      if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelLoadFileBreakpoint)
       {
         var InspectionSession = EvaluationHelpers.CreateInspectionSession(_Process, Thread, _BreakpointData, out DkmStackWalkFrame Frame);
 
@@ -546,13 +564,6 @@ namespace SquirrelDebugEngine
         Symbols.FetchScriptSource(SourceName).ResolvedFilename = SourcePath;
 
         Message.SendToVsService(Guids.SquirelDebuggerComponentID, true);
-      }
-
-      if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperAsyncBreak)
-      {
-        SquirrelBreakpointData Data = new SquirrelBreakpointData(_Process, KnownBreakpoints.SquirrelBreakpointDataAddress);
-
-        return true;
       }
 
       return false;

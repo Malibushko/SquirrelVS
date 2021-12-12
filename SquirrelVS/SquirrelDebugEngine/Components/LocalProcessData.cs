@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Native;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
+using System.IO;
 
 namespace SquirrelDebugEngine
 {
@@ -46,7 +47,7 @@ namespace SquirrelDebugEngine
   {
     public Guid SquirrelOpenBreakpoint;
     public Guid SquirrelCloseBreakpoint;
-    public Guid SquirrelLoadFile;
+    public Guid SquirrelLoadFileBreakpoint;
 
     public Guid SquirrelHelperBreakpointHit;
     public Guid SquirrelHelperStepComplete;
@@ -56,6 +57,66 @@ namespace SquirrelDebugEngine
     public Guid SquirrelHelperInitialized;
 
     public ulong WorkingDirectoryAddress;
-    public ulong SquirrelBreakpointDataAddress;
+
+    public ulong SquirrelHitBreakpointIndexAddress;
+    public ulong SquirrelActiveBreakpointsCountAddress;
+    public ulong SquirrelActiveBreakpointsAddress;
+    public ulong SquirrelBreakpointsBufferAddress;
+
+    public byte[] Encode()
+    {
+      using (var Stream = new MemoryStream())
+      {
+        using (var Writer = new BinaryWriter(Stream))
+        {
+          Writer.Write(SquirrelOpenBreakpoint.ToByteArray());
+          Writer.Write(SquirrelCloseBreakpoint.ToByteArray());
+          Writer.Write(SquirrelLoadFileBreakpoint.ToByteArray());
+          Writer.Write(SquirrelHelperBreakpointHit.ToByteArray());
+          Writer.Write(SquirrelHelperStepComplete.ToByteArray());
+          Writer.Write(SquirrelHelperStepInto.ToByteArray());
+          Writer.Write(SquirrelHelperStepOut.ToByteArray());
+          Writer.Write(SquirrelHelperAsyncBreak.ToByteArray());
+          Writer.Write(SquirrelHelperInitialized.ToByteArray());
+
+          Writer.Write(WorkingDirectoryAddress);
+          Writer.Write(SquirrelHitBreakpointIndexAddress);
+          Writer.Write(SquirrelActiveBreakpointsCountAddress);
+          Writer.Write(SquirrelActiveBreakpointsAddress);
+          Writer.Write(SquirrelBreakpointsBufferAddress);
+
+          Writer.Flush();
+
+          return Stream.ToArray();
+        }
+      }
+    }
+
+    public bool ReadFrom(byte[] data)
+    {
+      using (var stream = new MemoryStream(data))
+      {
+        using (var Reader = new BinaryReader(stream))
+        {
+          SquirrelOpenBreakpoint      = new Guid(Reader.ReadBytes(16));
+          SquirrelCloseBreakpoint     = new Guid(Reader.ReadBytes(16));
+          SquirrelLoadFileBreakpoint  = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperBreakpointHit = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperStepComplete  = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperStepInto      = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperStepOut       = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperAsyncBreak    = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperInitialized   = new Guid(Reader.ReadBytes(16));
+
+          WorkingDirectoryAddress               = Reader.ReadUInt64();
+          SquirrelHitBreakpointIndexAddress     = Reader.ReadUInt64();
+          SquirrelActiveBreakpointsCountAddress = Reader.ReadUInt64();
+          SquirrelActiveBreakpointsAddress      = Reader.ReadUInt64();
+          SquirrelBreakpointsBufferAddress      = Reader.ReadUInt64();
+        }
+      }
+
+      return true;
+    }
   }
 }

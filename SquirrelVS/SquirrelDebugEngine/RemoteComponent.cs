@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Debugger.Stepping;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
 using System.Text;
-
+using System.Linq;
 
 namespace SquirrelDebugEngine
 {
@@ -24,7 +24,28 @@ namespace SquirrelDebugEngine
     {
       try
       {
-        DkmProcess Process = _Thread.Process;
+        DkmProcess          Process     = _Thread.Process;
+        RemoteProcessData   ProcessData = Utility.GetOrCreateDataItem<RemoteProcessData>(Process);
+        SquirrelBreakpoints Breakpoints = Utility.GetOrCreateDataItem<SquirrelBreakpoints>(Process);
+
+        if (_Breakpoint.UniqueId == Breakpoints.SquirrelHelperAsyncBreak)
+        {
+          _EventDescriptior.Suppress();
+
+          var BreakpointIndex = Utility.ReadUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndexAddress);
+          
+          if (BreakpointIndex.HasValue)
+          {
+            if (BreakpointIndex.Value < (ulong)ProcessData.ActiveBreakpoints.Count)
+            {
+              if (ProcessData.ActiveBreakpoints[(int)BreakpointIndex.Value].Breakpoint != null)
+              {
+                ProcessData.ActiveBreakpoints[(int)BreakpointIndex.Value].Breakpoint.OnHit(_Thread, false);
+                return;
+              }
+            }
+          }
+        }
 
         _Thread.GetCurrentFrameInfo(out ulong _ReturnAddress, out ulong _FrameBase, out ulong _VFrame);
 
@@ -73,7 +94,8 @@ namespace SquirrelDebugEngine
             {
               SquirrelBreakpoints BreakpoinsData = Utility.GetOrCreateDataItem<SquirrelBreakpoints>(Process);
 
-              BreakpoinsData = _Message.Parameter1 as SquirrelBreakpoints;
+              BreakpoinsData.ReadFrom(_Message.Parameter1 as byte[]);
+
               break;
             }
 
@@ -176,39 +198,101 @@ namespace SquirrelDebugEngine
         DkmRuntimeBreakpoint _Breakpoint
       )
     {
-      DkmCustomMessage.Create(
-        _Breakpoint.Process.Connection,
-        _Breakpoint.Process,
-        MessageToLocal.Guid,
-        (int)MessageToLocal.MessageType.Symbols,
-        "enable breakpoint",
-        null).SendHigher();
+      DkmProcess        Process     = _Breakpoint.Process;
+      RemoteProcessData ProcessData = Utility.GetOrCreateDataItem<RemoteProcessData>(Process);
+
+      var RuntimeInstructionBreakpoint = _Breakpoint as DkmRuntimeInstructionBreakpoint;
+
+      if (RuntimeInstructionBreakpoint == null)
+        return;
+
+      var InstructionAddress = RuntimeInstructionBreakpoint.InstructionAddress as DkmCustomInstructionAddress;
+
+      if (InstructionAddress == null)
+        return;
+
+      BreakpointData Break = new BreakpointData();
+
+      Break.ReadFrom(InstructionAddress.EntityId.ToArray());
+      Break.Breakpoint = _Breakpoint;
+
+      ProcessData.ActiveBreakpoints.Add(Break);
+
+      UpdateBreakpoints(Process, ProcessData);
     }
 
     void IDkmRuntimeMonitorBreakpointHandler.TestRuntimeBreakpoint(
         DkmRuntimeBreakpoint _Breakpoint
       )
     {
-      DkmCustomMessage.Create(
-        _Breakpoint.Process.Connection,
-        _Breakpoint.Process,
-        MessageToLocal.Guid,
-        (int)MessageToLocal.MessageType.Symbols,
-        "test breakpoint",
-        null).SendHigher();
+      // Empty
     }
 
     void IDkmRuntimeMonitorBreakpointHandler.DisableRuntimeBreakpoint(
         DkmRuntimeBreakpoint _Breakpoint
       )
     {
-      DkmCustomMessage.Create(
-        _Breakpoint.Process.Connection,
-        _Breakpoint.Process,
-        MessageToLocal.Guid,
-        (int)MessageToLocal.MessageType.Symbols,
-        "disable breakpoint",
-        null).SendHigher();
+      DkmProcess        Process     = _Breakpoint.Process;
+      RemoteProcessData ProcessData = Utility.GetOrCreateDataItem<RemoteProcessData>(Process);
+
+      var RuntimeInstructionBreakpoint = _Breakpoint as DkmRuntimeInstructionBreakpoint;
+
+      if (RuntimeInstructionBreakpoint == null)
+        return;
+
+      var InstructionAddress = RuntimeInstructionBreakpoint.InstructionAddress as DkmCustomInstructionAddress;
+
+      if (InstructionAddress == null)
+        return;
+
+      BreakpointData Break = new BreakpointData();
+      Break.ReadFrom(InstructionAddress.EntityId.ToArray());
+
+      ProcessData.ActiveBreakpoints.Remove(Break);
+
+      UpdateBreakpoints(Process, ProcessData);
+    }
+
+    void UpdateBreakpoints(
+        DkmProcess        _Process, 
+        RemoteProcessData _ProcessData
+      )
+    {
+      var BreakpointsInfo = Utility.GetOrCreateDataItem<SquirrelBreakpoints>(_Process);
+
+      int BreakpointsCount = _ProcessData.ActiveBreakpoints.Count;
+
+      if (BreakpointsCount > 256)
+        BreakpointsCount = 256;
+
+      ulong StringBufferAddress = BreakpointsInfo.SquirrelBreakpointsBufferAddress;
+
+      Utility.TryWriteUlongVariable(_Process, BreakpointsInfo.SquirrelActiveBreakpointsCountAddress, (ulong)BreakpointsCount);
+
+      for (int i = 0; i < BreakpointsCount; i++)
+      {
+        ulong DataAddress = BreakpointsInfo.SquirrelActiveBreakpointsAddress + (ulong)i * 32;
+        var Breakpoint    = _ProcessData.ActiveBreakpoints[i];
+        byte[] Encoded    = Encoding.BigEndianUnicode.GetBytes(Breakpoint.SourceName);
+
+        // Write Type
+        Utility.TryWriteUlongVariable(_Process, DataAddress, 0);
+        
+        // Write file name to buffer
+        Utility.TryWriteRawBytes(_Process, StringBufferAddress, Encoded);
+        Utility.TryWriteByteVariable(_Process, StringBufferAddress + (ulong)Encoded.Length, 0);
+
+        // Write to pointer
+        Utility.TryWritePointerVariable(_Process, DataAddress + sizeof(ulong), StringBufferAddress);
+
+        StringBufferAddress += (ulong)Encoded.Length + 1;
+
+        // Write Line
+        Utility.TryWriteUlongVariable(_Process, DataAddress + sizeof(ulong) * 2, Breakpoint.Line);
+
+        // Write function (zero for now)
+        Utility.TryWritePointerVariable(_Process, DataAddress + sizeof(ulong) * 3, 0);
+      }
     }
     #endregion
   }

@@ -105,12 +105,17 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 struct SquirrelBreakpointData
 {
   SQInteger      Type;
-  const SQChar * SourceName;
+  SQChar *       SourceName;
   SQInteger      Line;
-  const SQChar * FunctionName;
+  SQChar *       FunctionName;
 };
 
-extern "C" __declspec(dllexport) SquirrelBreakpointData BreakpointData = {};
+static_assert(sizeof(SquirrelBreakpointData) == 32, "Unexpected align");
+
+extern "C" __declspec(dllexport) SQInteger              HitBreakpointIndex = 0;
+extern "C" __declspec(dllexport) SQInteger              ActiveBreakpointCount = 0;
+extern "C" __declspec(dllexport) SquirrelBreakpointData ActiveBreakpoints[256] = {};
+extern "C" __declspec(dllexport) char                   BreakpointsStringBuffer[256 * 256] = {};
 
 extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     HSQUIRRELVM    _SquirrelVM,
@@ -120,7 +125,19 @@ extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     const SQChar * _FunctionName
   )
 {
-  BreakpointData = SquirrelBreakpointData{ _Type, _SourceName, _Line, _FunctionName };
+  for (int i = 0; i < ActiveBreakpointCount; i++)
+  {
+    if (!_SourceName || !ActiveBreakpoints[i].SourceName)
+      return;
 
-  OnSquirrelHelperAsyncBreak();
+    if (//wcscmp(_SourceName, ActiveBreakpoints[i].SourceName) == 0 &&
+        _Line == ActiveBreakpoints[i].Line)
+    {
+      HitBreakpointIndex = i;
+
+      OnSquirrelHelperAsyncBreak();
+
+      break;
+    }
+  }
 }
