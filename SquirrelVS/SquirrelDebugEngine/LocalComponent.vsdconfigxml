@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 
 <Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
-  <DefineGuid Name="GuidMessageToLocal" Value="E98BF0CF-D479-4F2F-9B05-F0A5B2877175"/>
-  <DefineGuid Name="GuidSymbolProvider" Value="3AFE0003-855D-48EA-8C56-1024CB473B52"/>
-
+  <DefineGuid Name="GuidMessageToLocal"   Value="E98BF0CF-D479-4F2F-9B05-F0A5B2877175"/>
+  <DefineGuid Name="GuidSymbolProvider"   Value="3AFE0003-855D-48EA-8C56-1024CB473B52"/>
+  <DefineGuid Name="GuidSquirrelLanguage" Value="00F5E22A-3249-4481-9081-0E88AF62672E"/>
+  
   <ManagedComponent
     ComponentId="890F3CD9-729B-40EC-924A-D44403F242F4"
     ComponentLevel="9995000"
@@ -27,7 +28,15 @@
           </Filter>
           <Interface Name="IDkmCustomMessageCallbackReceiver"/>
         </InterfaceGroup>
-
+        
+        <InterfaceGroup>
+          <Filter>
+            <LanguageId RequiredValue="GuidSquirrelLanguage"/>
+          </Filter>
+          <Interface Name="IDkmLanguageExpressionEvaluator"/>
+          <Interface Name="IDkmLanguageInstructionDecoder"/>
+        </InterfaceGroup>
+        
         <InterfaceGroup>
           <Filter>
             <SymbolProviderId RequiredValue="GuidSymbolProvider"/>

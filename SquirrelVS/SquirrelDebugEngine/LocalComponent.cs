@@ -18,7 +18,8 @@ using System.Collections.Generic;
 namespace SquirrelDebugEngine
 {
   public class LocalComponent : IDkmCallStackFilter, IDkmModuleInstanceLoadNotification, IDkmCustomMessageCallbackReceiver, 
-                                IDkmSymbolQuery, IDkmSymbolCompilerIdQuery, IDkmSymbolDocumentCollectionQuery, IDkmSymbolDocumentSpanQuery, IDkmModuleUserCodeDeterminer, IDkmSymbolHiddenAttributeQuery
+                                IDkmSymbolQuery, IDkmSymbolCompilerIdQuery, IDkmSymbolDocumentCollectionQuery, IDkmSymbolDocumentSpanQuery, IDkmModuleUserCodeDeterminer, IDkmSymbolHiddenAttributeQuery,
+                                IDkmLanguageExpressionEvaluator, IDkmLanguageInstructionDecoder
   {
     private bool IsInjectRequested = false;
 
@@ -457,7 +458,7 @@ namespace SquirrelDebugEngine
                     _Module,
                     _SourceField.DocumentName,
                     null,
-                    DkmDocumentMatchStrength.FileName,
+                    DkmDocumentMatchStrength.FullPath,
                     DkmResolvedDocumentWarning.None,
                     false,
                     DataItem)
@@ -716,7 +717,7 @@ namespace SquirrelDebugEngine
               null, 
               null
             );
-
+          
           SquirrelFrames.Add(DkmStackWalkFrame.Create(
             _StackContext.Thread,
             InstructionAddress,
@@ -766,6 +767,89 @@ namespace SquirrelDebugEngine
           MethodName = _Input.BasicSymbolInfo.MethodName;
 
       return MethodName;
+    }
+
+    #endregion
+
+    #region Expression Evaluator
+    void IDkmLanguageExpressionEvaluator.EvaluateExpression(
+        DkmInspectionContext                                   _InspectionContext, 
+        DkmWorkList                                            _WorkList, 
+        DkmLanguageExpression                                  _Expression, 
+        DkmStackWalkFrame                                      _StackFrame, 
+        DkmCompletionRoutine<DkmEvaluateExpressionAsyncResult> _CompletionRoutine
+      )
+    {
+      _InspectionContext.EvaluateExpression(_WorkList, _Expression, _StackFrame, _CompletionRoutine);
+    }
+
+    void IDkmLanguageExpressionEvaluator.GetChildren(
+        DkmEvaluationResult                             _Result, 
+        DkmWorkList                                     _WorkList, 
+        int                                             _InitialRequestChild, 
+        DkmInspectionContext                            _InspectionContext, 
+        DkmCompletionRoutine<DkmGetChildrenAsyncResult> _CompletionRoutine
+      )
+    {
+      _Result.GetChildren(_WorkList, _InitialRequestChild, _InspectionContext, _CompletionRoutine);
+    }
+
+    void IDkmLanguageExpressionEvaluator.GetFrameLocals(
+        DkmInspectionContext                               _InspectionContext, 
+        DkmWorkList                                        _WorkList, 
+        DkmStackWalkFrame                                  _StackFrame, 
+        DkmCompletionRoutine<DkmGetFrameLocalsAsyncResult> _CompletionRoutine
+      )
+    {
+      _InspectionContext.GetFrameLocals(_WorkList, _StackFrame, _CompletionRoutine);
+    }
+
+    void IDkmLanguageExpressionEvaluator.GetFrameArguments(
+        DkmInspectionContext                                  _InspectionContext, 
+        DkmWorkList                                           _WorkList, 
+        DkmStackWalkFrame                                     _Frame, 
+        DkmCompletionRoutine<DkmGetFrameArgumentsAsyncResult> _CompletionRoutine
+      )
+    {
+      _InspectionContext.GetFrameArguments(_WorkList, _Frame, _CompletionRoutine);
+    }
+
+    void IDkmLanguageExpressionEvaluator.GetItems(
+        DkmEvaluationResultEnumContext                     _EnumContext, 
+        DkmWorkList                                        _WorkList, 
+        int                                                _StartIndex, 
+        int                                                _Count, 
+        DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> _CompletionRoutine
+      )
+    {
+      _EnumContext.GetItems(_WorkList, _StartIndex, _Count, _CompletionRoutine);
+    }
+
+    void IDkmLanguageExpressionEvaluator.SetValueAsString(
+        DkmEvaluationResult _Result,
+        string              _Value, 
+        int                 _Timeout, 
+        out string          _ErrorText
+      )
+    {
+      _Result.SetValueAsString(_Value, _Timeout, out _ErrorText);
+    }
+
+    string IDkmLanguageExpressionEvaluator.GetUnderlyingString(
+        DkmEvaluationResult _Result
+      )
+    {
+      return _Result.GetUnderlyingString();
+    }
+
+    string IDkmLanguageInstructionDecoder.GetMethodName(
+        DkmLanguageInstructionAddress _LanguageInstructionAddress, 
+        DkmVariableInfoFlags          _ArgumentFlags
+      )
+    {
+      if (_LanguageInstructionAddress.Language.Name != "C++")
+        return "Test";
+      return _LanguageInstructionAddress.GetMethodName(_ArgumentFlags);
     }
 
     #endregion

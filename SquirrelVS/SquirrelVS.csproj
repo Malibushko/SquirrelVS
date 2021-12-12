@@ -71,6 +71,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\Shared\.pkgdef">
+      <Link>.pkgdef</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="..\Shared\SquirrelDebugAttacher.exe">
       <Link>SquirrelDebugAttacher.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>

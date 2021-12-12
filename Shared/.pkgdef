@@ -1,0 +1,15 @@
+; Language name
+"Language"="Squirrel"
+
+; Language service (optional)
+;   If the adapter has an associated VS Language Service, specify its GUID in the "LanguageId" property
+;"LanguageId"="{00F5E22A-3249-4481-9081-0E88AF62672E}"
+
+[$RootKey$\AD7Metrics\ExpressionEvaluator\{00F5E22A-3249-4481-9081-0E88AF62672E}\{5E92C4F0-A9CA-49BB-8858-1EADF11B65BB}]
+"Language"="Squirrel"
+"Name"="Squirrel"
+
+[$RootKey$\AD7Metrics\ExpressionEvaluator\{00F5E22A-3249-4481-9081-0E88AF62672E}\{5E92C4F0-A9CA-49BB-8858-1EADF11B65BB}\Engine]
+"0"="{449EC4CC-30D2-4032-9256-EE18EB41B62B}"
+"1"="{92EF0900-2251-11D2-B72E-0000F87572EF}"
+"2"="{3B476D35-A401-11D2-AAD4-00C04F990171}"
