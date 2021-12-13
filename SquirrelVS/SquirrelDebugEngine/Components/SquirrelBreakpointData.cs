@@ -12,10 +12,8 @@ namespace SquirrelDebugEngine
     public ulong  Line;
     public string FunctionName;
 
-    public bool IsShown = false;
     public SquirrelBreakpointData()
     {
-
     }
     public SquirrelBreakpointData(
         DkmProcess _Process,

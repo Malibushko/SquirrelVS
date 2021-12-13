@@ -17,5 +17,6 @@
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
         <Asset Type="DebuggerEngineExtension"          Path="SquirrelDebugEngine.vsdconfig"/>
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="SquirrelSyntaxHighlight" Path="|SquirrelSyntaxHighlight|" />
     </Assets>
 </PackageManifest>

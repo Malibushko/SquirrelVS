@@ -68,6 +68,8 @@
     <ProjectReference Include="SquirrelSyntaxHighlight\SquirrelSyntaxHighlight.csproj">
       <Project>{44893ad0-4075-45ed-b491-24e6d1956feb}</Project>
       <Name>SquirrelSyntaxHighlight</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

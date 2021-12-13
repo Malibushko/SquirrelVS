@@ -50,6 +50,23 @@ namespace SquirrelDebugEngine
 
       return null;
     }
+    internal static long? TryEvaluateNumberExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
+    {
+      string result = ExecuteExpression(expression, inspectionSession, thread, input, flags, true, out ulong Address);
+
+      if (result == null)
+        return null;
+
+      if (long.TryParse(result, out long value))
+        return value;
+      else
+        return (long)Address;
+    }
+
+    internal static string TryEvaluateStringExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
+    {
+      return ExecuteExpression(expression + ",sb", inspectionSession, thread, input, flags, false, out _);
+    }
 
     internal static string ExecuteExpression(
           string _Expression,
@@ -90,6 +107,12 @@ namespace SquirrelDebugEngine
           {
             var Result = AsyncResult.ResultObject as DkmSuccessEvaluationResult;
 
+            if (Result != null && Result.Address == null) // void methods
+            {
+              TextResult   = Result.Value;
+              ResultAddress = 0;
+            }
+            else
             if (Result != null && Result.TagValue == DkmEvaluationResult.Tag.SuccessResult &&
                (_AllowZero || Result.Address.Value != 0))
             {

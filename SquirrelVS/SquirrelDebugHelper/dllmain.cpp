@@ -129,6 +129,12 @@ extern "C" __declspec(dllexport) char                   BreakpointsStringBuffer[
 
 extern "C" __declspec(dllexport) SquirrelBreakpointData StackInfo = {};
 
+extern "C" __declspec(dllexport) SQBool        BoolBuffer         = SQFalse;
+extern "C" __declspec(dllexport) SQInteger     IntegerBuffer      = 0;
+extern "C" __declspec(dllexport) SQFloat       FloatBuffer        = 0.f;
+extern "C" __declspec(dllexport) SQUserPointer PointerBuffer      = nullptr;
+extern "C" __declspec(dllexport) SQChar        StringBuffer[1024] = {};
+
 extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     HSQUIRRELVM    _SquirrelVM,
     SQInteger      _Type,

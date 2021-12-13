@@ -34,7 +34,6 @@
             <LanguageId RequiredValue="GuidSquirrelLanguage"/>
           </Filter>
           <Interface Name="IDkmLanguageExpressionEvaluator"/>
-          <Interface Name="IDkmLanguageInstructionDecoder"/>
         </InterfaceGroup>
         
         <InterfaceGroup>

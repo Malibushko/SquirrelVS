@@ -134,4 +134,13 @@ namespace SquirrelDebugEngine
       return true;
     }
   }
+
+  public class SquirrelBufferLocations : DkmDataItem
+  {
+    public ulong BoolBufferAddress        = 0;
+    public ulong IntegerBufferAddress     = 0;
+    public ulong FloatBufferAddress       = 0;
+    public ulong UserPointerBufferAddress = 0;
+    public ulong StringBufferAddress      = 0;
+  }
 }
