@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Breakpoints;
+using Microsoft.VisualStudio.Debugger.Stepping;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -54,7 +55,9 @@ namespace SquirrelDebugEngine
     public DkmCustomRuntimeInstance RuntimeInstance = null;
     public DkmCustomModuleInstance  ModuleInstance  = null;
     public DkmModule                Module          = null;
+    public DkmStepper               ActiveStepper   = null;
 
+    public SquirrelLocations        Locations       = null;
     public List<BreakpointData>     ActiveBreakpoints = new List<BreakpointData>();
   }
 }

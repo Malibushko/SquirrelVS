@@ -100,6 +100,14 @@ namespace SquirrelDebugEngine
           Debug.WriteLine($"Exception in RemoteComponent: '{Message}'");
           break;
         }
+
+        case MessageToLocal.MessageType.Symbols:
+        {
+          string Message = _Message.Parameter1 as string;
+
+          Debug.WriteLine($"Message from RemoteComponent: '{Message}'");
+          break;
+        }
       }
 
       return null;
@@ -134,6 +142,18 @@ namespace SquirrelDebugEngine
 
           _ProcessData.SquirrelModule    = _Module;
           _ProcessData.SquirrelLocations = Locations;
+
+          _ProcessData.SquirrelLocations.HelperStartAddress = _ProcessData.HelperStartAddress;
+          _ProcessData.SquirrelLocations.HelperEndAddress   = _ProcessData.HelperEndAddress;
+
+          DkmCustomMessage.Create(
+              _Module.Process.Connection,
+              _Module.Process,
+              MessageToRemote.Guid,
+              (int)MessageToRemote.MessageType.Locations,
+              _ProcessData.SquirrelLocations.Encode(),
+              null
+            ).SendLower();
         }
       }
 
@@ -242,6 +262,7 @@ namespace SquirrelDebugEngine
 
       HelperBreaks.SquirrelHelperFunctionCall   = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelFunctionCall").GetValueOrDefault(Guid.Empty);
       HelperBreaks.SquirrelHelperFunctionReturn = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelFunctionReturn").GetValueOrDefault(Guid.Empty);
+      HelperBreaks.SquirrelHelperFunctionLine   = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelFunctionLine").GetValueOrDefault(Guid.Empty);
 
       HelperBreaks.WorkingDirectoryAddress               = AttachmentHelpers.FindVariableAddress(_Module, "WorkingDirectory");
       HelperBreaks.SquirrelHitBreakpointIndexAddress     = AttachmentHelpers.FindVariableAddress(_Module, "HitBreakpointIndex");
@@ -250,6 +271,7 @@ namespace SquirrelDebugEngine
       HelperBreaks.SquirrelBreakpointsBufferAddress      = AttachmentHelpers.FindVariableAddress(_Module, "BreakpointsStringBuffer");
 
       HelperBreaks.SquirrelStackInfoAddress      = AttachmentHelpers.FindVariableAddress(_Module, "StackInfo");
+      HelperBreaks.StepperStateAddress           = AttachmentHelpers.FindVariableAddress(_Module, "StepperState");
 
       SquirrelBufferLocations BufferLocations = Utility.GetOrCreateDataItem<SquirrelBufferLocations>(Process);
 
@@ -257,7 +279,7 @@ namespace SquirrelDebugEngine
       BufferLocations.IntegerBufferAddress     = AttachmentHelpers.FindVariableAddress(_Module, "IntegerBuffer");
       BufferLocations.FloatBufferAddress       = AttachmentHelpers.FindVariableAddress(_Module, "FloatBuffer");
       BufferLocations.UserPointerBufferAddress = AttachmentHelpers.FindVariableAddress(_Module, "PointerBuffer");
-      BufferLocations.StringBufferAddress      = AttachmentHelpers.FindVariableAddress(_Module, "StringBufferAddress");
+      BufferLocations.StringBufferAddress      = AttachmentHelpers.FindVariableAddress(_Module, "StringBuffer");
 
       DkmCustomMessage.Create(
           Process.Connection,
@@ -429,7 +451,19 @@ namespace SquirrelDebugEngine
                 case SquirrelVariableInfo.Type.UserPointer:
                   break;
                 case SquirrelVariableInfo.Type.String:
-                  break;
+                {
+                   EvaluationHelpers.TryEvaluateStringExpression(
+                      $"sq_getstring({ProcessData.SquirrelHandleAddress}, -1, {BufferLocations.StringBufferAddress})",
+                      _Session,
+                      ParentFrame.Thread,
+                      ParentFrame,
+                      DkmEvaluationFlags.None
+                    );
+
+                    Info.Value = Utility.ReadStringVariable(_Process, BufferLocations.StringBufferAddress, 1024);
+
+                    break;
+                }
                 case SquirrelVariableInfo.Type.Closure:
                   break;
                 case SquirrelVariableInfo.Type.Array:
@@ -715,7 +749,8 @@ namespace SquirrelDebugEngine
       }
 
       if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionCall || 
-          _BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionReturn)
+          _BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionReturn || 
+          _BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionLine)
       {
         if (KnownBreakpoints.SquirrelStackInfoAddress == 0)
           return false;
@@ -724,10 +759,24 @@ namespace SquirrelDebugEngine
 
         SquirrelBreakpointData BreakpointData = new SquirrelBreakpointData(_Process, Address);
 
+        var Callstack = Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process).Callstack;
+
         if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionCall)
-          Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process).Callstack.Push(BreakpointData);
+        {
+          Callstack.Push(BreakpointData);
+        }
         else
-          Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process).Callstack.Pop();
+        if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionReturn)
+        {
+          Callstack.Pop();
+        }
+        else
+        if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperFunctionLine)
+        {
+          if (Callstack.Count > 0)
+            Callstack.Peek().Line = BreakpointData.Line;
+          
+        }
       }
 
       return false;

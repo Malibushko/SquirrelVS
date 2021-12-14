@@ -18,6 +18,11 @@ extern "C"
     volatile char dummy = 0;
   }
 
+  __declspec(dllexport) __declspec(noinline) void OnSquirrelFunctionLine()
+  {
+    volatile char dummy = 0;
+  }
+
   __declspec(dllexport) __declspec(noinline) void OnSquirrelHelperInitialized()
   {
     volatile char dummy = 0;
@@ -58,31 +63,6 @@ DWORD __stdcall BreakpointHookLoop(void * context)
 {
   while (true)
   {
-    if (AsyncBreakCode != 0)
-    {
-      OnSquirrelHelperAsyncBreak();
-
-      if (AsyncBreakCode == 2)
-      {
-        unsigned index = 2;
-        while (void * state = (void *)AsyncBreakData[index++])
-          ((int(*)(void *, void *, int, int))AsyncBreakData[0])(state, (void *)AsyncBreakData[1], 7, 0); // lua_sethook
-        AsyncBreakCode = 0;
-      }
-
-      if (AsyncBreakCode == 4)
-      {
-        unsigned index = 2;
-        while (void * state = (void *)AsyncBreakData[index++])
-          ((int(*)(void *, void *, int, int))AsyncBreakData[0])(state, (void *)AsyncBreakData[1], 0, 0); // lua_sethook
-        AsyncBreakCode = 0;
-      }
-
-      // If the code hasn't been cleared, it's a signal to stop the loop
-      if (AsyncBreakCode != 0)
-        break;
-    }
-
     Sleep(40);
   }
 
@@ -120,6 +100,14 @@ struct SquirrelBreakpointData
   const SQChar * FunctionName;
 };
 
+enum StepperState
+{
+  None,
+  StepInto,
+  StepOver,
+  StepOut
+};
+
 static_assert(sizeof(SquirrelBreakpointData) == 32, "Unexpected align");
 
 extern "C" __declspec(dllexport) SQInteger              HitBreakpointIndex = 0;
@@ -133,7 +121,11 @@ extern "C" __declspec(dllexport) SQBool        BoolBuffer         = SQFalse;
 extern "C" __declspec(dllexport) SQInteger     IntegerBuffer      = 0;
 extern "C" __declspec(dllexport) SQFloat       FloatBuffer        = 0.f;
 extern "C" __declspec(dllexport) SQUserPointer PointerBuffer      = nullptr;
-extern "C" __declspec(dllexport) SQChar        StringBuffer[1024] = {};
+extern "C" __declspec(dllexport) SQChar      * StringBuffer       = nullptr;
+
+extern "C" __declspec(dllexport) int           StepperState       = StepperState::None;
+
+int NestedCalls = 0;
 
 extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
     HSQUIRRELVM    _SquirrelVM,
@@ -153,11 +145,58 @@ extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
   else
   if (_Type == 'r')
     OnSquirrelFunctionReturn();
+  else
+  if (_Type == 'l')
+    OnSquirrelFunctionLine();
+  
 
+  switch (StepperState)
+  {
+    case StepperState::StepInto:
+    {
+      if (_Type == 'l')
+      {
+        NestedCalls = 0;
+
+        OnSquirrelHelperAsyncBreak();
+        return;
+      }
+      break;
+    }
+
+    case StepperState::StepOut:
+    {
+      if (_Type == 'r')
+      {
+        if (NestedCalls == 0)
+          StepperState = StepperState::StepOver;
+        else
+          NestedCalls--;
+      }
+      break;
+    }
+
+    case StepperState::StepOver:
+    {
+      if (_Type == 'l' && NestedCalls == 0)
+      {
+        OnSquirrelHelperAsyncBreak();
+        return;
+      }
+      else
+        if (_Type == 'c')
+          NestedCalls++;
+        else
+          if (_Type == 'r')
+            NestedCalls--;
+
+      break;
+    }
+  }
   for (int i = 0; i < ActiveBreakpointCount; i++)
   {
     if (!_SourceName || !ActiveBreakpoints[i].SourceName)
-      return;
+      break;
 
     if (//wcscmp(_SourceName, ActiveBreakpoints[i].SourceName) == 0 &&
         _Line == ActiveBreakpoints[i].Line)
@@ -165,8 +204,9 @@ extern "C" __declspec(dllexport) void SquirrelDebugHook_3_1(
       HitBreakpointIndex = i;
 
       if (_Type == 'l')
+      {
         OnSquirrelHelperAsyncBreak();
-
+      }
       break;
     }
   }

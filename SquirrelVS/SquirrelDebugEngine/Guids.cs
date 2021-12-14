@@ -41,6 +41,7 @@ namespace SquirrelDebugEngine
     {
       CreateRuntime,
       LocateHelper,
+      Locations,
       PauseBreakpoints,
       ResumeBreakpoints,
       BreakpointsInfo,

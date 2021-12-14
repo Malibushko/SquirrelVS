@@ -39,7 +39,7 @@ namespace SquirrelDebugEngine
       Integer       = SquirrelTypeMasks.INTEGER | SquirrelTypeMasks.SQOBJECT_NUMERIC | SquirrelTypeMasks.SQOBJECT_CANBEFALSE,
       Float         = SquirrelTypeMasks.FLOAT | SquirrelTypeMasks.SQOBJECT_NUMERIC | SquirrelTypeMasks.SQOBJECT_CANBEFALSE,
       UserPointer   = SquirrelTypeMasks.USER_POINTER, 
-      String        = SquirrelTypeMasks.STRING | SquirrelTypeMasks.SQOBJECT_CANBEFALSE,
+      String        = SquirrelTypeMasks.STRING | SquirrelTypeMasks.SQOBJECT_REF_COUNTED,
       Closure       = SquirrelTypeMasks.CLOSURE | SquirrelTypeMasks.SQOBJECT_REF_COUNTED,
       Array         = SquirrelTypeMasks.ARRAY | SquirrelTypeMasks.SQOBJECT_REF_COUNTED,
       NativeClosure = SquirrelTypeMasks.NATIVE_CLOSURE | SquirrelTypeMasks.SQOBJECT_REF_COUNTED,

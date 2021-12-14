@@ -13,7 +13,15 @@ using System.Linq;
 
 namespace SquirrelDebugEngine
 {
-  public class RemoteComponent : IDkmCustomMessageForwardReceiver, IDkmRuntimeBreakpointReceived, IDkmRuntimeMonitorBreakpointHandler
+  public enum StepperState
+  {
+    None,
+    StepInto,
+    StepOver,
+    StepOut
+  };
+
+  public class RemoteComponent : IDkmCustomMessageForwardReceiver, IDkmRuntimeBreakpointReceived, IDkmRuntimeMonitorBreakpointHandler, IDkmRuntimeStepper
   {
     void IDkmRuntimeBreakpointReceived.OnRuntimeBreakpointReceived(
         DkmRuntimeBreakpoint _Breakpoint, 
@@ -45,6 +53,21 @@ namespace SquirrelDebugEngine
                 Utility.TryWriteUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndexAddress, ulong.MaxValue);
 
                 return;
+              }
+              else 
+              if (ProcessData.ActiveStepper != null)
+              {
+                // Stepper breakpoint
+                StepperState State = (StepperState)Utility.ReadIntVariable(Process, Breakpoints.StepperStateAddress).GetValueOrDefault(0);
+
+                if (State != StepperState.None)
+                {
+                  Utility.TryWriteIntVariable(Process, Breakpoints.StepperStateAddress, (int)StepperState.None);
+
+                  ProcessData.ActiveStepper.OnStepComplete(_Thread, false);
+
+                  ProcessData.ActiveStepper = null;
+                }
               }
             }
           }
@@ -119,6 +142,15 @@ namespace SquirrelDebugEngine
 
               break;
             }
+
+          case MessageToRemote.MessageType.Locations:
+          {
+            if (ProcessData.Locations == null)
+              ProcessData.Locations = new SquirrelLocations();
+
+            ProcessData.Locations.ReadFrom(_Message.Parameter1 as byte[]);
+            break;
+          }
           default:
             throw new Exception("Invalid message code");
         }
@@ -201,7 +233,7 @@ namespace SquirrelDebugEngine
     }
 
     #endregion
-
+    
     #region RuntimeMonitorHandler
 
     void IDkmRuntimeMonitorBreakpointHandler.EnableRuntimeBreakpoint(
@@ -304,6 +336,149 @@ namespace SquirrelDebugEngine
         Utility.TryWritePointerVariable(_Process, DataAddress + sizeof(ulong) * 3, 0);
       }
     }
+    #endregion
+
+    #region Runtime Stepper
+
+    void IDkmRuntimeStepper.BeforeEnableNewStepper(
+        DkmRuntimeInstance _RuntimeInstance, 
+        DkmStepper         _Stepper
+      )
+    {
+      // Empty
+    }
+
+    bool IDkmRuntimeStepper.OwnsCurrentExecutionLocation(
+        DkmRuntimeInstance       _RuntimeInstance, 
+        DkmStepper               _Stepper, 
+        DkmStepArbitrationReason _Reason
+      )
+    {
+      var ProcessData = Utility.GetOrCreateDataItem<RemoteProcessData>(_RuntimeInstance.Process);
+
+      if (_Stepper.StartingAddress == null)
+        return false;
+
+      var InstructionAddress = _Stepper.StartingAddress.CPUInstructionPart.InstructionPointer;
+
+      if (ProcessData.Locations.HelperStartAddress >= InstructionAddress && InstructionAddress < ProcessData.Locations.HelperEndAddress)
+        return true;
+
+      if (ProcessData.Locations.CallStartLocation >= InstructionAddress && InstructionAddress < ProcessData.Locations.CallEndLocation)
+        return true;
+
+      return false;
+    }
+
+    void IDkmRuntimeStepper.Step(
+        DkmRuntimeInstance       _RuntimeInstance, 
+        DkmStepper               _Stepper, 
+        DkmStepArbitrationReason _Reason
+      )
+    {
+      if (_Stepper.StepKind == DkmStepKind.StepIntoSpecific)
+        throw new NotSupportedException();
+
+      DkmProcess          Process     = _RuntimeInstance.Process;
+      RemoteProcessData   ProcessData = Utility.GetOrCreateDataItem<RemoteProcessData>(Process);
+      SquirrelBreakpoints Breakpoitns = Utility.GetOrCreateDataItem<SquirrelBreakpoints>(Process);
+
+      if (ProcessData.ActiveStepper != null)
+      {
+        ProcessData.ActiveStepper.CancelStepper(_RuntimeInstance);
+
+        ClearStepperData(Process, ProcessData);
+      }
+
+      StepperState State = StepperState.None;
+
+      switch (_Stepper.StepKind)
+      {
+        case DkmStepKind.Into:
+          State = StepperState.StepInto;
+          break;
+        case DkmStepKind.Out:
+          State = StepperState.StepOut;
+          break;
+        case DkmStepKind.Over:
+          State = StepperState.StepOver;
+          break;
+      }
+
+      ProcessData.ActiveStepper = _Stepper;
+
+      Utility.TryWriteIntVariable(Process, Breakpoitns.StepperStateAddress, (int)State);
+    }
+
+    void IDkmRuntimeStepper.StopStep(
+        DkmRuntimeInstance _RuntimeInstance, 
+        DkmStepper         _Stepper
+      )
+    {
+      ClearStepperData(_RuntimeInstance.Process, Utility.GetOrCreateDataItem<RemoteProcessData>(_RuntimeInstance.Process));
+    }
+
+    void IDkmRuntimeStepper.AfterSteppingArbitration(
+        DkmRuntimeInstance       _RuntimeInstance, 
+        DkmStepper               _Stepper, 
+        DkmStepArbitrationReason _Reason, 
+        DkmRuntimeInstance       _NewControllingRuntimeInstance
+      )
+    {
+      // Empty
+    }
+
+    void IDkmRuntimeStepper.OnNewControllingRuntimeInstance(
+        DkmRuntimeInstance       _RuntimeInstance, 
+        DkmStepper               _Stepper, 
+        DkmStepArbitrationReason _Reason, 
+        DkmRuntimeInstance       _ControllingRuntimeInstance
+      )
+    {
+      ClearStepperData(_RuntimeInstance.Process, Utility.GetOrCreateDataItem<RemoteProcessData>(_RuntimeInstance.Process));
+    }
+
+    bool IDkmRuntimeStepper.StepControlRequested(
+        DkmRuntimeInstance       _RuntimeInstance, 
+        DkmStepper               _Stepper, 
+        DkmStepArbitrationReason _Reason, 
+        DkmRuntimeInstance       _CallingRuntimeInstance
+      )
+    {
+      return true;
+    }
+
+    void IDkmRuntimeStepper.TakeStepControl(
+        DkmRuntimeInstance       _RuntimeInstance, 
+        DkmStepper               _Stepper, 
+        bool                     _LeaveGuardsInPlace, 
+        DkmStepArbitrationReason _Reason, 
+        DkmRuntimeInstance       _CallingRuntimeInstance
+      )
+    {
+      ClearStepperData(_RuntimeInstance.Process, Utility.GetOrCreateDataItem<RemoteProcessData>(_RuntimeInstance.Process));
+    }
+
+    void IDkmRuntimeStepper.NotifyStepComplete(
+        DkmRuntimeInstance _RuntimeInstance, 
+        DkmStepper         _Stepper
+      )
+    {
+      // Empty
+    }
+
+    void ClearStepperData(
+        DkmProcess        _Process,
+        RemoteProcessData _ProcessData
+      )
+    {
+      var BreakInfo = Utility.GetOrCreateDataItem<SquirrelBreakpoints>(_Process);
+
+      Utility.TryWriteIntVariable(_Process, BreakInfo.StepperStateAddress, (int)StepperState.None);
+
+      _ProcessData.ActiveStepper = null;
+    }
+
     #endregion
   }
 }

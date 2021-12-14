@@ -58,7 +58,8 @@ namespace SquirrelDebugEngine
 
     public Guid SquirrelHelperFunctionCall;
     public Guid SquirrelHelperFunctionReturn;
-    
+    public Guid SquirrelHelperFunctionLine;
+
     public ulong WorkingDirectoryAddress;
 
     public ulong SquirrelHitBreakpointIndexAddress;
@@ -67,6 +68,7 @@ namespace SquirrelDebugEngine
     public ulong SquirrelBreakpointsBufferAddress;
 
     public ulong SquirrelStackInfoAddress;
+    public ulong StepperStateAddress;
 
     public byte[] Encode()
     {
@@ -86,14 +88,16 @@ namespace SquirrelDebugEngine
 
           Writer.Write(SquirrelHelperFunctionCall.ToByteArray());
           Writer.Write(SquirrelHelperFunctionReturn.ToByteArray());
+          Writer.Write(SquirrelHelperFunctionLine.ToByteArray());
 
           Writer.Write(WorkingDirectoryAddress);
           Writer.Write(SquirrelHitBreakpointIndexAddress);
           Writer.Write(SquirrelActiveBreakpointsCountAddress);
           Writer.Write(SquirrelActiveBreakpointsAddress);
           Writer.Write(SquirrelBreakpointsBufferAddress);
-
+          
           Writer.Write(SquirrelStackInfoAddress);
+          Writer.Write(StepperStateAddress);
 
           Writer.Flush();
 
@@ -120,6 +124,7 @@ namespace SquirrelDebugEngine
 
           SquirrelHelperFunctionCall   = new Guid(Reader.ReadBytes(16));
           SquirrelHelperFunctionReturn = new Guid(Reader.ReadBytes(16));
+          SquirrelHelperFunctionReturn = new Guid(Reader.ReadBytes(16));
 
           WorkingDirectoryAddress               = Reader.ReadUInt64();
           SquirrelHitBreakpointIndexAddress     = Reader.ReadUInt64();
@@ -128,6 +133,7 @@ namespace SquirrelDebugEngine
           SquirrelBreakpointsBufferAddress = Reader.ReadUInt64();
 
           SquirrelStackInfoAddress      = Reader.ReadUInt64();
+          StepperStateAddress           = Reader.ReadUInt64();
         }
       }
 
