@@ -47,7 +47,6 @@
           <Interface Name="IDkmModuleUserCodeDeterminer"/>
           <Interface Name="IDkmSymbolHiddenAttributeQuery"/>
         </InterfaceGroup>
-        
       </Implements>
     </Class>
   </ManagedComponent>

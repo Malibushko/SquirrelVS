@@ -54,7 +54,7 @@ namespace SquirrelDebugEngine
         else
         if (ModuleName.EndsWith(".exe") || ModuleName.Contains("squirrel"))
         {
-          System.Diagnostics.Debug.WriteLine("Trying to create runtime");
+          Debug.WriteLine("Trying to create runtime");
 
           DkmCustomMessage.Create(
               Process.Connection,
@@ -103,6 +103,9 @@ namespace SquirrelDebugEngine
 
         case MessageToLocal.MessageType.Symbols:
         {
+          LocalProcessData Data = Utility.GetOrCreateDataItem<LocalProcessData>(_Message.Process);
+          var RuntimeInstances = _Message.Process.GetRuntimeInstances();
+
           string Message = _Message.Parameter1 as string;
 
           Debug.WriteLine($"Message from RemoteComponent: '{Message}'");
@@ -142,18 +145,6 @@ namespace SquirrelDebugEngine
 
           _ProcessData.SquirrelModule    = _Module;
           _ProcessData.SquirrelLocations = Locations;
-
-          _ProcessData.SquirrelLocations.HelperStartAddress = _ProcessData.HelperStartAddress;
-          _ProcessData.SquirrelLocations.HelperEndAddress   = _ProcessData.HelperEndAddress;
-
-          DkmCustomMessage.Create(
-              _Module.Process.Connection,
-              _Module.Process,
-              MessageToRemote.Guid,
-              (int)MessageToRemote.MessageType.Locations,
-              _ProcessData.SquirrelLocations.Encode(),
-              null
-            ).SendLower();
         }
       }
 
@@ -293,6 +284,18 @@ namespace SquirrelDebugEngine
       _ProcessData.HelperStartAddress = _Module.BaseAddress;
       _ProcessData.HelperEndAddress   = _ProcessData.HelperStartAddress + _Module.Size;
 
+      _ProcessData.SquirrelLocations.HelperStartAddress = _ProcessData.HelperStartAddress;
+      _ProcessData.SquirrelLocations.HelperEndAddress   = _ProcessData.HelperEndAddress;
+
+      DkmCustomMessage.Create(
+          _Module.Process.Connection,
+          _Module.Process,
+          MessageToRemote.Guid,
+          (int)MessageToRemote.MessageType.Locations,
+          _ProcessData.SquirrelLocations.Encode(),
+          null
+        ).SendLower();
+
       _ProcessData.DebugHookAddress = AttachmentHelpers.FindFunctionAddress(_Module, "SquirrelDebugHook_3_1");
 
       var InitializedValue = Utility.ReadUintVariable(Process, IsInitialzeAddress.CPUInstructionPart.InstructionPointer);
@@ -387,8 +390,12 @@ namespace SquirrelDebugEngine
         SquirrelStackFrameData _Frame
       )
     {
-      SquirrelFunctionVariables Variables   = new SquirrelFunctionVariables();
-      LocalProcessData          ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
+      SquirrelFunctionVariables Variables = new SquirrelFunctionVariables()
+      { 
+        Process = _Process
+      };
+      
+      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
       DkmStackWalkFrame         ParentFrame = _Frame.ParentFrame;
 
       if (ProcessData.SquirrelHandleAddress != 0  && _Frame.IndexFromTop != -1)
@@ -460,7 +467,10 @@ namespace SquirrelDebugEngine
                       DkmEvaluationFlags.None
                     );
 
-                    Info.Value = Utility.ReadStringVariable(_Process, BufferLocations.StringBufferAddress, 1024);
+                    ulong? StringPointer = Utility.ReadPointerVariable(_Process, BufferLocations.StringBufferAddress);
+
+                    if (StringPointer.HasValue)
+                      Info.Value = $"\"{Utility.ReadStringVariable(_Process, StringPointer.Value, 1024)}\"";
 
                     break;
                 }
@@ -984,7 +994,7 @@ namespace SquirrelDebugEngine
           _InspectionContext.InspectionSession, 
           _StackFrame.Data.GetDataItem<SquirrelStackFrameData>()
         );
-
+      
       if (Variables != null)
         _CompletionRoutine(new DkmGetFrameLocalsAsyncResult(DkmEvaluationResultEnumContext.Create(Variables.Variables.Count, _StackFrame, _InspectionContext, Variables)));
       else
@@ -1010,9 +1020,11 @@ namespace SquirrelDebugEngine
       )
     {
       SquirrelFunctionVariables Variables = _EnumContext.GetDataItem<SquirrelFunctionVariables>();
-
+      
       if (Variables != null)
       {
+        LocalProcessData Data = Utility.GetOrCreateDataItem<LocalProcessData>(Variables.Process);
+
         int ActualCount = Math.Min(Variables.Variables.Count, _Count);
 
         DkmEvaluationResult [] Results = new DkmEvaluationResult[ActualCount];
@@ -1020,6 +1032,8 @@ namespace SquirrelDebugEngine
         for (int i = _StartIndex; i < _StartIndex + ActualCount; ++i)
         {
           var Variable = Variables.Variables[i];
+
+          DkmDataAddress dataAddress = DkmDataAddress.Create(Data.RuntimeInstance, 0, null);
 
           Results[i] = DkmSuccessEvaluationResult.Create(
               _EnumContext.InspectionContext, 
@@ -1034,7 +1048,7 @@ namespace SquirrelDebugEngine
               DkmEvaluationResultAccessType.Public,
               DkmEvaluationResultStorageType.None,
               DkmEvaluationResultTypeModifierFlags.None,
-              null,
+              dataAddress,
               null,
               null,
               null

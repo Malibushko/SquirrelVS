@@ -25,9 +25,7 @@ namespace SquirrelDebugEngine
     public ulong HelperStartAddress;
     public ulong HelperEndAddress;
 
-    public ulong HelperStepperBreakpointAddress; // StepperState
-
-    public ReadOnlyCollection<byte> Encode()
+    public byte[] Encode()
     {
       using (var Stream = new MemoryStream())
       {
@@ -53,7 +51,7 @@ namespace SquirrelDebugEngine
 
           Writer.Flush();
 
-          return new ReadOnlyCollection<byte>(Stream.ToArray());
+          return Stream.ToArray();
         }
       }
     }
