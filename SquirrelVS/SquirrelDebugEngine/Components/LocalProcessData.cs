@@ -31,7 +31,7 @@ namespace SquirrelDebugEngine
     public ulong                    HelperStartAddress;
     public ulong                    HelperEndAddress;
     
-    public ulong                    DebugHookAddress;
+    public ulong                    TraceRoutineAddress;
     public HelperState              HelperState = HelperState.NotInitialized;
     public HookData                 HookData;
 
@@ -49,24 +49,16 @@ namespace SquirrelDebugEngine
     public Guid SquirrelCloseBreakpoint;
     public Guid SquirrelLoadFileBreakpoint;
 
-    public Guid SquirrelHelperBreakpointHit;
     public Guid SquirrelHelperStepComplete;
-    public Guid SquirrelHelperStepInto;
-    public Guid SquirrelHelperStepOut;
     public Guid SquirrelHelperAsyncBreak;
     public Guid SquirrelHelperInitialized;
-
-    public Guid SquirrelHelperFunctionCall;
-    public Guid SquirrelHelperFunctionReturn;
-    public Guid SquirrelHelperFunctionLine;
-
+    
     public ulong WorkingDirectoryAddress;
 
-    public ulong SquirrelHitBreakpointIndexAddress;
+    public ulong SquirrelHitBreakpointIndex;
     public ulong SquirrelActiveBreakpointsCountAddress;
     public ulong SquirrelActiveBreakpointsAddress;
-    public ulong SquirrelBreakpointsBufferAddress;
-
+    
     public ulong SquirrelStackInfoAddress;
     public ulong StepperStateAddress;
 
@@ -79,22 +71,14 @@ namespace SquirrelDebugEngine
           Writer.Write(SquirrelOpenBreakpoint.ToByteArray());
           Writer.Write(SquirrelCloseBreakpoint.ToByteArray());
           Writer.Write(SquirrelLoadFileBreakpoint.ToByteArray());
-          Writer.Write(SquirrelHelperBreakpointHit.ToByteArray());
           Writer.Write(SquirrelHelperStepComplete.ToByteArray());
-          Writer.Write(SquirrelHelperStepInto.ToByteArray());
-          Writer.Write(SquirrelHelperStepOut.ToByteArray());
           Writer.Write(SquirrelHelperAsyncBreak.ToByteArray());
           Writer.Write(SquirrelHelperInitialized.ToByteArray());
 
-          Writer.Write(SquirrelHelperFunctionCall.ToByteArray());
-          Writer.Write(SquirrelHelperFunctionReturn.ToByteArray());
-          Writer.Write(SquirrelHelperFunctionLine.ToByteArray());
-
           Writer.Write(WorkingDirectoryAddress);
-          Writer.Write(SquirrelHitBreakpointIndexAddress);
+          Writer.Write(SquirrelHitBreakpointIndex);
           Writer.Write(SquirrelActiveBreakpointsCountAddress);
           Writer.Write(SquirrelActiveBreakpointsAddress);
-          Writer.Write(SquirrelBreakpointsBufferAddress);
           
           Writer.Write(SquirrelStackInfoAddress);
           Writer.Write(StepperStateAddress);
@@ -115,22 +99,14 @@ namespace SquirrelDebugEngine
           SquirrelOpenBreakpoint      = new Guid(Reader.ReadBytes(16));
           SquirrelCloseBreakpoint     = new Guid(Reader.ReadBytes(16));
           SquirrelLoadFileBreakpoint  = new Guid(Reader.ReadBytes(16));
-          SquirrelHelperBreakpointHit = new Guid(Reader.ReadBytes(16));
           SquirrelHelperStepComplete  = new Guid(Reader.ReadBytes(16));
-          SquirrelHelperStepInto      = new Guid(Reader.ReadBytes(16));
-          SquirrelHelperStepOut       = new Guid(Reader.ReadBytes(16));
           SquirrelHelperAsyncBreak    = new Guid(Reader.ReadBytes(16));
           SquirrelHelperInitialized   = new Guid(Reader.ReadBytes(16));
 
-          SquirrelHelperFunctionCall   = new Guid(Reader.ReadBytes(16));
-          SquirrelHelperFunctionReturn = new Guid(Reader.ReadBytes(16));
-          SquirrelHelperFunctionReturn = new Guid(Reader.ReadBytes(16));
-
           WorkingDirectoryAddress               = Reader.ReadUInt64();
-          SquirrelHitBreakpointIndexAddress     = Reader.ReadUInt64();
+          SquirrelHitBreakpointIndex     = Reader.ReadUInt64();
           SquirrelActiveBreakpointsCountAddress = Reader.ReadUInt64();
           SquirrelActiveBreakpointsAddress = Reader.ReadUInt64();
-          SquirrelBreakpointsBufferAddress = Reader.ReadUInt64();
 
           SquirrelStackInfoAddress      = Reader.ReadUInt64();
           StepperStateAddress           = Reader.ReadUInt64();
@@ -139,14 +115,5 @@ namespace SquirrelDebugEngine
 
       return true;
     }
-  }
-
-  public class SquirrelBufferLocations : DkmDataItem
-  {
-    public ulong BoolBufferAddress        = 0;
-    public ulong IntegerBufferAddress     = 0;
-    public ulong FloatBufferAddress       = 0;
-    public ulong UserPointerBufferAddress = 0;
-    public ulong StringBufferAddress      = 0;
   }
 }

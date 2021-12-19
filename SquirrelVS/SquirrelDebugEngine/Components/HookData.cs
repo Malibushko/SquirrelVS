@@ -5,10 +5,10 @@ namespace SquirrelDebugEngine
 {
   public class HookData
   {
-    public ulong DebugHookNativeAddress;
-    public ulong DebugHookNative;
+    public ulong TraceRoutineFlagAddress;
+    public ulong TraceRoutine;
 
-    public ulong HelperHookAddress;
+    public ulong TraceRoutineAddress;
 
     public byte[] Encode()
     {
@@ -16,9 +16,9 @@ namespace SquirrelDebugEngine
       {
         using (var Writer = new BinaryWriter(Stream))
         {
-          Writer.Write(DebugHookNativeAddress);
-          Writer.Write(DebugHookNative);
-          Writer.Write(HelperHookAddress);
+          Writer.Write(TraceRoutineFlagAddress);
+          Writer.Write(TraceRoutine);
+          Writer.Write(TraceRoutineAddress);
 
           Writer.Flush();
 
@@ -33,9 +33,9 @@ namespace SquirrelDebugEngine
       {
         using (var Reader = new BinaryReader(Stream))
         {
-          DebugHookNativeAddress = Reader.ReadUInt64();
-          DebugHookNative        = Reader.ReadUInt64();
-          HelperHookAddress      = Reader.ReadUInt64();
+          TraceRoutineFlagAddress = Reader.ReadUInt64();
+          TraceRoutine        = Reader.ReadUInt64();
+          TraceRoutineAddress      = Reader.ReadUInt64();
         }
       }
 

@@ -49,8 +49,8 @@ namespace SquirrelDebugEngine
         {
           _EventDescriptior.Suppress();
 
-          var BreakpointIndex = Utility.ReadUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndexAddress);
-          
+          var BreakpointIndex = Utility.ReadUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndex);
+
           if (BreakpointIndex.HasValue)
           {
             if (BreakpointIndex.Value < (ulong)ProcessData.ActiveBreakpoints.Count && BreakpointIndex.Value != ulong.MaxValue)
@@ -59,7 +59,7 @@ namespace SquirrelDebugEngine
               {
                 ProcessData.ActiveBreakpoints[(int)BreakpointIndex.Value].Breakpoint.OnHit(_Thread, false);
                 
-                Utility.TryWriteUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndexAddress, ulong.MaxValue);
+                Utility.TryWriteUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndex, ulong.MaxValue);
 
                 return;
               }
@@ -167,6 +167,8 @@ namespace SquirrelDebugEngine
               ProcessData.Locations = new SquirrelLocations();
 
             ProcessData.Locations.ReadFrom(_Message.Parameter1 as byte[]);
+            ProcessData.IsSQUnicode = Utility.ReadByteVariable(Process, ProcessData.Locations.HelperSQUnicodeFlagAddress).GetValueOrDefault(0) == 0;
+
             break;
           }
           default:
@@ -246,8 +248,8 @@ namespace SquirrelDebugEngine
         HookData   _Data
       )
     {
-      Utility.TryWritePointerVariable(_Process, _Data.DebugHookNativeAddress, _Data.HelperHookAddress);
-      Utility.TryWriteByteVariable(_Process, _Data.DebugHookNative, 1);
+      Utility.TryWritePointerVariable(_Process, _Data.TraceRoutineFlagAddress, _Data.TraceRoutineAddress);
+      Utility.TryWriteByteVariable(_Process, _Data.TraceRoutine, 1);
     }
 
     #endregion
@@ -327,33 +329,30 @@ namespace SquirrelDebugEngine
       if (BreakpointsCount > 256)
         BreakpointsCount = 256;
 
-      ulong StringBufferAddress = BreakpointsInfo.SquirrelBreakpointsBufferAddress;
+      ulong StringBufferAddress = _ProcessData.Locations.StringBufferAddress;
 
       Utility.TryWriteUlongVariable(_Process, BreakpointsInfo.SquirrelActiveBreakpointsCountAddress, (ulong)BreakpointsCount);
 
       for (int i = 0; i < BreakpointsCount; i++)
       {
-        ulong DataAddress = BreakpointsInfo.SquirrelActiveBreakpointsAddress + (ulong)i * 32;
-        var Breakpoint    = _ProcessData.ActiveBreakpoints[i];
-        byte[] Encoded    = Encoding.BigEndianUnicode.GetBytes(Breakpoint.SourceName);
+        ulong  DataAddress = BreakpointsInfo.SquirrelActiveBreakpointsAddress + (ulong)i * 24;
+        var    Breakpoint  = _ProcessData.ActiveBreakpoints[i];
+        byte[] Encoded     = Encoding.UTF8.GetBytes(Breakpoint.SourceName);
 
-        // Write Type
-        Utility.TryWriteUlongVariable(_Process, DataAddress, 0);
-        
         // Write file name to buffer
         Utility.TryWriteRawBytes(_Process, StringBufferAddress, Encoded);
         Utility.TryWriteByteVariable(_Process, StringBufferAddress + (ulong)Encoded.Length, 0);
 
         // Write to pointer
-        Utility.TryWritePointerVariable(_Process, DataAddress + sizeof(ulong), StringBufferAddress);
+        Utility.TryWritePointerVariable(_Process, DataAddress, StringBufferAddress);
 
         StringBufferAddress += (ulong)Encoded.Length + 1;
 
         // Write Line
-        Utility.TryWriteUlongVariable(_Process, DataAddress + sizeof(ulong) * 2, Breakpoint.Line);
+        Utility.TryWriteUlongVariable(_Process, DataAddress + sizeof(ulong), Breakpoint.Line);
 
-        // Write function (zero for now)
-        Utility.TryWritePointerVariable(_Process, DataAddress + sizeof(ulong) * 3, 0);
+        // Write length as zero
+        Utility.TryWriteUlongVariable(_Process, DataAddress + sizeof(ulong) * 2, 0);
       }
     }
     #endregion

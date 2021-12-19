@@ -57,6 +57,7 @@ namespace SquirrelDebugEngine
     public DkmModule                Module          = null;
     public DkmStepper               ActiveStepper   = null;
 
+    public bool                     IsSQUnicode     = false;
     public SquirrelLocations        Locations       = null;
     public List<BreakpointData>     ActiveBreakpoints = new List<BreakpointData>();
   }

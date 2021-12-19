@@ -25,6 +25,9 @@ namespace SquirrelDebugEngine
     public ulong HelperStartAddress;
     public ulong HelperEndAddress;
 
+    public ulong HelperSQUnicodeFlagAddress;
+    public ulong StringBufferAddress;
+
     public byte[] Encode()
     {
       using (var Stream = new MemoryStream())
@@ -48,6 +51,9 @@ namespace SquirrelDebugEngine
 
           Writer.Write(CallStartLocation);
           Writer.Write(CallEndLocation);
+
+          Writer.Write(HelperSQUnicodeFlagAddress);
+          Writer.Write(StringBufferAddress);
 
           Writer.Flush();
 
@@ -79,6 +85,9 @@ namespace SquirrelDebugEngine
 
           CallStartLocation = Reader.ReadUInt64();
           CallEndLocation   = Reader.ReadUInt64();
+
+          HelperSQUnicodeFlagAddress = Reader.ReadUInt64();
+          StringBufferAddress        = Reader.ReadUInt64();
         }
       }
 

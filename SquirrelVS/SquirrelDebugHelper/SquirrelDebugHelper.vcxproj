@@ -155,9 +155,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugHelper.h" />
     <ClInclude Include="squirrel\3.1\sqconfig.h" />
     <ClInclude Include="squirrel\3.1\sqstdaux.h" />
     <ClInclude Include="squirrel\3.1\sqstdblob.h" />
