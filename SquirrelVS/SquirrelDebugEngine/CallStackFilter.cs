@@ -34,7 +34,6 @@ namespace SquirrelDebugEngine
           ) };
       }
 
-      var              StackContextData = Utility.GetOrCreateDataItem<SquirrelStackContextData>(_StackContext);
       DkmProcess       Process          = _StackContext.InspectionSession.Process;
       LocalProcessData ProcessData      = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
 
@@ -45,14 +44,6 @@ namespace SquirrelDebugEngine
 
       if (MethodName == "sq_call")
       {
-        if (ProcessData.SquirrelHandleAddress != StackContextData.HandleAddress)
-        {
-          StackContextData.HandleAddress      = ProcessData.SquirrelHandleAddress;
-          StackContextData.SeenSquirrelFrames = false;
-          StackContextData.SkipFramesCount    = 0;
-          StackContextData.SeenFramesCount    = 0;
-        }
-
         if (ProcessData.RuntimeInstance == null)
         {
           ProcessData.RuntimeInstance = Process
@@ -83,12 +74,6 @@ namespace SquirrelDebugEngine
 
         foreach (var Call in Callstack)
         {
-          if (StackContextData.SkipFramesCount != 0)
-          {
-            StackContextData.SkipFramesCount--;
-            continue;
-          }
-
           DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
               ProcessData.RuntimeInstance,
               ProcessData.ModuleInstance,
@@ -120,11 +105,8 @@ namespace SquirrelDebugEngine
                 )
               )
             );
-
-          StackContextData.SeenFramesCount++;
         }
 
-        StackContextData.SkipFramesCount = StackContextData.SeenFramesCount;
         return SquirrelFrames.ToArray();
       }
       else
