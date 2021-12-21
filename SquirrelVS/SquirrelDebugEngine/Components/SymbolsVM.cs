@@ -5,7 +5,6 @@ namespace SquirrelDebugEngine
 {
   internal class ResolvedDocumentItem : DkmDataItem
   {
-    public SourceSymbols SourceData;
     public ScriptSymbols ScriptData;
   }
 

@@ -57,6 +57,15 @@ namespace SquirrelDebugEngine
             {
               if (ProcessData.ActiveBreakpoints[(int)BreakpointIndex.Value].Breakpoint != null)
               {
+                DkmCustomMessage.Create(
+                    Process.Connection,
+                    Process,
+                    MessageToLocal.Guid,
+                    (int)MessageToLocal.MessageType.FetchCallstack,
+                    null,
+                    null
+                  ).SendHigher();
+
                 ProcessData.ActiveBreakpoints[(int)BreakpointIndex.Value].Breakpoint.OnHit(_Thread, false);
                 
                 Utility.TryWriteUlongVariable(Process, Breakpoints.SquirrelHitBreakpointIndex, ulong.MaxValue);
@@ -262,7 +271,7 @@ namespace SquirrelDebugEngine
     {
       Debug.WriteLine($"[Remote Component]: Enable Runtime Breakpoint {_Breakpoint.ToString()}");
 
-      DkmProcess Process     = _Breakpoint.Process;
+      DkmProcess Process            = _Breakpoint.Process;
       RemoteProcessData ProcessData = Utility.GetOrCreateDataItem<RemoteProcessData>(Process);
 
       var RuntimeInstructionBreakpoint = _Breakpoint as DkmRuntimeInstructionBreakpoint;

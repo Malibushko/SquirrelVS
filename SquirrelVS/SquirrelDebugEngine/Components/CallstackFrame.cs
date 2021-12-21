@@ -5,41 +5,37 @@ using System.IO;
 
 namespace SquirrelDebugEngine
 {
-  public class SquirrelBreakpointData
+  public class CallstackFrame
   {
-    public ulong  Type;
     public string SourceName;
-    public ulong  Line;
     public string FunctionName;
+    public ulong  Line;
 
-    public SquirrelBreakpointData()
+    public CallstackFrame()
     {
     }
-    public SquirrelBreakpointData(
+    public CallstackFrame(
         DkmProcess _Process,
-        ulong      _BreakpointDataAddress
+        ulong      _Address
       )
     {
       ulong Offset = 0;
 
-      Type = Utility.ReadUlongVariable(_Process, _BreakpointDataAddress + Offset).GetValueOrDefault(0);
-      
-      Offset += sizeof(ulong);
+      var SourceNameAddress = Utility.ReadPointerVariable(_Process, _Address + Offset);
 
-      var SourceNameAddress = Utility.ReadPointerVariable(_Process, _BreakpointDataAddress + Offset);
       if (SourceNameAddress.HasValue)
-        SourceName = Utility.ReadStringVariable(_Process, SourceNameAddress.Value, 256);
+        SourceName = Utility.ReadStringVariable(_Process, SourceNameAddress.Value, 4096);
 
       Offset += sizeof(ulong);
 
-      Line = Utility.ReadUlongVariable(_Process, _BreakpointDataAddress + Offset).GetValueOrDefault(0);
-
-      Offset += sizeof(ulong);
-
-      var FunctionNameAddress = Utility.ReadPointerVariable(_Process, _BreakpointDataAddress + Offset);
+      var FunctionNameAddress = Utility.ReadPointerVariable(_Process, _Address + Offset);
 
       if (FunctionNameAddress.HasValue)
-        FunctionName = Utility.ReadStringVariable(_Process, FunctionNameAddress.Value, 256);
+        FunctionName = Utility.ReadStringVariable(_Process, FunctionNameAddress.Value, 4096);
+
+      Offset += sizeof(ulong);
+
+      Line = Utility.ReadUlongVariable(_Process, _Address + Offset).GetValueOrDefault(0);
     }
     public ReadOnlyCollection<byte> Encode()
     {
@@ -47,7 +43,6 @@ namespace SquirrelDebugEngine
       {
         using (var Writer = new BinaryWriter(Stream))
         {
-          Writer.Write(Type);
           Writer.Write(SourceName);
           Writer.Write(Line);
           Writer.Write(FunctionName);
@@ -65,7 +60,6 @@ namespace SquirrelDebugEngine
       {
         using (var Reader = new BinaryReader(Stream))
         {
-          Type         = Reader.ReadUInt64();
           SourceName   = Reader.ReadString();
           Line         = Reader.ReadUInt64();
           FunctionName = Reader.ReadString();

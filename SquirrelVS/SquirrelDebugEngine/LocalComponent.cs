@@ -17,9 +17,17 @@ using System.Collections.Generic;
 
 namespace SquirrelDebugEngine
 {
-  public class LocalComponent : IDkmCallStackFilter, IDkmModuleInstanceLoadNotification, IDkmCustomMessageCallbackReceiver, 
-                                IDkmSymbolQuery, IDkmSymbolCompilerIdQuery, IDkmSymbolDocumentCollectionQuery, IDkmSymbolDocumentSpanQuery, IDkmModuleUserCodeDeterminer, IDkmSymbolHiddenAttributeQuery,
-                                IDkmLanguageExpressionEvaluator
+  public class LocalComponent : 
+      IDkmCallStackFilter, 
+      IDkmModuleInstanceLoadNotification, 
+      IDkmCustomMessageCallbackReceiver, 
+      IDkmSymbolQuery, 
+      IDkmSymbolCompilerIdQuery, 
+      IDkmSymbolDocumentCollectionQuery, 
+      IDkmSymbolDocumentSpanQuery, 
+      IDkmModuleUserCodeDeterminer, 
+      IDkmSymbolHiddenAttributeQuery,
+      IDkmLanguageExpressionEvaluator
   {
     private bool IsInjectRequested = false;
 
@@ -109,6 +117,29 @@ namespace SquirrelDebugEngine
           string Message = _Message.Parameter1 as string;
 
           Debug.WriteLine($"Message from RemoteComponent: '{Message}'");
+          break;
+        }
+
+        case MessageToLocal.MessageType.FetchCallstack:
+        {
+          LocalProcessData  Data      = Utility.GetOrCreateDataItem<LocalProcessData>(_Message.Process);
+          SquirrelCallStack Callstack = Utility.GetOrCreateDataItem<SquirrelCallStack>(_Message.Process);
+          
+          Callstack.Callstack.Clear();
+
+          ulong? FrameCount = Utility.ReadUlongVariable(_Message.Process, Data.SquirrelLocations.CallstackSizeAddress);
+
+          if (FrameCount.HasValue && FrameCount.Value > 0)
+          {
+            int Offset = 0;
+            for (int i = 0; i < (int)FrameCount.Value; ++i)
+            {
+              Callstack.Callstack.Push(new CallstackFrame(_Message.Process, Data.SquirrelLocations.CallstackAddress + (ulong)Offset));
+              
+              Offset += 24;
+            }
+          }
+
           break;
         }
       }
@@ -273,7 +304,9 @@ namespace SquirrelDebugEngine
 
       _ProcessData.SquirrelLocations.HelperSQUnicodeFlagAddress = AttachmentHelpers.FindVariableAddress(_Module, "IsSQUnicode");
       _ProcessData.SquirrelLocations.StringBufferAddress        = AttachmentHelpers.FindVariableAddress(_Module, "StringBuffer");
-
+      _ProcessData.SquirrelLocations.CallstackAddress           = AttachmentHelpers.FindVariableAddress(_Module, "Callstack");
+      _ProcessData.SquirrelLocations.CallstackSizeAddress       = AttachmentHelpers.FindVariableAddress(_Module, "CallstackSize");
+      
       DkmCustomMessage.Create(
           _Module.Process.Connection,
           _Module.Process,
@@ -364,6 +397,7 @@ namespace SquirrelDebugEngine
       {
         LocalData.SquirrelThread        = _Thread;
         LocalData.SquirrelHandleAddress = _SquirrelHandleAddress.Value;
+
         _Thread.Suspend(true);
 
         return;
@@ -379,140 +413,6 @@ namespace SquirrelDebugEngine
           LocalData.HookData.Encode(),
           null
         ).SendLower();
-    }
-
-
-    SquirrelFunctionVariables TryExtraxtFrameVariables(
-        DkmProcess             _Process,
-        DkmInspectionSession   _Session,
-        SquirrelStackFrameData _Frame
-      )
-    {
-      SquirrelFunctionVariables Variables = new SquirrelFunctionVariables()
-      { 
-        Process = _Process
-      };
-      
-      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
-      DkmStackWalkFrame         ParentFrame = _Frame.ParentFrame;
-
-      if (ProcessData.SquirrelHandleAddress != 0  && _Frame.IndexFromTop != -1)
-      { 
-        while (true)
-        {
-          try
-          {
-            string VariableName = EvaluationHelpers.TryEvaluateStringExpression(
-                $"sq_getlocal({ProcessData.SquirrelHandleAddress}, {_Frame.IndexFromTop}, {Variables.Variables.Count})",
-                _Session, 
-                ParentFrame.Thread,
-                ParentFrame, 
-                DkmEvaluationFlags.None
-              );
-
-            if (VariableName == null)
-              break;
-
-            SquirrelVariableInfo Info = new SquirrelVariableInfo()
-            {
-              Name = VariableName == "this" ? "[SVQM]" : VariableName
-            };
-
-            long? VariableType = EvaluationHelpers.TryEvaluateNumberExpression(
-                $"sq_gettype({ProcessData.SquirrelHandleAddress},-1)", 
-                _Session, 
-                ParentFrame.Thread, 
-                ParentFrame, 
-                DkmEvaluationFlags.None
-              );
-
-            if (VariableType.HasValue)
-            {
-              Info.ItemType = (SquirrelVariableInfo.Type)VariableType.Value;
-
-              switch (Info.ItemType)
-              {
-                case SquirrelVariableInfo.Type.Null:
-                  Info.Value = "null";
-                  break;
-                case SquirrelVariableInfo.Type.Integer:
-                {
-                    /*
-                   EvaluationHelpers.TryEvaluateStringExpression(
-                      $"sq_getinteger({ProcessData.SquirrelHandleAddress}, -1, {BufferLocations.IntegerBufferAddress})",
-                      _Session,
-                      ParentFrame.Thread,
-                      ParentFrame,
-                      DkmEvaluationFlags.None
-                    );
-
-                    Info.Value = Utility.ReadUlongVariable(_Process, BufferLocations.IntegerBufferAddress).GetValueOrDefault(0).ToString();
-                    */
-                    break;
-                }
-                case SquirrelVariableInfo.Type.Float:
-                  break;
-                case SquirrelVariableInfo.Type.UserPointer:
-                  break;
-                case SquirrelVariableInfo.Type.String:
-                {
-                    /*
-                   EvaluationHelpers.TryEvaluateStringExpression(
-                      $"sq_getstring({ProcessData.SquirrelHandleAddress}, -1, {BufferLocations.StringBufferAddress})",
-                      _Session,
-                      ParentFrame.Thread,
-                      ParentFrame,
-                      DkmEvaluationFlags.None
-                    );
-
-                    ulong? StringPointer = Utility.ReadPointerVariable(_Process, BufferLocations.StringBufferAddress);
-
-                    if (StringPointer.HasValue)
-                      Info.Value = $"\"{Utility.ReadStringVariable(_Process, StringPointer.Value, 1024)}\"";
-                    */
-                    break;
-                }
-                case SquirrelVariableInfo.Type.Closure:
-                  break;
-                case SquirrelVariableInfo.Type.Array:
-                  break;
-                case SquirrelVariableInfo.Type.NativeClosure:
-                  break;
-                case SquirrelVariableInfo.Type.Generator:
-                  break;
-                case SquirrelVariableInfo.Type.UserData:
-                  break;
-                case SquirrelVariableInfo.Type.Thread:
-                  break;
-                case SquirrelVariableInfo.Type.Class:
-                  break;
-                case SquirrelVariableInfo.Type.Instance:
-                  break;
-                case SquirrelVariableInfo.Type.WeakRef:
-                  break;
-                case SquirrelVariableInfo.Type.Bool:
-                  break;
-              }
-            }
-            Variables.Variables.Add(Info);
-
-            // Pop result of sq_gettype
-            EvaluationHelpers.TryEvaluateAddressExpression(
-                $"sq_pop({ProcessData.SquirrelHandleAddress}, 1)",
-                _Session,
-                ParentFrame.Thread,
-                ParentFrame, 
-                DkmEvaluationFlags.None
-              );
-          }
-          catch (Exception Exception)
-          {
-            Debug.WriteLine($"Exception caught while getting frame locals: \'{Exception.Message}\'");
-          }
-        }
-      }
-
-      return Variables;
     }
 
     #endregion
@@ -534,40 +434,7 @@ namespace SquirrelDebugEngine
         out bool               _StartOfLine
       )
     {
-      var Process = _Session?.Process;
-
-      if (Process == null)
-      {
-        DkmCustomModuleInstance ModuleInstance = _Instruction.Module.GetModuleInstances()
-                                                    .OfType<DkmCustomModuleInstance>()
-                                                    .FirstOrDefault(el => el.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
-
-        if (ModuleInstance == null)
-          return _Instruction.GetSourcePosition(_Flags, _Session, out _StartOfLine);
-
-        Process = ModuleInstance.Process;
-      }
-
-      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
-
-      var InstructionSymbol = _Instruction as DkmCustomInstructionSymbol;
-
-      if (InstructionSymbol != null && InstructionSymbol.EntityId != null)
-      {
-        SquirrelBreakpointData CallData = new SquirrelBreakpointData();
-        
-        CallData.ReadFrom(InstructionSymbol.EntityId.ToArray());
-
-        string FilePath = Path.Combine(ProcessData.WorkingDirectory, CallData.SourceName);
-
-        _StartOfLine = true;
-
-        return DkmSourcePosition.Create(
-            DkmSourceFileId.Create(FilePath, null, null, null),
-            new DkmTextSpan((int)CallData.Line, (int)CallData.Line, 0, 0)
-          );
-      }
-      return _Instruction.GetSourcePosition(_Flags, _Session, out _StartOfLine);
+      return SymbolsManager.GetSourcePosition(_Instruction, _Flags, _Session, out _StartOfLine);
     }
 
     DkmCompilerId IDkmSymbolCompilerIdQuery.GetCompilerId(
@@ -583,61 +450,7 @@ namespace SquirrelDebugEngine
         DkmSourceFileId _SourceField
       )
     {
-      DkmModuleInstance ModuleInstance = _Module.GetModuleInstances()
-                                          .OfType<DkmModuleInstance>()
-                                          .FirstOrDefault(Module => Module.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
-
-      if (ModuleInstance == null)
-        return _Module.FindDocuments(_SourceField);
-
-      DkmProcess       Process     = ModuleInstance.Process;
-      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
-
-      lock (ProcessData.Symbols)
-      {
-        foreach (var SquirrelVM in ProcessData.Symbols.SquirrelHandles)
-        {
-          foreach (var Source in SquirrelVM.Value.Scripts)
-          {
-            if (Source.Value.ResolvedFilename == null)
-            {
-              var ScriptSource = ProcessData.Symbols.FetchScriptSource(Source.Key);
-
-              if (ScriptSource?.ResolvedFilename != null)
-                Source.Value.ResolvedFilename = ScriptSource.ResolvedFilename;
-              else
-                throw new NotImplementedException($"Unable to locate {Source.Key}");
-            }
-
-            var Filename = Source.Value.ResolvedFilename;
-
-            if (Filename == _SourceField.DocumentName)
-            {
-              var DataItem = new ResolvedDocumentItem
-              {
-                ScriptData = Source.Value
-              };
-              
-              return new DkmResolvedDocument[1] {
-                DkmResolvedDocument.Create(
-                    _Module,
-                    _SourceField.DocumentName,
-                    null,
-                    DkmDocumentMatchStrength.FullPath,
-                    DkmResolvedDocumentWarning.None,
-                    false,
-                    DataItem)
-              };
-            }
-          }
-        }
-      }
-
-      /* 
-        Compare by SHA1 hash also 
-       */
-
-      return _Module.FindDocuments(_SourceField);
+      return SymbolsManager.FindDocuments(_Module, _SourceField);
     }
 
     DkmInstructionSymbol[] IDkmSymbolDocumentSpanQuery.FindSymbols(
@@ -647,20 +460,9 @@ namespace SquirrelDebugEngine
         out DkmSourcePosition[] _SymbolLocation
       )
     {
-      var SourceFileID = DkmSourceFileId.Create(_ResolvedDocument.DocumentName, null, null, null);
-
-      var ResultSpan = new DkmTextSpan(_TextSpan.StartLine, _TextSpan.StartLine, 0, 0);
-
-      _SymbolLocation = new DkmSourcePosition[1] { DkmSourcePosition.Create(SourceFileID, ResultSpan) };
-
-      var BreakpointData = new BreakpointData
-      {
-        SourceName = _ResolvedDocument.GetDataItem<ResolvedDocumentItem>().ScriptData.SourceName,
-        Line       = (ulong)_TextSpan.StartLine
-      };
-
-      return new DkmInstructionSymbol[1] { DkmCustomInstructionSymbol.Create(_ResolvedDocument.Module, Guids.SquirrelRuntimeID, BreakpointData.Encode(), (ulong)((_TextSpan.StartLine << 16) + 0), null) };
+      return SymbolsManager.FindSymbols(_ResolvedDocument, _TextSpan, _Text, out _SymbolLocation);
     }
+
     bool IDkmModuleUserCodeDeterminer.IsUserCode(
         DkmModuleInstance _Module
       )
@@ -683,7 +485,8 @@ namespace SquirrelDebugEngine
 
       if (_BreakpointData.BreakpointID == KnownBreakpoints.SquirrelHelperInitialized)
       {
-        ProcessData.HelperState = HelperState.Initialized;
+        ProcessData.HelperState                  = HelperState.Initialized;
+        ProcessData.HookData.TraceRoutineAddress = ProcessData.TraceRoutineAddress;
 
         DkmCustomMessage.Create(
             _Process.Connection,
@@ -706,7 +509,7 @@ namespace SquirrelDebugEngine
         var InspectionSession = EvaluationHelpers.CreateInspectionSession(_Process, Thread, _BreakpointData, out DkmStackWalkFrame _Frame);
         
         ulong? SquirrelHandleAddress = EvaluationHelpers.TryEvaluateAddressExpression(
-            $"L",
+            $"v",
             InspectionSession, 
             Thread, 
             _Frame, 
@@ -779,149 +582,25 @@ namespace SquirrelDebugEngine
 
     DkmStackWalkFrame[] IDkmCallStackFilter.FilterNextFrame(
         DkmStackContext   _StackContext, 
-        DkmStackWalkFrame _Input
+        DkmStackWalkFrame _NativeFrame
       )
     {
-      if (_Input == null)
-        return null; // End of stack
+      if (_NativeFrame == null)
+        return null;
 
-      if (_Input.InstructionAddress == null)
-        return new DkmStackWalkFrame[1] { _Input };
+      var Filter = Utility.GetOrCreateDataItem<CallStackFilter>(_NativeFrame.Process);
 
-      if (_Input.InstructionAddress.ModuleInstance == null)
-        return new DkmStackWalkFrame[1] { _Input };
-
-      var StackContextData = Utility.GetOrCreateDataItem<SquirrelStackContextData>(_StackContext);
-
-      if (_Input.ModuleInstance != null && _Input.ModuleInstance.Name == "SquirrelDebugHelper.dll")
+      try
       {
-        StackContextData.HideTopLibraryFrames = true;
-
-        return new DkmStackWalkFrame[1] { DkmStackWalkFrame.Create(
-            _StackContext.Thread,
-            _Input.InstructionAddress, 
-            _Input.FrameBase,
-            _Input.FrameSize,
-            DkmStackWalkFrameFlags.NonuserCode | DkmStackWalkFrameFlags.Hidden,
-            "[Squirrel Debugger Helper]",
-            _Input.Registers, 
-            _Input.Annotations
-          ) };
+        if (Filter != null)
+          return Filter.FilterNextFrame(_StackContext, _NativeFrame);
+      }
+      catch (DkmException _Exception)
+      {
+        // TODO: Add log
       }
 
-      DkmProcess       Process     = _StackContext.InspectionSession.Process;
-      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
-
-      string MethodName = GetFrameMethodName(_Input);
-
-      if (MethodName == null)
-        return new DkmStackWalkFrame[1] { _Input };
-
-      if (MethodName == "sq_call")
-      {
-        if (ProcessData.SquirrelHandleAddress != StackContextData.HandleAddress)
-        {
-          StackContextData.HandleAddress      = ProcessData.SquirrelHandleAddress;
-          StackContextData.SeenSquirrelFrames = false;
-          StackContextData.SkipFramesCount    = 0;
-          StackContextData.SeenFramesCount    = 0;
-        }
-
-        if (ProcessData.RuntimeInstance == null)
-        {
-          ProcessData.RuntimeInstance = Process.GetRuntimeInstances().OfType<DkmCustomRuntimeInstance>().FirstOrDefault(el => el.Id.RuntimeType == Guids.SquirrelRuntimeID);
-
-          if (ProcessData.RuntimeInstance == null)
-            return new DkmStackWalkFrame[1] { _Input };
-
-          ProcessData.ModuleInstance = ProcessData.RuntimeInstance.GetModuleInstances().OfType<DkmCustomModuleInstance>().FirstOrDefault(el => el.Module != null && el.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
-
-          if (ProcessData.ModuleInstance == null)
-            return new DkmStackWalkFrame[1] { _Input };
-        }
-
-        var SquirrelFrameFlags = _Input.Flags;
-
-        SquirrelFrameFlags &= ~(DkmStackWalkFrameFlags.NonuserCode | DkmStackWalkFrameFlags.UserStatusNotDetermined);
-
-        if ((_Input.Flags | DkmStackWalkFrameFlags.TopFrame) != 0)
-          SquirrelFrameFlags |= DkmStackWalkFrameFlags.TopFrame;
-
-        var Callstack      = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process).Callstack;
-        var SquirrelFrames = new List<DkmStackWalkFrame>();
-
-        int IndexFromTop = 0;
-
-        foreach (var Call in Callstack)
-        {
-          if (StackContextData.SkipFramesCount != 0)
-          {
-            StackContextData.SkipFramesCount--;
-            continue;
-          }
-
-          DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
-              ProcessData.RuntimeInstance, 
-              ProcessData.ModuleInstance, 
-              Call.Encode(), 
-              0, 
-              null, 
-              null
-            );
-          
-          SquirrelFrames.Add(DkmStackWalkFrame.Create(
-              _StackContext.Thread,
-              InstructionAddress,
-              _Input.FrameBase,
-              _Input.FrameSize,
-              SquirrelFrameFlags,
-              $"[{Call.SourceName} {Call.FunctionName}:{Call.Line}]",
-              _Input.Registers,
-              _Input.Annotations,
-              null,
-              null,
-              DkmStackWalkFrameData.Create(_StackContext.InspectionSession, new SquirrelStackFrameData { ParentFrame = _Input, IndexFromTop = IndexFromTop++})
-              )
-            );
-
-          StackContextData.SeenFramesCount++;
-        }
-
-        StackContextData.SkipFramesCount = StackContextData.SeenFramesCount;
-        return SquirrelFrames.ToArray();
-      }
-      else 
-      if (MethodName.StartsWith("SQVM") || MethodName.StartsWith("sq_") || MethodName.StartsWith("sqstd_"))
-      {
-        var Flags = (_Input.Flags & ~DkmStackWalkFrameFlags.UserStatusNotDetermined) | DkmStackWalkFrameFlags.NonuserCode;
-
-        Flags |= DkmStackWalkFrameFlags.Hidden;
-
-        return new DkmStackWalkFrame[1] { 
-          DkmStackWalkFrame.Create(
-              _StackContext.Thread, 
-              _Input.InstructionAddress,
-              _Input.FrameBase,
-              _Input.FrameSize, 
-              Flags,
-              _Input.Description,
-              _Input.Registers,
-              _Input.Annotations
-            ) };
-      }
-
-      return new DkmStackWalkFrame[1] { _Input };
-    }
-    string GetFrameMethodName(
-        DkmStackWalkFrame _Input
-      )
-    {
-      string MethodName = null;
-
-      if (_Input.BasicSymbolInfo != null)
-          MethodName = _Input.BasicSymbolInfo.MethodName;
-
-      return MethodName;
+      return new DkmStackWalkFrame[1] { _NativeFrame };
     }
 
     #endregion
@@ -935,7 +614,16 @@ namespace SquirrelDebugEngine
         DkmCompletionRoutine<DkmEvaluateExpressionAsyncResult> _CompletionRoutine
       )
     {
-      _InspectionContext.EvaluateExpression(_WorkList, _Expression, _StackFrame, _CompletionRoutine);
+      var Evaluator = Utility.GetOrCreateDataItem<ExpressionEvaluator>(_StackFrame.Process);
+
+      try
+      {
+        Evaluator.EvaluateExpression(_InspectionContext, _WorkList, _Expression, _StackFrame, _CompletionRoutine);
+      }
+      catch (DkmException)
+      {
+        // TODO: Add log
+      }
     }
 
     void IDkmLanguageExpressionEvaluator.GetChildren(
@@ -946,7 +634,16 @@ namespace SquirrelDebugEngine
         DkmCompletionRoutine<DkmGetChildrenAsyncResult> _CompletionRoutine
       )
     {
-      _Result.GetChildren(_WorkList, _InitialRequestChild, _InspectionContext, _CompletionRoutine);
+      var Evaluator = Utility.GetOrCreateDataItem<ExpressionEvaluator>(_InspectionContext.RuntimeInstance.Process);
+
+      try
+      {
+        Evaluator.GetChildren(_Result, _WorkList, _InitialRequestChild, _InspectionContext, _CompletionRoutine);
+      }
+      catch (DkmException)
+      {
+        // TODO: Add log
+      }
     }
 
     void IDkmLanguageExpressionEvaluator.GetFrameLocals(
@@ -956,26 +653,35 @@ namespace SquirrelDebugEngine
         DkmCompletionRoutine<DkmGetFrameLocalsAsyncResult> _CompletionRoutine
       )
     {
-      SquirrelFunctionVariables Variables = TryExtraxtFrameVariables(
-          _StackFrame.Process,
-          _InspectionContext.InspectionSession, 
-          _StackFrame.Data.GetDataItem<SquirrelStackFrameData>()
-        );
-      
-      if (Variables != null)
-        _CompletionRoutine(new DkmGetFrameLocalsAsyncResult(DkmEvaluationResultEnumContext.Create(Variables.Variables.Count, _StackFrame, _InspectionContext, Variables)));
-      else
-        _InspectionContext.GetFrameLocals(_WorkList, _StackFrame, _CompletionRoutine);
+      var Evaluator = Utility.GetOrCreateDataItem<ExpressionEvaluator>(_StackFrame.Process);
+
+      try
+      {
+        Evaluator.GetFrameLocals(_InspectionContext, _WorkList, _StackFrame, _CompletionRoutine);
+      }
+      catch (DkmException)
+      {
+        // TODO: Add log
+      }
     }
 
     void IDkmLanguageExpressionEvaluator.GetFrameArguments(
         DkmInspectionContext                                  _InspectionContext, 
         DkmWorkList                                           _WorkList, 
-        DkmStackWalkFrame                                     _Frame, 
+        DkmStackWalkFrame                                     _StackFrame, 
         DkmCompletionRoutine<DkmGetFrameArgumentsAsyncResult> _CompletionRoutine
       )
     {
-      _CompletionRoutine(new DkmGetFrameArgumentsAsyncResult(new DkmEvaluationResult[0]));
+      var Evaluator = Utility.GetOrCreateDataItem<ExpressionEvaluator>(_StackFrame.Process);
+
+      try
+      {
+        Evaluator.GetFrameArguments(_InspectionContext, _WorkList, _StackFrame, _CompletionRoutine);
+      }
+      catch (DkmException)
+      {
+        // TODO: Add log
+      }
     }
 
     void IDkmLanguageExpressionEvaluator.GetItems(
@@ -986,47 +692,16 @@ namespace SquirrelDebugEngine
         DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> _CompletionRoutine
       )
     {
-      SquirrelFunctionVariables Variables = _EnumContext.GetDataItem<SquirrelFunctionVariables>();
-      
-      if (Variables != null)
+      var Evaluator = Utility.GetOrCreateDataItem<ExpressionEvaluator>(_EnumContext.RuntimeInstance.Process);
+
+      try
       {
-        LocalProcessData Data = Utility.GetOrCreateDataItem<LocalProcessData>(Variables.Process);
-
-        int ActualCount = Math.Min(Variables.Variables.Count, _Count);
-
-        DkmEvaluationResult [] Results = new DkmEvaluationResult[ActualCount];
-
-        for (int i = _StartIndex; i < _StartIndex + ActualCount; ++i)
-        {
-          var Variable = Variables.Variables[i];
-
-          DkmDataAddress dataAddress = DkmDataAddress.Create(Data.RuntimeInstance, 0, null);
-
-          Results[i] = DkmSuccessEvaluationResult.Create(
-              _EnumContext.InspectionContext, 
-              _EnumContext.StackFrame,
-              Variable.Name,
-              Variable.Name,
-              DkmEvaluationResultFlags.ReadOnly,
-              Variable.Value,
-              null,
-              Variable.ItemType.ToString(),
-              DkmEvaluationResultCategory.Data,
-              DkmEvaluationResultAccessType.Public,
-              DkmEvaluationResultStorageType.None,
-              DkmEvaluationResultTypeModifierFlags.None,
-              dataAddress,
-              null,
-              null,
-              null
-            );
-        }
-
-        _CompletionRoutine(new DkmEvaluationEnumAsyncResult(Results));
-
-        return;
+        Evaluator.GetItems(_EnumContext, _WorkList, _StartIndex, _Count, _CompletionRoutine);
       }
-      _EnumContext.GetItems(_WorkList, _StartIndex, _Count, _CompletionRoutine);
+      catch (DkmException)
+      {
+        // TODO: Add log
+      }
     }
 
     void IDkmLanguageExpressionEvaluator.SetValueAsString(
@@ -1036,14 +711,36 @@ namespace SquirrelDebugEngine
         out string          _ErrorText
       )
     {
-      _Result.SetValueAsString(_Value, _Timeout, out _ErrorText);
+      var Evaluator = Utility.GetOrCreateDataItem<ExpressionEvaluator>(_Result.RuntimeInstance.Process);
+
+      try
+      {
+        Evaluator.SetValueAsString(_Result, _Value, _Timeout, out _ErrorText);
+      }
+      catch (DkmException)
+      {
+        // TODO: Add log
+
+        _Result.SetValueAsString(_Value, _Timeout, out _ErrorText);
+      }
     }
 
     string IDkmLanguageExpressionEvaluator.GetUnderlyingString(
         DkmEvaluationResult _Result
       )
     {
-      return _Result.GetUnderlyingString();
+      var Evaluator = Utility.GetOrCreateDataItem<ExpressionEvaluator>(_Result.RuntimeInstance.Process);
+
+      try
+      {
+        return Evaluator.GetUnderlyingString(_Result);
+      }
+      catch (DkmException)
+      {
+        // TODO: Add log
+
+        return _Result.GetUnderlyingString();
+      }
     }
 
     #endregion

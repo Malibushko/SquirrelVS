@@ -5,6 +5,6 @@ namespace SquirrelDebugEngine
 {
   public class SquirrelCallStack : DkmDataItem
   {
-    public Stack<SquirrelBreakpointData> Callstack = new Stack<SquirrelBreakpointData>();
+    public Stack<CallstackFrame> Callstack = new Stack<CallstackFrame>();
   }
 }

@@ -29,7 +29,8 @@ namespace SquirrelDebugEngine
     {
       BreakpointHit,
       Symbols,
-      ComponentException
+      ComponentException,
+      FetchCallstack
     };
   }
 
