@@ -82,13 +82,13 @@ namespace SquirrelDebugEngine
 
       _SymbolLocation  = new DkmSourcePosition[1] { DkmSourcePosition.Create(SourceFileID, ResultSpan) };
 
-      var BreakpointData = new BreakpointData
+      var BreakpointData = new SourceLocation
       {
-        SourceName = _ResolvedDocument.GetDataItem<ResolvedDocumentItem>().ScriptData.SourceName,
-        Line       = (ulong)_TextSpan.StartLine
+        Source = _ResolvedDocument.GetDataItem<ResolvedDocumentItem>().ScriptData.SourceName,
+        Line   = _TextSpan.StartLine
       };
 
-      return new DkmInstructionSymbol[1] { DkmCustomInstructionSymbol.Create(_ResolvedDocument.Module, Guids.SquirrelRuntimeID, BreakpointData.Encode(), (ulong)((_TextSpan.StartLine << 16) + 0), null) };
+      return new DkmInstructionSymbol[1] { DkmCustomInstructionSymbol.Create(_ResolvedDocument.Module, Guids.SquirrelRuntimeID, BreakpointData.Encode(), 0, null) };
     }
 
     static public DkmSourcePosition GetSourcePosition(

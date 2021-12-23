@@ -32,21 +32,30 @@ namespace SquirrelDebugEngine
           {
               SquirrelLocations Locations = new SquirrelLocations();
 
-              Locations.OpenStartLocation = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_open", out _).GetValueOrDefault(0);
-              Locations.OpenEndLocation   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "sq_open", out _).GetValueOrDefault(0);
+              Locations.SquirrelOpen = new AddressRange
+              {
+                Start = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_open", out _).GetValueOrDefault(0),
+                End   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd  (Module, "sq_open", out _).GetValueOrDefault(0)
+              };
 
-              Locations.CloseStartLocation = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_close", out _).GetValueOrDefault(0);
-              Locations.CloseEndLocation   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "sq_close", out _).GetValueOrDefault(0);
+              Locations.SquirrelClose = new AddressRange
+              {
+                Start = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_close", out _).GetValueOrDefault(0),
+                End   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd  (Module, "sq_close", out _).GetValueOrDefault(0)
+              };
 
-              Locations.LoadFileStartLocation  = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sqstd_loadfile", out _).GetValueOrDefault(0);
-              Locations.LoadFileEndLocation    = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "sqstd_loadfile", out _).GetValueOrDefault(0);
-
-              Locations.StackObjectStartLocation = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_stackinfos", out _).GetValueOrDefault(0);
-              Locations.StackObjectEndLocation   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "sq_stackinfos", out _).GetValueOrDefault(0);
-
-              Locations.CallStartLocation = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_call", out _).GetValueOrDefault(0);
-              Locations.CallEndLocation   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "sq_call", out _).GetValueOrDefault(0);
-
+              Locations.SquirrelLoadFile = new AddressRange
+              {
+                Start = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sqstd_loadfile", out _).GetValueOrDefault(0),
+                End   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd  (Module, "sqstd_loadfile", out _).GetValueOrDefault(0)
+              };
+              
+              Locations.SquirrelCall = new AddressRange
+              {
+                Start = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_call", out _).GetValueOrDefault(0),
+                End   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd  (Module, "sq_call", out _).GetValueOrDefault(0)
+              };
+              
               return DkmCustomMessage.Create(
                   Process.Connection,
                   Process,

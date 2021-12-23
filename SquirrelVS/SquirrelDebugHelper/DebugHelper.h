@@ -122,14 +122,69 @@ extern "C"
 
 #pragma pack(pop)
 
+  void UpdateStepper(
+      int64_t HookCallType
+    )
+  {
+    switch (StepKind)
+    {
+      case STEP_OVER:
+      {
+        switch ((char)HookCallType)
+        {
+          case 'l':
+            if (SteppingStackDepth == 0)
+              OnSquirrelHelperStepComplete();
+            break;
+
+          case 'c':
+            ++SteppingStackDepth;
+            break;
+
+          case 'r':
+            --SteppingStackDepth;
+            break;
+        }
+
+        break;
+      }
+      case STEP_INTO:
+      {
+        switch((char)HookCallType)
+        {
+          case 'l':
+            SteppingStackDepth = 0;
+
+            OnSquirrelHelperStepComplete();
+            break;
+        }
+
+        break;
+      }
+      case STEP_OUT:
+      {
+        case 'c':
+          ++SteppingStackDepth;
+          break;
+        case 'r':
+        {
+          if (SteppingStackDepth == 0)
+            StepKind = STEP_OVER;
+          else
+            --SteppingStackDepth;
+
+          break;
+        }
+        break;
+      }
+    }
+  }
+
   int TraceCall(
       void *   _SourceName,
       int64_t  _Line
     )
   {
-    if (StepKind != STEP_NONE)
-      ++SteppingStackDepth;
-
     return -1;
   }
 
@@ -138,14 +193,6 @@ extern "C"
       int64_t  _Line
     )
   {
-    if (StepKind != STEP_NONE)
-    {
-      --SteppingStackDepth;
-
-      if (StepKind == STEP_OUT)
-        OnSquirrelHelperStepComplete();
-    }
-
     return -1;
   }
 
@@ -154,15 +201,6 @@ extern "C"
       int64_t  _Line
     )
   {
-    if (StepKind != STEP_NONE)
-    {
-      SteppingStackDepth = 0;
-
-      OnSquirrelHelperStepComplete();
-
-      return -1;
-    }
-
     const size_t Length = IsSQUnicode ? std::wcslen((const wchar_t *)_SourceName) : std::strlen((const char *)_SourceName);
 
     for (int i = 0; i < ActiveBreakpointsCount; ++i)
@@ -251,6 +289,8 @@ extern "C"
 
       HitBreakpoint = TraceCall(_SourceName, _Line);
     }
+
+    UpdateStepper(_Type);
 
     if (HitBreakpoint != -1)
     {

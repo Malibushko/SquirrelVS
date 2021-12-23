@@ -29,8 +29,7 @@ namespace SquirrelDebugEngine
     public Dictionary<string, SourceSymbols> Sources        = new Dictionary<string, SourceSymbols>();
     public Dictionary<ulong, string>         FunctionNames  = new Dictionary<ulong, string>();
     public Dictionary<string, ScriptSymbols> Scripts        = new Dictionary<string, ScriptSymbols>();
-    public Dictionary<string, string>        UnnamedScripts = new Dictionary<string, string>();
-
+    
     public SourceSymbols FetchSourceSymbols(
         string _SourceName
       )

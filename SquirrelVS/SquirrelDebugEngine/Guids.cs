@@ -10,8 +10,12 @@ namespace SquirrelDebugEngine
   {
     public static readonly Guid SquirrelPackageID          = new Guid("A391C18F-274F-4F9C-A8B1-F053E3C0738F");
     public static readonly Guid SquirelDebuggerComponentID = new Guid("A5A48B02-119E-4DD3-9FFE-2B0D67C06EC0");
-    public static readonly Guid SquirrelLocalComponentID  = new Guid("8557CDDA-FC8B-4BB3-A47B-BBBC86F36402");
-    public static readonly Guid SquirrelRemoteComponentID = new Guid("1B0A9D0C-DC6D-485F-BCDB-843690517114");
+
+    public const string         SquirrelLocalComponentID    = "8557CDDA-FC8B-4BB3-A47B-BBBC86F36402";
+    public static readonly Guid SquirrelLocalComponentGuid  = new Guid(SquirrelLocalComponentID);
+
+    public const string         SquirrelRemoteComponentID   = "1B0A9D0C-DC6D-485F-BCDB-843690517114";
+    public static readonly Guid SquirrelRemoteComponentGuid = new Guid(SquirrelRemoteComponentID);
 
     public static readonly Guid SquirrelCompilerID        = new Guid("5E92C4F0-A9CA-49BB-8858-1EADF11B65BB");
     public static readonly Guid SquirrelLanguageID        = new Guid("00F5E22A-3249-4481-9081-0E88AF62672E");
@@ -40,7 +44,6 @@ namespace SquirrelDebugEngine
 
     public enum MessageType
     {
-      CreateRuntime,
       LocateHelper,
       Locations,
       PauseBreakpoints,

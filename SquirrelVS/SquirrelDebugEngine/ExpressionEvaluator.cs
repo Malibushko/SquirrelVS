@@ -142,7 +142,7 @@ namespace SquirrelDebugEngine
         Process = _Process
       };
 
-      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
+      LocalProcessData  ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
       DkmStackWalkFrame ParentFrame = _Frame.ParentFrame;
 
       if (ProcessData.SquirrelHandleAddress != 0 && _Frame.IndexFromTop != -1)

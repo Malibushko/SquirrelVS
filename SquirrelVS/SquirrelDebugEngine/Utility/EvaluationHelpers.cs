@@ -14,19 +14,20 @@ namespace SquirrelDebugEngine
     internal static DkmInspectionSession CreateInspectionSession(
           DkmProcess _Process,
           DkmThread _Thread,
-          BreakpointHitData _Data,
+          ulong     _FrameBase,
+          ulong     _vFrame,
           out DkmStackWalkFrame _Frame
         )
     {
       const int CV_ALLREG_VFRAME = 0x00007536;
-      var FrameRegister = DkmUnwoundRegister.Create(CV_ALLREG_VFRAME, new ReadOnlyCollection<byte>(BitConverter.GetBytes(_Data.vFrame)));
+      var FrameRegister = DkmUnwoundRegister.Create(CV_ALLREG_VFRAME, new ReadOnlyCollection<byte>(BitConverter.GetBytes(_vFrame)));
       var Registers = _Thread.GetCurrentRegisters(new[] { FrameRegister });
       var InstructionRegister = _Process.CreateNativeInstructionAddress(Registers.GetInstructionPointer());
 
       _Frame = DkmStackWalkFrame.Create(
           _Thread,
           InstructionRegister,
-          _Data.FrameBase,
+          _FrameBase,
           0,
           DkmStackWalkFrameFlags.None,
           null,

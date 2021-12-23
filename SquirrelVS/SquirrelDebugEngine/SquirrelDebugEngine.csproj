@@ -26,6 +26,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +37,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dia2Lib">
@@ -44,12 +46,13 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallStackFilter.cs" />
-    <Compile Include="Components\BreakpointHitData.cs" />
-    <Compile Include="Components\HookData.cs" />
+    <Compile Include="Components\SourceLocation.cs" />
+    <Compile Include="IComponentBase.cs" />
     <Compile Include="Components\LocalProcessData.cs" />
     <Compile Include="Components\RemoteProcessData.cs" />
     <Compile Include="Components\CallstackFrame.cs" />
@@ -58,18 +61,20 @@
     <Compile Include="Components\SquirrelLocations.cs" />
     <Compile Include="Components\SquirrelStackFrameData.cs" />
     <Compile Include="Components\SquirrelVariableInfo.cs" />
-    <Compile Include="Components\StackContextData.cs" />
     <Compile Include="Components\SymbolsVM.cs" />
     <Compile Include="ExpressionEvaluator.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="LocalComponent.cs" />
     <Compile Include="LocalWorkerComponent.cs" />
+    <Compile Include="PrimitiveProxies.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoteComponent.cs" />
     <Compile Include="SymbolsManager.cs" />
     <Compile Include="Utility\AttachmentHelpers.cs" />
     <Compile Include="Utility\EvaluationHelpers.cs" />
+    <Compile Include="Utility\AddressRange.cs" />
     <Compile Include="Utility\Utility.cs" />
+    <Compile Include="ValueStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <!--Reference the VSDConfigTool package. This brings build tools used to compile the .vsdconfigxml
