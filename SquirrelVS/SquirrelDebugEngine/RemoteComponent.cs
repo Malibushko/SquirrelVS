@@ -1,12 +1,12 @@
 ﻿using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Breakpoints;
-using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.CustomRuntimes;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Exceptions;
 using Microsoft.VisualStudio.Debugger.Stepping;
 using Microsoft.VisualStudio.Debugger.Symbols;
+using Microsoft.VisualStudio.Debugger.CallStack;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Diagnostics;
@@ -48,14 +48,14 @@ namespace SquirrelDebugEngine
 
     private class StepperDataHolder : DkmDataItem
     {
-      public DkmStepper  ActiveStepper;
-      public UInt32Proxy ActiveStepKind;
+      public DkmStepper        ActiveStepper;
+      public Proxy.UInt32Proxy ActiveStepKind;
     }
 
     private class ActiveBreakpointsDataHolder : DkmDataItem
     {
-      public UInt64Proxy                                       HitBreakpointIndex;
-      public UInt64Proxy                                       ActiveBreakpointsSize;
+      public Proxy.UInt64Proxy                                 HitBreakpointIndex;
+      public Proxy.UInt64Proxy                                 ActiveBreakpointsSize;
       public List<Tuple<SourceLocation, DkmRuntimeBreakpoint>> ActiveBreakpoints = new List<Tuple<SourceLocation, DkmRuntimeBreakpoint>>();
     }
 
@@ -193,7 +193,7 @@ namespace SquirrelDebugEngine
       var Locations          = Utility.GetOrCreateDataItem<LocationsDataHolder>(_RuntimeInstance.Process);
       var InstructionAddress = _Stepper.StartingAddress.CPUInstructionPart.InstructionPointer;
 
-      return Locations.HelperLocation.In(InstructionAddress) || Locations.SquirrelLocation.In(InstructionAddress);
+      return Locations.HelperLocation.In(InstructionAddress);// || Locations.SquirrelLocation.In(InstructionAddress);
     }
 
     void IDkmRuntimeStepper.Step(
@@ -347,6 +347,8 @@ namespace SquirrelDebugEngine
       {
         var RuntimeBreakpoint = ActiveBreakpointData.ActiveBreakpoints[(int)HitBreakpointIndex].Item2;
 
+        _Thread.GetCurrentFrameInfo(out ulong _ReturnAddress, out ulong _FrameBase, out ulong _VFrame);
+
         if (RuntimeBreakpoint != null)
         {
           new LocalComponent.OnBeforeBreakpointHitNotification().SendHigher(_Thread.Process);
@@ -411,29 +413,34 @@ namespace SquirrelDebugEngine
       {
         StepperDataHolder Data = Utility.GetOrCreateDataItem<StepperDataHolder>(_Process);
 
-        Data.ActiveStepKind = new UInt32Proxy(_Process, StepperKindAddress);
+        Data.ActiveStepKind = new Proxy.UInt32Proxy(_Process, StepperKindAddress);
       }
     }
 
     [DataContract]
     [MessageTo(Guids.SquirrelRemoteComponentID)]
-    internal class RegisterStateRequest : MessageBase<RegisterStateRequest>
+    internal class BeginRegisterSquirrelState : MessageBase<BeginRegisterSquirrelState>
     {
       [DataMember]
-      public ulong SquirrelDebugHookAddress;
-
-      [DataMember]
-      public ulong SquirrelDebugHookFlagAddress;
-
-      [DataMember]
-      public ulong DebugHookRoutine;
+      public Guid ThreadID;
 
       public override void Handle(
           DkmProcess _Process
         )
       {
-        Utility.TryWritePointerVariable(_Process, SquirrelDebugHookAddress, DebugHookRoutine);
-        Utility.TryWriteByteVariable   (_Process, SquirrelDebugHookFlagAddress, 1);
+        var Thread = _Process.GetThreads().First(Item => Item.UniqueId == ThreadID);
+
+        if (Thread == null)
+          return;
+
+        Thread.GetCurrentFrameInfo(out ulong _ReturnAddress, out ulong _FrameBase, out ulong _vFrame);
+
+        new LocalComponent.RegisterSquirrelStateRequest
+        {
+          ReturnAddress = _ReturnAddress,
+          FrameBase     = _FrameBase,
+          vFrame        = _vFrame
+        }.SendHigher(_Process);
       }
     }
 
@@ -471,8 +478,8 @@ namespace SquirrelDebugEngine
         Data.StringBufferAddress      = StringBufferAddress;
         Data.ActiveBreakpointsAddress = ActiveBreakpointsDataAddress;
 
-        BreakpointsData.ActiveBreakpointsSize = new UInt64Proxy(_Process, ActiveBreakpointsCountAddress);
-        BreakpointsData.HitBreakpointIndex    = new UInt64Proxy(_Process, HitBreakpointIndexAddress);
+        BreakpointsData.ActiveBreakpointsSize = new Proxy.UInt64Proxy(_Process, ActiveBreakpointsCountAddress);
+        BreakpointsData.HitBreakpointIndex    = new Proxy.UInt64Proxy(_Process, HitBreakpointIndexAddress);
       }
     }
 

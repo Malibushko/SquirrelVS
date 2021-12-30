@@ -201,7 +201,8 @@ namespace SquirrelDebugEngine
 
     internal class AttachmentHelpers
     {
-        internal static void ReleaseComObject(object obj)
+
+      internal static void ReleaseComObject(object obj)
         {
             if (obj != null && Marshal.IsComObject(obj))
                 Marshal.ReleaseComObject(obj);
@@ -511,4 +512,22 @@ namespace SquirrelDebugEngine
             return null;
         }
     }
+
+    internal static class DkmExtentions
+  {
+    public static ulong OffsetBy(this ulong address, long offset)
+    {
+      return unchecked((ulong)((long)address + offset));
+    }
+
+    public static long? GetFieldOffset(this IDiaSymbol structSym, string name)
+    {
+      var FieldSymbol = AttachmentHelpers.TryGetDiaSymbol(structSym, SymTagEnum.SymTagData, name, out _);
+
+      if (FieldSymbol != null)
+        return FieldSymbol.offset;
+      
+      return null;
+    }
+  }
 }

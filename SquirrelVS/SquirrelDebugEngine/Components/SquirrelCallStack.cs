@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SquirrelDebugEngine
 {
-  public class SquirrelCallStack : DkmDataItem
+  internal class SquirrelCallStack : DkmDataItem
   {
     public Stack<CallstackFrame> Callstack = new Stack<CallstackFrame>();
   }

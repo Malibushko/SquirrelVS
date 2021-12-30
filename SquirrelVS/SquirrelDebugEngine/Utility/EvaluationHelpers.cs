@@ -64,6 +64,21 @@ namespace SquirrelDebugEngine
         return (long)Address;
     }
 
+    internal static int GetPointerSize(
+       DkmProcess _Process
+     )
+    {
+      return Is64Bit(_Process) ? 8 : 4;
+    }
+
+    internal static bool Is64Bit(
+        DkmProcess _Process
+      )
+    {
+      // x32 not supported yet
+      return true;
+    }
+
     internal static string TryEvaluateStringExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
     {
       return ExecuteExpression(expression + ",sb", inspectionSession, thread, input, flags, false, out _);
@@ -131,11 +146,12 @@ namespace SquirrelDebugEngine
 
         return TextResult;
       }
-      catch (OperationCanceledException)
+      catch (Exception _Ex)
       {
         _Address = 0;
-        return null;
+        return _Ex.StackTrace;
       }
     }
+    
   }
 }

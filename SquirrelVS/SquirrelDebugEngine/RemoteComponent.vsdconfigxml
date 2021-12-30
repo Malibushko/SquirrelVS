@@ -32,7 +32,7 @@
             <RuntimeId RequiredValue="GuidRuntime"/>
           </Filter>
           <Interface Name="IDkmRuntimeMonitorBreakpointHandler"/>
-          <Interface Name="IDkmRuntimeStepper"/>
+          
         </InterfaceGroup>
       </Implements>
     </Class>

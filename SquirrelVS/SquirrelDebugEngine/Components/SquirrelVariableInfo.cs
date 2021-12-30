@@ -35,6 +35,7 @@ namespace SquirrelDebugEngine
   {
     public enum Type
     {
+      Invalid       = 0,
       Null          = SquirrelTypeMasks.NULL | SquirrelTypeMasks.SQOBJECT_CANBEFALSE,
       Integer       = SquirrelTypeMasks.INTEGER | SquirrelTypeMasks.SQOBJECT_NUMERIC | SquirrelTypeMasks.SQOBJECT_CANBEFALSE,
       Float         = SquirrelTypeMasks.FLOAT | SquirrelTypeMasks.SQOBJECT_NUMERIC | SquirrelTypeMasks.SQOBJECT_CANBEFALSE,
@@ -50,7 +51,8 @@ namespace SquirrelDebugEngine
       Instance      = SquirrelTypeMasks.INSTANCE | SquirrelTypeMasks.SQOBJECT_REF_COUNTED | SquirrelTypeMasks.SQOBJECT_DELEGABLE,
       WeakRef       = SquirrelTypeMasks.WEAKREF | SquirrelTypeMasks.SQOBJECT_REF_COUNTED,
       Bool          = SquirrelTypeMasks.BOOL | SquirrelTypeMasks.SQOBJECT_CANBEFALSE,
-      Table         = SquirrelTypeMasks.TABLE | SquirrelTypeMasks.SQOBJECT_REF_COUNTED | SquirrelTypeMasks.SQOBJECT_DELEGABLE
+      Table         = SquirrelTypeMasks.TABLE | SquirrelTypeMasks.SQOBJECT_REF_COUNTED | SquirrelTypeMasks.SQOBJECT_DELEGABLE,
+      FuncProto     = SquirrelTypeMasks.FUNCPROTO | SquirrelTypeMasks.SQOBJECT_REF_COUNTED
     };
 
     public Type   ItemType;

@@ -118,11 +118,9 @@ namespace SquirrelDebugEngine
 
       if (InstructionSymbol != null && InstructionSymbol.EntityId != null)
       {
-        CallstackFrame CallData = new CallstackFrame();
+        SourceLocation CallData = SourceLocation.Decode(InstructionSymbol.EntityId.ToArray());
 
-        CallData.ReadFrom(InstructionSymbol.EntityId.ToArray());
-
-        string FilePath = Path.Combine(ProcessData.WorkingDirectory, CallData.SourceName);
+        string FilePath = Path.Combine(ProcessData.WorkingDirectory, CallData.Source);
 
         _StartOfLine = true;
 

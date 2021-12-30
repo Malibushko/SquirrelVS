@@ -31,26 +31,8 @@ namespace SquirrelDebugEngine
 
     public enum MessageType
     {
-      BreakpointHit,
-      Symbols,
-      ComponentException,
-      FetchCallstack
+      Symbols
     };
-  }
-
-  static class MessageToRemote
-  {
-    public static readonly Guid Guid = new Guid("A84822CB-A3B4-41A7-853E-9C83EA0A900F");
-
-    public enum MessageType
-    {
-      LocateHelper,
-      Locations,
-      PauseBreakpoints,
-      ResumeBreakpoints,
-      BreakpointsInfo,
-      RegisterState
-    }
   }
 
   static class MessageToLocalWorker

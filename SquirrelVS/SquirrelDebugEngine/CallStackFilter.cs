@@ -77,7 +77,7 @@ namespace SquirrelDebugEngine
           DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
               ProcessData.RuntimeInstance,
               ProcessData.ModuleInstance,
-              Call.Encode(),
+              new SourceLocation { Source = Call.SourceName, Line = Call.Line }.Encode(),
               0,
               null,
               null

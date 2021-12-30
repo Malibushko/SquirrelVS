@@ -30,7 +30,7 @@ namespace SquirrelDebugEngine
 
           if (SquirrelOpen != 0 && SquirrelClose != 0)
           {
-              SquirrelLocations Locations = new SquirrelLocations();
+              var Locations = new LocalComponent.SquirrelLocations();
 
               Locations.SquirrelOpen = new AddressRange
               {

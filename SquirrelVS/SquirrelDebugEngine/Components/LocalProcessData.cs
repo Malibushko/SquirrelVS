@@ -25,26 +25,13 @@ namespace SquirrelDebugEngine
     public DkmCustomModuleInstance  ModuleInstance;
 
     public DkmNativeModuleInstance  SquirrelModule;
-    public SquirrelLocations        SquirrelLocations;
     public SymbolStore              Symbols = new SymbolStore();
 
     public HelperState              HelperState = HelperState.NotInitialized;
 
-    public ulong                    SquirrelHandleAddress;
-
+    public Proxy.SQVM               SquirrelHandle;
     public ulong                    LoadLibraryWAddress;
 
     public string                   WorkingDirectory;
-  }
-
-  public class SquirrelBreakpoints : DkmDataItem
-  {
-    public Guid SquirrelOpenBreakpoint;
-    public Guid SquirrelCloseBreakpoint;
-    public Guid SquirrelLoadFileBreakpoint;
-
-    public Guid SquirrelHelperInitialized;
-    
-    public ulong WorkingDirectoryAddress;
   }
 }

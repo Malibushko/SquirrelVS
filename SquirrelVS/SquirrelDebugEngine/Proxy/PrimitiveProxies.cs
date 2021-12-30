@@ -19,36 +19,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Debugger;
 
-namespace SquirrelDebugEngine {
-  /// <summary>
-  ///  Represents a proxy for a typed memory location in a process being debugged. 
-  /// </summary>
-  internal interface IDataProxy : IValueStore
-  {
-    DkmProcess Process { get; }
-    ulong Address { get; }
-    long ObjectSize { get; }
-  }
-
-  internal interface IWritableDataProxy : IDataProxy
-  {
-    void Write(object value);
-  }
-
-  /// <summary>
-  ///  Represents a proxy for a typed memory location in a process being debugged. 
-  /// </summary>
-  internal interface IDataProxy<T> : IDataProxy, IValueStore<T>
-  {
-  }
-
-  internal interface IWritableDataProxy<T> : IDataProxy<T>, IWritableDataProxy
-  {
-    /// <summary>
-    /// Replace the value in the memory location with the one provided.
-    /// </summary>
-    void Write(T value);
-  }
+namespace SquirrelDebugEngine.Proxy {
 
   [DebuggerDisplay("& {Read()}")]
     internal struct ByteProxy : IWritableDataProxy<Byte> {
@@ -308,7 +279,61 @@ namespace SquirrelDebugEngine {
         }
     }
 
-    [DebuggerDisplay("& {Read()}")]
+  [DebuggerDisplay("& {Read()}")]
+  internal struct Int64EnumProxy<TEnum> : IWritableDataProxy<TEnum>
+  {
+    public Int64Proxy UnderlyingProxy { get; private set; }
+
+    [SuppressMessage("Microsoft.Usage", "CA2207:InitializeValueTypeStaticFieldsInline",
+        Justification = ".cctor used for debug check, not initialization")]
+    static Int64EnumProxy()
+    {
+      Debug.Assert(typeof(TEnum).IsSubclassOf(typeof(Enum)));
+    }
+
+    public Int64EnumProxy(DkmProcess process, ulong address)
+        : this()
+    {
+      UnderlyingProxy = new Int64Proxy(process, address);
+    }
+
+    public DkmProcess Process
+    {
+      get { return UnderlyingProxy.Process; }
+    }
+
+    public ulong Address
+    {
+      get { return UnderlyingProxy.Address; }
+    }
+
+    public long ObjectSize
+    {
+      get { return UnderlyingProxy.ObjectSize; }
+    }
+
+    public unsafe TEnum Read()
+    {
+      return (TEnum)Enum.ToObject(typeof(TEnum), UnderlyingProxy.Read());
+    }
+
+    object IValueStore.Read()
+    {
+      return Read();
+    }
+
+    public void Write(TEnum value)
+    {
+      UnderlyingProxy.Write(Convert.ToInt64(value));
+    }
+
+    void IWritableDataProxy.Write(object value)
+    {
+      Write((TEnum)value);
+    }
+  }
+
+  [DebuggerDisplay("& {Read()}")]
     internal struct Int64Proxy : IWritableDataProxy<Int64> {
         public DkmProcess Process { get; private set; }
         public ulong Address { get; private set; }

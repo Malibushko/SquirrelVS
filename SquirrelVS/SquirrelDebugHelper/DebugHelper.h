@@ -38,12 +38,6 @@ extern "C"
   */
   __declspec(dllexport) char StringBuffer[1024 * 1024];
 
-  /*
-    Private buffers for callstack temporary holding
-  */
-  MemoryPool<1024 * 1024> FunctionNamesBuffer = {};
-  MemoryPool<1024 * 1024> SourceNamesBuffer = {};
-
   struct BreakpointData
   {
     void *   SourceName;
@@ -57,21 +51,19 @@ extern "C"
   static_assert(alignof(int64_t) == 8,        "Unsupported alignment");
   static_assert(sizeof(BreakpointData) == 24, "Unsupported sizeof");
 
-  struct CallStackFrame
+  struct SquirrelOffsets
   {
-    void * SourceName;
+    uint64_t StackTopOffset;
+    uint64_t StackOffset;
 
-    void * FunctionName;
-    
-    uint64_t LastLine;
+    uint64_t SquirrelObjectValueOffset;
+    uint64_t SquirrelObjectSize;
   };
 
   /*
-    Represents squirrel call stack
+    Written by debugger during initialization
   */
-
-  __declspec(dllexport) CallStackFrame Callstack[256] = {};
-  __declspec(dllexport) uint64_t       CallstackSize  = 0;
+  __declspec(dllexport) volatile SquirrelOffsets Offsets;
 
   /*
     Only valid inside OnBreakpointHit
@@ -121,6 +113,31 @@ extern "C"
   }
 
 #pragma pack(pop)
+
+  struct DebugData
+  {
+    const void * Type;
+    const void * SourceName;
+    const void * Line;
+    const void * FunctionName;
+
+    DebugData(
+        const void * _BaseAddress
+      )
+    {
+      auto ReadNextField = [Offset = 0, _BaseAddress](const void *& _Field) mutable
+      {
+        _Field = static_cast<const char *>(_BaseAddress) + Offsets.SquirrelObjectValueOffset + Offset;
+
+        Offset += Offsets.SquirrelObjectSize;
+      };
+
+      ReadNextField(FunctionName);
+      ReadNextField(Line);
+      ReadNextField(SourceName);
+      ReadNextField(Type);
+    }
+  };
 
   void UpdateStepper(
       int64_t HookCallType
@@ -181,24 +198,24 @@ extern "C"
   }
 
   int TraceCall(
-      void *   _SourceName,
-      int64_t  _Line
+      const void *   _SourceName,
+      const int64_t  _Line
     )
   {
     return -1;
   }
 
   int TraceReturn(
-      void *   _SourceName,
-      int64_t  _Line
+      const void *   _SourceName,
+      const int64_t  _Line
     )
   {
     return -1;
   }
 
   int TraceLine(
-      void *   _SourceName,
-      int64_t  _Line
+      const void *   _SourceName,
+      const int64_t  _Line
     )
   {
     const size_t Length = IsSQUnicode ? std::wcslen((const wchar_t *)_SourceName) : std::strlen((const char *)_SourceName);
@@ -221,72 +238,27 @@ extern "C"
   }
 
   __declspec(dllexport) void TraceRoutine(
-      void *   _SquirrelVM,
-      int64_t  _Type,
-      void *   _SourceName,
-      int64_t  _Line,
-      void *   _FunctionName
+      const void *   _SquirrelVM,
+      const int64_t  _Type,
+      const void *   _SourceName,
+      const int64_t  _Line,
+      const void *   _FunctionName
     )
   {
     int HitBreakpoint = -1;
 
     if (_Type == 'r')
     {
-      assert(CallstackSize > 0);
-
-      auto & Frame = Callstack[CallstackSize - 1];
-
-      delete Frame.FunctionName;
-      delete Frame.SourceName;
-
-      Frame = CallStackFrame{};
-
-      CallstackSize--;
-      
       HitBreakpoint = TraceReturn(_SourceName, _Line);
     }
     else
     if (_Type == 'l')
     { 
-      assert(CallstackSize > 0);
-      
-      Callstack[CallstackSize - 1].LastLine = _Line;
-
       HitBreakpoint = TraceLine(_SourceName, _Line);
     }
     else
     if (_Type == 'c')
     { 
-      auto & Frame = Callstack[CallstackSize];
-
-      Frame.LastLine = _Line;
-      
-      if (_FunctionName != nullptr)
-      {
-        const size_t FunctionNameByteCount = GetSquirrelByteLength(_FunctionName);
-
-        Frame.FunctionName = new char[FunctionNameByteCount];
-
-        if (Frame.FunctionName == nullptr)
-          return;
-
-        std::memcpy(Frame.FunctionName, _FunctionName, FunctionNameByteCount);
-      }
-
-      if (_SourceName != nullptr)
-      {
-        const size_t SourceNameByteCount = GetSquirrelByteLength(_SourceName);
-
-        Frame.SourceName = new char[SourceNameByteCount];
-
-        if (Frame.SourceName == nullptr)
-          return;
-
-        std::memcpy(Frame.SourceName, _SourceName, SourceNameByteCount);
-      }
-
-      CallstackSize++;
-
       HitBreakpoint = TraceCall(_SourceName, _Line);
     }
 
@@ -298,5 +270,22 @@ extern "C"
 
       OnSquirrelHelperAsyncBreak();
     }
+  }
+
+  extern "C" __declspec(dllexport) int64_t TraceRoutineHelper(
+    void * _SquirrelVM
+  )
+  {
+    DebugData DataLocations(_SquirrelVM);
+
+    TraceRoutine(
+      _SquirrelVM,
+      *static_cast<const int64_t *>(DataLocations.Type),
+      DataLocations.SourceName,
+      *static_cast<const int64_t *>(DataLocations.Line),
+      DataLocations.FunctionName
+    );
+
+    return 0;
   }
 }
