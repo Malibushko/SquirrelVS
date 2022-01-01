@@ -62,9 +62,10 @@ extern "C"
     uint64_t StackOffset;
     uint64_t SquirrelObjectPtrSize;
     uint64_t SquirrelObjectValueOffset;
+    uint64_t SquirrelStringValueOffset;
   };
   
-  static_assert(sizeof(SquirrelOffsets) == sizeof(uint64_t) * 4);
+  static_assert(sizeof(SquirrelOffsets) == sizeof(uint64_t) * 5);
 
   /*
     Written by debugger during initialization
@@ -134,16 +135,19 @@ extern "C"
       const __int64 Top   = *reinterpret_cast<const __int64 *>(reinterpret_cast<const char*>(_BaseAddress) + Offsets.StackTopOffset);
       const char *  Stack = *reinterpret_cast<const char * const*>(reinterpret_cast<const char *>(_BaseAddress) + Offsets.StackOffset);
 
-      auto ReadNextField = [Offset = -1, _BaseAddress, Top, Stack](const void *& _Field) mutable
+      auto ReadNextField = [Offset = -1, _BaseAddress, Top, Stack](const void *& _Field, bool IsString = false) mutable
       {
         _Field = Stack + ((Top + Offset) * Offsets.SquirrelObjectPtrSize) + Offsets.SquirrelObjectValueOffset;
+
+        if (IsString)
+          _Field = *reinterpret_cast<const char* const*>(_Field) + Offsets.SquirrelStringValueOffset;
 
         Offset--;
       };
 
-      ReadNextField(FunctionName);
+      ReadNextField(FunctionName, true);
       ReadNextField(Line);
-      ReadNextField(SourceName);
+      ReadNextField(SourceName, true);
       ReadNextField(Type);
     }
   };
@@ -254,6 +258,9 @@ extern "C"
       const void *   _FunctionName
     )
   {
+    const char* SourceDummy = static_cast<const char*>(_SourceName);
+    const char* FuncDummy   = static_cast<const char*>(_FunctionName);
+
     int HitBreakpoint = -1;
 
     if (_Type == 'r')

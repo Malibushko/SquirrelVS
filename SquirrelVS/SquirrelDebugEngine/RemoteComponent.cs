@@ -193,7 +193,7 @@ namespace SquirrelDebugEngine
       var Locations          = Utility.GetOrCreateDataItem<LocationsDataHolder>(_RuntimeInstance.Process);
       var InstructionAddress = _Stepper.StartingAddress.CPUInstructionPart.InstructionPointer;
 
-      return Locations.HelperLocation.In(InstructionAddress);// || Locations.SquirrelLocation.In(InstructionAddress);
+      return false;// Locations.HelperLocation.In(InstructionAddress);// || Locations.SquirrelLocation.In(InstructionAddress);
     }
 
     void IDkmRuntimeStepper.Step(

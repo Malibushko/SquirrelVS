@@ -38,6 +38,7 @@ namespace SquirrelDebugEngine
       public UInt64 StackAddress;
       public UInt64 SquirrelObjectPtrSize;
       public UInt64 SquirrelObjectValueOffset;
+      public UInt64 SquirrelStrignValueOffset;
     }
 
     private class HelperHookDataHolder : DkmDataItem
@@ -377,13 +378,15 @@ namespace SquirrelDebugEngine
 
       var SQVectorMetadata = StructProxy.GetStructFields<SQObjectPtrVec, SQObjectPtrVec.Fields>(_Process);
       var SQObjectMetadata = StructProxy.GetStructFields<SQObject, SQObject.SQObjectFields>(_Process);
+      var SQStringMetadata = StructProxy.GetStructFields<SQString, SQString.Fields>(_Process);
 
       var HelperOffsets = new HelperOffsetsDataHolder
       {
         StackAddress              = (ulong)LocalData.SquirrelHandle.StackOffset + (ulong)(SQVectorMetadata?._vals.Offset),
         StackTopOffset            = (ulong)LocalData.SquirrelHandle.StackTopOffset,
         SquirrelObjectPtrSize     = (ulong)(StructProxy.GetStructMetadata<SQObjectPtr>(_Process).Size),
-        SquirrelObjectValueOffset = (ulong)SQObjectMetadata._unVal.Offset
+        SquirrelObjectValueOffset = (ulong)SQObjectMetadata._unVal.Offset,
+        SquirrelStrignValueOffset = (ulong)SQStringMetadata._val.Offset
       };
 
       new CliStructProxy<HelperOffsetsDataHolder>(_Process, HookData.HelperOffsetsAddress).Write(HelperOffsets);

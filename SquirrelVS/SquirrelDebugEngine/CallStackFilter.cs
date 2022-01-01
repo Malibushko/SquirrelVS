@@ -20,7 +20,7 @@ namespace SquirrelDebugEngine
       if (_NativeFrame?.InstructionAddress?.ModuleInstance == null)
         return new DkmStackWalkFrame[1] { _NativeFrame };
 
-      if (_NativeFrame.ModuleInstance != null && _NativeFrame.ModuleInstance.Name == "SquirrelDebugHelper.dll")
+      if (_NativeFrame.ModuleInstance != null && _NativeFrame.ModuleInstance.Name == "SquirrelDebugHelper.dll" && false)
       {
         return new DkmStackWalkFrame[1] { DkmStackWalkFrame.Create(
             _StackContext.Thread,

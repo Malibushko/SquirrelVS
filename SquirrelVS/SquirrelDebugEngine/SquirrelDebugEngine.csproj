@@ -80,6 +80,7 @@
     <Compile Include="Proxy\Structs\SQObjectPtr.cs" />
     <Compile Include="Proxy\Structs\SQObjectPtrVec.cs" />
     <Compile Include="Proxy\Structs\SQObjectType.cs" />
+    <Compile Include="Proxy\Structs\SQString.cs" />
     <Compile Include="Proxy\Structs\SQVM.cs" />
     <Compile Include="Proxy\ValueStore.cs" />
     <Compile Include="RemoteComponent.cs" />
