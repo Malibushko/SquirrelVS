@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.Debugger;
-using Microsoft.VisualStudio.Debugger.CallStack;
-using Microsoft.VisualStudio.Debugger.Evaluation;
+﻿using Microsoft.VisualStudio.Debugger;
+using System.Diagnostics;
 
 namespace SquirrelDebugEngine.Proxy
 {
@@ -60,13 +57,13 @@ namespace SquirrelDebugEngine.Proxy
         case SquirrelVariableInfo.Type.UserPointer:
           break;
         case SquirrelVariableInfo.Type.String:
-          break;
+          return new SQString(_Process, _Address);
         case SquirrelVariableInfo.Type.Closure:
-          return new SQNativeClosure(_Process, _Address);
+          return new SQClosure(_Process, _Address);
         case SquirrelVariableInfo.Type.Array:
           break;
         case SquirrelVariableInfo.Type.NativeClosure:
-          break;
+          return new SQNativeClosure(_Process, _Address);
         case SquirrelVariableInfo.Type.Generator:
           break;
         case SquirrelVariableInfo.Type.UserData:
@@ -97,6 +94,7 @@ namespace SquirrelDebugEngine.Proxy
       return this;
     }
 
+    [DebuggerDisplay("& {_type.Read()}")]
     public SQObjectType Type
     {
       get

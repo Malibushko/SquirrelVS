@@ -6,7 +6,7 @@ namespace SquirrelDebugEngine
   public class SourceLocation
   {
     public string Source;
-    public int    Line;
+    public long   Line;
 
     public ReadOnlyCollection<byte> Encode()
     {
@@ -33,7 +33,7 @@ namespace SquirrelDebugEngine
           SourceLocation Location = new SourceLocation
           {
             Source = Reader.ReadString(),
-            Line = Reader.ReadInt32()
+            Line   = Reader.ReadInt64()
           };
 
           return Location;

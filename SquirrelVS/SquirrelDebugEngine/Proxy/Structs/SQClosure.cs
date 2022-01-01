@@ -2,8 +2,8 @@
 
 namespace SquirrelDebugEngine.Proxy
 {
-  [StructProxy(StructName = "SQNativeClosure")]
-  internal class SQNativeClosure : SQObject
+  [StructProxy(StructName = "SQClosure")]
+  internal class SQClosure : SQObject
   {
     private class Fields
     {
@@ -12,9 +12,9 @@ namespace SquirrelDebugEngine.Proxy
 
     private readonly Fields m_Fields;
 
-    public SQNativeClosure(
+    public SQClosure(
           DkmProcess process,
-          ulong address
+          ulong      address
         ) :
       base(process, address)
     {
@@ -25,7 +25,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return GetFieldProxy(m_Fields._function, false);
+        return GetFieldProxy(m_Fields._function, RawValue.Read(), false);
       }
     }
   }

@@ -73,6 +73,10 @@
     <Compile Include="Proxy\PrimitiveProxies.cs" />
     <Compile Include="Proxy\StructProxy.cs" />
     <Compile Include="Proxy\Structs\CallInfo.cs" />
+    <Compile Include="Proxy\Structs\SQClosure.cs" />
+    <Compile Include="Proxy\Structs\SQInstruction.cs" />
+    <Compile Include="Proxy\Structs\SQLineInfo.cs" />
+    <Compile Include="Proxy\Structs\SQLocalVarInfo.cs" />
     <Compile Include="Proxy\Structs\SQNativeClosure.cs" />
     <Compile Include="Proxy\Structs\SQFunctionProto.cs" />
     <Compile Include="Proxy\Structs\SQInteger.cs" />
@@ -80,6 +84,7 @@
     <Compile Include="Proxy\Structs\SQObjectPtr.cs" />
     <Compile Include="Proxy\Structs\SQObjectPtrVec.cs" />
     <Compile Include="Proxy\Structs\SQObjectType.cs" />
+    <Compile Include="Proxy\Structs\SQOuterVar.cs" />
     <Compile Include="Proxy\Structs\SQString.cs" />
     <Compile Include="Proxy\Structs\SQVM.cs" />
     <Compile Include="Proxy\ValueStore.cs" />

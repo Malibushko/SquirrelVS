@@ -772,11 +772,34 @@ namespace SquirrelDebugEngine
         long CallStackSize    = SQVM.CallStackSize.Read();
         var  CallstackPointer = SQVM.CallStack;
 
+        if (CallstackPointer.IsNull)
+          return;
+
         CallstackData.Callstack.Clear();
 
         for (long i = 0; i < CallStackSize; ++i)
         {
-          var Closure = CallstackPointer[i].Read()?.Closure;
+          try
+          {
+            CallInfo NativeFrame = CallstackPointer.Read()[i];
+
+            var Closure = NativeFrame?.Closure?.Value;
+
+            if (Closure?.Type.Read() != SquirrelVariableInfo.Type.Closure)
+              continue;
+
+            SQClosure NativeClosure = Closure as SQClosure;
+            SQObject  FunctionProto = NativeClosure.Function.Value;
+
+            if (FunctionProto?.Type.Read() != SquirrelVariableInfo.Type.FuncProto)
+              continue;
+
+            CallstackData.Callstack.Push(new CallstackFrame(NativeFrame));
+          }
+          catch (Exception Ex)
+          {
+            // TODO: Remove this after ensuring no bad thing can happen OR add a logs
+          }
         }
       }
     }

@@ -140,8 +140,11 @@ namespace SquirrelDebugEngine.Proxy {
             where TProxy : IDataProxy {
             return DataProxy.Create<TProxy>(Process, Address.OffsetBy(field.Offset), polymorphic);
         }
-
-        public static bool operator ==(StructProxy lhs, StructProxy rhs) {
+        protected TProxy GetFieldProxy<TProxy>(StructField<TProxy> field, ulong _Address, bool polymorphic = true)
+            where TProxy : IDataProxy {
+            return DataProxy.Create<TProxy>(Process, _Address.OffsetBy(field.Offset), polymorphic);
+        }
+    public static bool operator ==(StructProxy lhs, StructProxy rhs) {
             if ((object)lhs == null) {
                 if ((object)rhs == null) {
                     return true;

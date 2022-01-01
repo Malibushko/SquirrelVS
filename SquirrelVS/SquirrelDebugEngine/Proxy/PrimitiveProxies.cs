@@ -574,14 +574,8 @@ namespace SquirrelDebugEngine.Proxy {
         unsafe object IValueStore.Read() {
             byte b;
             Process.ReadMemory(Address, DkmReadMemoryFlags.None, &b, sizeof(byte));
-            string s = ((char)b).ToString();
-      /*
-            if (Process.GetPythonRuntimeInfo().LanguageVersion <= PythonLanguageVersion.V27) {
-                return new AsciiString(new[] { b }, s);
-            } else {
-      */
-                return s;
-        //    }
+
+            return ((char)b).ToString();
         }
     }
 }

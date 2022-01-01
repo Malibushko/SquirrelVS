@@ -13,7 +13,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       public StructField<PointerProxy>                       _debughook;
 
-      public StructField<ArrayProxy<PointerProxy<CallInfo>>> _callsstack;
+      public StructField<PointerProxy<ArrayProxy<CallInfo>>> _callsstack;
       public StructField<Int64Proxy>                         _callsstacksize;
 
       public StructField<PointerProxy>                       _top;
@@ -63,7 +63,7 @@ namespace SquirrelDebugEngine.Proxy
       }
     }
 
-    public ArrayProxy<PointerProxy<CallInfo>> CallStack
+    public PointerProxy<ArrayProxy<CallInfo>> CallStack
     {
       get
       {
