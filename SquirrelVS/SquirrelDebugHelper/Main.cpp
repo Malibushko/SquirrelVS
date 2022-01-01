@@ -8,13 +8,39 @@ extern "C"
   __declspec(dllexport) volatile char IsInitialized = 0;
 
   __declspec(dllexport) char WorkingDirectory[1024] = {};
+
+  __declspec(dllexport) void (*sq_newclosure)(
+      void *           _SquirrelVM, 
+      void *           _ClosureRoutine,
+      unsigned __int64 _FreeVariablesCount
+    ) = nullptr;
+
+  __declspec(dllexport) void (*sq_setdebughook)(
+      void * _SquirrelVM
+    ) = nullptr;
+
+  __declspec(dllexport) void * SquirrelHandle = nullptr;
 }
 
 DWORD __stdcall HelperLoop(void * context)
 {
   while (true)
+  {
+    if (sq_setdebughook && sq_newclosure && SquirrelHandle)
+    {
+      sq_newclosure  (SquirrelHandle, TraceRoutineHelper, 0);
+      sq_setdebughook(SquirrelHandle);
+
+      OnCreatedDebugHookNativeClosure();
+
+      sq_setdebughook = nullptr;
+      sq_newclosure   = nullptr;
+      SquirrelHandle  = nullptr;
+    }
+
     Sleep(10);
-  
+  }
+
   return 0;
 }
 

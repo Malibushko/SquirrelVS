@@ -24,6 +24,7 @@ namespace SquirrelDebugEngine.Proxy
     internal class SQObjectFields
     {
       public StructField<SQObjectType> _type;
+      public StructField<PointerProxy> _unVal;
     }
 
     private readonly SQObjectFields m_Fields;
@@ -61,7 +62,7 @@ namespace SquirrelDebugEngine.Proxy
         case SquirrelVariableInfo.Type.String:
           break;
         case SquirrelVariableInfo.Type.Closure:
-          return new SQClosure(_Process, _Address);
+          return new SQNativeClosure(_Process, _Address);
         case SquirrelVariableInfo.Type.Array:
           break;
         case SquirrelVariableInfo.Type.NativeClosure:
@@ -96,17 +97,21 @@ namespace SquirrelDebugEngine.Proxy
       return this;
     }
 
-    public SquirrelVariableInfo.Type Type
+    public SQObjectType Type
     {
       get
       {
-        if (_type.Address == 0)
-          return SquirrelVariableInfo.Type.Invalid;
-
-        return (SquirrelVariableInfo.Type)_type.Read();
+        return _type;
       }
     }
 
+    public PointerProxy RawValue
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._unVal, false);
+      }
+    }
     public SQObject Value
     {
       get

@@ -11,7 +11,7 @@ namespace SquirrelDebugEngine.Proxy
   {
     private class Fields
     {
-      public StructField<SQClosure> _closure;
+      public StructField<SQNativeClosure> _closure;
     }
 
     private readonly Fields m_Fields;
@@ -25,7 +25,7 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public SQClosure Closure
+    public SQNativeClosure Closure
     {
       get
       {

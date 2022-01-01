@@ -3,7 +3,7 @@ using System;
 
 namespace SquirrelDebugEngine.Proxy
 {
-  internal class SQObjectType : IDataProxy<SquirrelVariableInfo.Type>
+  internal class SQObjectType : IWritableDataProxy<SquirrelVariableInfo.Type>
   {
     public long ObjectSize
     {
@@ -33,6 +33,23 @@ namespace SquirrelDebugEngine.Proxy
     object IValueStore.Read()
     {
       return Read();
+    }
+
+    public void Write(
+        SquirrelVariableInfo.Type _Value
+      )
+    {
+      if (EvaluationHelpers.Is64Bit(Process))
+        Utility.TryWriteUlongVariable(Process, Address, (ulong)_Value);
+      else
+        Utility.TryWriteIntVariable(Process, Address, (int)_Value);
+    }
+
+    public void Write(
+        object _Value
+      )
+    {
+      Write((SquirrelVariableInfo.Type)_Value);
     }
   }
 }

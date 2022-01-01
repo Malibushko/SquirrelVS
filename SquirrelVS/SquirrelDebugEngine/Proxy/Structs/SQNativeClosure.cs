@@ -6,17 +6,17 @@ using System;
 
 namespace SquirrelDebugEngine.Proxy
 {
-  [StructProxy(StructName = "SQClosure")]
-  internal class SQClosure : SQObject
+  [StructProxy(StructName = "SQNativeClosure")]
+  internal class SQNativeClosure : SQObject
   {
     private class Fields
     {
-      public StructField<SQObjectPtr> _function;
+      public StructField<PointerProxy> _function;
     }
 
     private readonly Fields m_Fields;
 
-    public SQClosure(
+    public SQNativeClosure(
           DkmProcess process,
           ulong address
         ) :
@@ -25,7 +25,7 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public SQObjectPtr Function
+    public PointerProxy Function
     {
       get
       {

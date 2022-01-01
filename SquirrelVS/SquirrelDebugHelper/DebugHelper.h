@@ -22,6 +22,11 @@ extern "C"
     volatile char dummy = 0;
   }
 
+  HELPER_API void OnCreatedDebugHookNativeClosure()
+  {
+    volatile char dummy = 0;
+  }
+
   // The following struct definitions should be kept in perfect sync with the corresponding ones in C# in Debugger.
   // To ensure matching layout, only types which are the same size on all platforms should be used. This means
   // no pointers.
@@ -55,10 +60,11 @@ extern "C"
   {
     uint64_t StackTopOffset;
     uint64_t StackOffset;
-
+    uint64_t SquirrelObjectPtrSize;
     uint64_t SquirrelObjectValueOffset;
-    uint64_t SquirrelObjectSize;
   };
+  
+  static_assert(sizeof(SquirrelOffsets) == sizeof(uint64_t) * 4);
 
   /*
     Written by debugger during initialization
@@ -125,11 +131,14 @@ extern "C"
         const void * _BaseAddress
       )
     {
-      auto ReadNextField = [Offset = 0, _BaseAddress](const void *& _Field) mutable
-      {
-        _Field = static_cast<const char *>(_BaseAddress) + Offsets.SquirrelObjectValueOffset + Offset;
+      const __int64 Top   = *reinterpret_cast<const __int64 *>(reinterpret_cast<const char*>(_BaseAddress) + Offsets.StackTopOffset);
+      const char *  Stack = *reinterpret_cast<const char * const*>(reinterpret_cast<const char *>(_BaseAddress) + Offsets.StackOffset);
 
-        Offset += Offsets.SquirrelObjectSize;
+      auto ReadNextField = [Offset = -1, _BaseAddress, Top, Stack](const void *& _Field) mutable
+      {
+        _Field = Stack + ((Top + Offset) * Offsets.SquirrelObjectPtrSize) + Offsets.SquirrelObjectValueOffset;
+
+        Offset--;
       };
 
       ReadNextField(FunctionName);
@@ -276,7 +285,7 @@ extern "C"
     void * _SquirrelVM
   )
   {
-    DebugData DataLocations(_SquirrelVM);
+    DebugData DataLocations(static_cast<const char *>(_SquirrelVM));
 
     TraceRoutine(
       _SquirrelVM,

@@ -419,33 +419,6 @@ namespace SquirrelDebugEngine
 
     [DataContract]
     [MessageTo(Guids.SquirrelRemoteComponentID)]
-    internal class BeginRegisterSquirrelState : MessageBase<BeginRegisterSquirrelState>
-    {
-      [DataMember]
-      public Guid ThreadID;
-
-      public override void Handle(
-          DkmProcess _Process
-        )
-      {
-        var Thread = _Process.GetThreads().First(Item => Item.UniqueId == ThreadID);
-
-        if (Thread == null)
-          return;
-
-        Thread.GetCurrentFrameInfo(out ulong _ReturnAddress, out ulong _FrameBase, out ulong _vFrame);
-
-        new LocalComponent.RegisterSquirrelStateRequest
-        {
-          ReturnAddress = _ReturnAddress,
-          FrameBase     = _FrameBase,
-          vFrame        = _vFrame
-        }.SendHigher(_Process);
-      }
-    }
-
-    [DataContract]
-    [MessageTo(Guids.SquirrelRemoteComponentID)]
     internal class HelperLocationsNotification : MessageBase<HelperLocationsNotification>
     {
       [DataMember]

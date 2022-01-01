@@ -12,7 +12,10 @@
   
     <Class Name="SquirrelDebugEngine.LocalComponent">
       <Implements>
-
+        <InterfaceGroup>
+          <NoFilter/>
+          <Interface Name="IDkmCallStackFilter"/>
+        </InterfaceGroup>
         
         <InterfaceGroup>
           <NoFilter/>

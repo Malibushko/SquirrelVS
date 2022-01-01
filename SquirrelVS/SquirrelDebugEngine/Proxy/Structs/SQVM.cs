@@ -16,7 +16,8 @@ namespace SquirrelDebugEngine.Proxy
       public StructField<ArrayProxy<PointerProxy<CallInfo>>> _callsstack;
       public StructField<Int64Proxy>                         _callsstacksize;
 
-      public StructField<PointerProxy>                       _sharedstate;
+      public StructField<PointerProxy>                       _top;
+      public StructField<PointerProxy>                       _stack;
     }
 
     private readonly Fields FieldsData;
@@ -30,13 +31,22 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out FieldsData);
     }
 
-    public PointerProxy SharedState
+    public long StackTopOffset
     {
       get
       {
-        return GetFieldProxy(FieldsData._sharedstate);
+        return FieldsData._top.Offset;
       }
     }
+
+    public long StackOffset
+    {
+      get
+      {
+        return FieldsData._stack.Offset;
+      }
+    }
+
     public PointerProxy DebugHookClosure
     {
       get
