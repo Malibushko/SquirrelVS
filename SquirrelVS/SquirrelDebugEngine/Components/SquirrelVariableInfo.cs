@@ -1,4 +1,5 @@
 ﻿using SquirrelDebugEngine.Proxy;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace SquirrelDebugEngine
 {
@@ -53,5 +54,16 @@ namespace SquirrelDebugEngine
 
     internal string   Name;
     internal SQObject Value;
+  }
+
+  public class SquirrelVariableEvaluatorData
+  {
+    public string                               Type;
+    public string                               Value;
+    public DkmEvaluationResultFlags             Flags;
+    public DkmEvaluationResultCategory          Category;
+    public DkmEvaluationResultAccessType        AccessType;
+    public DkmEvaluationResultStorageType       StorageType;
+    public DkmEvaluationResultTypeModifierFlags TypeModifierFlags;
   }
 }

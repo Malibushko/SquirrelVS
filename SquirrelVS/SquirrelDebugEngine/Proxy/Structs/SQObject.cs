@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.Debugger;
-using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace SquirrelDebugEngine.Proxy
 {
@@ -98,5 +98,121 @@ namespace SquirrelDebugEngine.Proxy
         return this;
       }
     }
+
+    public ulong ValueAddress
+    {
+      get
+      {
+        return Address.OffsetBy(m_Fields._unVal.Offset);
+      }
+    }
+
+    private string NativeTypeString
+    {
+      get
+      {
+        switch (Type)
+        {
+          case SquirrelVariableInfo.Type.Closure:
+            return "SQClosure *";
+          case SquirrelVariableInfo.Type.Array:
+            return "SQArray *";
+          case SquirrelVariableInfo.Type.NativeClosure:
+            return "SQNativeClosure *";
+          case SquirrelVariableInfo.Type.Generator:
+            return "SQGenerator *";
+          case SquirrelVariableInfo.Type.UserData:
+            return "SQUserData *";
+          case SquirrelVariableInfo.Type.Thread:
+            return "SQVM *";
+          case SquirrelVariableInfo.Type.Class:
+            return "SQClass *";
+          case SquirrelVariableInfo.Type.Instance:
+            return "SQInstance *";
+          case SquirrelVariableInfo.Type.Table:
+            return "SQTable *";
+          case SquirrelVariableInfo.Type.FuncProto:
+            return "SQFunctionProto *";
+        }
+
+        return "<invalid>";
+      }
+    }
+
+    public SquirrelVariableEvaluatorData EvaluationData
+    {
+      get
+      {
+        SquirrelVariableEvaluatorData Data = new SquirrelVariableEvaluatorData()
+        {
+          Flags             = DkmEvaluationResultFlags.ReadOnly,
+          Category          = DkmEvaluationResultCategory.Data,
+          AccessType        = DkmEvaluationResultAccessType.Public,
+          StorageType       = DkmEvaluationResultStorageType.None,
+          TypeModifierFlags = DkmEvaluationResultTypeModifierFlags.None
+        };
+
+        switch (Type)
+        {
+          case SquirrelVariableInfo.Type.Invalid:
+          {
+            Data.Type = "<invalid>";
+            Data.Value = "<invalid>";
+            
+            break;
+          }
+          case SquirrelVariableInfo.Type.Null:
+          {
+            Data.Type  = Type.ToString();
+            Data.Value = "null";
+
+            break;
+          }
+          case SquirrelVariableInfo.Type.Bool:
+          {
+            Data.Flags |= DkmEvaluationResultFlags.Boolean;
+
+            goto case SquirrelVariableInfo.Type.String;
+          }
+          case SquirrelVariableInfo.Type.WeakRef:
+          case SquirrelVariableInfo.Type.UserPointer:
+          case SquirrelVariableInfo.Type.Integer:
+          case SquirrelVariableInfo.Type.Float:
+          {
+            Data.Type  = Type.ToString();
+            Data.Value = Value.ToString();
+
+            break; 
+          }
+          case SquirrelVariableInfo.Type.String:
+          {
+            Data.Type = Type.ToString();
+            Data.Value = "\"" + (Value as SQString).Read() + "\"";
+
+            break;
+          }
+          case SquirrelVariableInfo.Type.Closure:
+          case SquirrelVariableInfo.Type.Array:
+          case SquirrelVariableInfo.Type.NativeClosure:
+          case SquirrelVariableInfo.Type.Generator:
+          case SquirrelVariableInfo.Type.UserData:
+          case SquirrelVariableInfo.Type.Thread:
+          case SquirrelVariableInfo.Type.Class:
+          case SquirrelVariableInfo.Type.Instance:
+          case SquirrelVariableInfo.Type.Table:
+          case SquirrelVariableInfo.Type.FuncProto:
+          {
+            Data.Value = "{...}";
+            Data.Flags |= DkmEvaluationResultFlags.Expandable;
+
+            Data.Type = NativeTypeString;
+            break;
+          }
+        }
+
+        return Data;
+      }
+    }
+    
   }
 }

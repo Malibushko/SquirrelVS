@@ -178,8 +178,6 @@ namespace SquirrelDebugEngine.Proxy
         {
           if (SkipVariables == 0)
           {
-            var VariableIndex = _StackBase + (long)Variables[j].Position.Read();
-
             SquirrelVariableInfo LocalVariable = new SquirrelVariableInfo()
             {
               Name  = (Variable.Name.Value as SQString).Read(),
@@ -216,6 +214,8 @@ namespace SquirrelDebugEngine.Proxy
         if (LocalVariable != null)
           Locals.Add(LocalVariable);
       }
+
+      Locals.Reverse();
 
       return Locals;
     }

@@ -12,6 +12,11 @@ namespace SquirrelDebugEngine
 {
   internal class ExpressionEvaluator : DkmDataItem
   {
+    private class SquirrelVariableDataHolder : DkmDataItem
+    {
+      public string Address;
+    }
+
     public void EvaluateExpression(
          DkmInspectionContext                                   _InspectionContext,
          DkmWorkList                                            _WorkList,
@@ -20,6 +25,54 @@ namespace SquirrelDebugEngine
          DkmCompletionRoutine<DkmEvaluateExpressionAsyncResult> _CompletionRoutine
        )
     {
+      // First check if expression is a squirrel local variable
+      var StackData = _StackFrame.Data.GetDataItem<SquirrelStackFrameData>();
+
+      if (StackData != null)
+      {
+        var Locals = StackData.NativeFrame.GetFrameLocals();
+
+        foreach (var LocalVariable in Locals)
+        {
+          if (LocalVariable.Name == _Expression.Text.Trim())
+          {
+            var SuccessEvaluationResult = CreateSquirrelSuccessEvaluationResult(
+                  _StackFrame.RuntimeInstance,
+                  _InspectionContext,
+                  _StackFrame,
+                  LocalVariable
+                );
+
+            _CompletionRoutine(new DkmEvaluateExpressionAsyncResult(SuccessEvaluationResult));
+
+            return;
+          }
+        }
+      }
+
+      // Otherwise try evaluate cpp expression
+      var CompilerID = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp);
+      var CppLanguage = DkmLanguage.Create("C++", CompilerID);
+
+      var Result = DkmIntermediateEvaluationResult.Create(
+            _InspectionContext,
+            _StackFrame,
+            _Expression.Text,
+            _Expression.Text,
+            _Expression.Text,
+            CppLanguage,
+            _StackFrame.Process.GetNativeRuntimeInstance(),
+            null
+          );
+
+      if (Result != null)
+      {
+        _CompletionRoutine(new DkmEvaluateExpressionAsyncResult(Result));
+
+        return;
+      }
+
+      // Give up
       _InspectionContext.EvaluateExpression(_WorkList, _Expression, _StackFrame, _CompletionRoutine);
     }
 
@@ -31,7 +84,53 @@ namespace SquirrelDebugEngine
         DkmCompletionRoutine<DkmGetChildrenAsyncResult> _CompletionRoutine
       )
     {
-      _Result.GetChildren(_WorkList, _InitialRequestChild, _InspectionContext, _CompletionRoutine);
+      var Result = _Result as DkmSuccessEvaluationResult;
+
+      if (Result == null)
+      {
+        _Result.GetChildren(_WorkList, _InitialRequestChild, _InspectionContext, _CompletionRoutine);
+
+        return;
+      }
+
+      var LocalData    = Utility.GetOrCreateDataItem<LocalProcessData>(_InspectionContext.Thread.Process);
+      var VariableData = _Result.GetDataItem<SquirrelVariableDataHolder>();
+      var Results      = new List<DkmEvaluationResult>();
+      
+      string CppExpression = EvaluationHelpers.GetExpressionForObject(
+          LocalData.SquirrelModule.Name,
+          Result.Type,
+          VariableData.Address, 
+          ",!"
+        );
+
+      var CompilerID  = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp);
+      var CppLanguage = DkmLanguage.Create("C++", CompilerID);
+
+      var EvaluationResult = DkmIntermediateEvaluationResult.Create(
+            _InspectionContext, 
+            _Result.StackFrame,
+            "[C++ view]",
+            "{C++}" + CppExpression,
+            CppExpression,
+            CppLanguage,
+            _Result.StackFrame.Process.GetNativeRuntimeInstance(),
+            null
+          );
+
+      Results.Add(EvaluationResult);
+
+      _CompletionRoutine(
+          new DkmGetChildrenAsyncResult(
+            Results.Take(_InitialRequestChild).ToArray(),
+            DkmEvaluationResultEnumContext.Create(
+            Results.Count,
+            _Result.StackFrame,
+            _InspectionContext,
+            null
+          )
+         )
+       );
     }
 
     public void GetFrameLocals(
@@ -85,27 +184,11 @@ namespace SquirrelDebugEngine
 
         for (int i = _StartIndex; i < _StartIndex + ActualCount; ++i)
         {
-          var Variable = Variables.Variables[i];
-
-          DkmDataAddress dataAddress = DkmDataAddress.Create(Data.RuntimeInstance, 0, null);
-
-          Results[i] = DkmSuccessEvaluationResult.Create(
+          Results[i] = CreateSquirrelSuccessEvaluationResult(
+              Data.RuntimeInstance,
               _EnumContext.InspectionContext,
               _EnumContext.StackFrame,
-              Variable.Name,
-              Variable.Name,
-              DkmEvaluationResultFlags.ReadOnly,
-              Variable.Value == null ? "<undefined>" : Variable.Value.ToString(),
-              null,
-              Variable.Value == null ? "<undefined>" : Variable.Value.Type.ToString(),
-              DkmEvaluationResultCategory.Data,
-              DkmEvaluationResultAccessType.Public,
-              DkmEvaluationResultStorageType.None,
-              DkmEvaluationResultTypeModifierFlags.None,
-              dataAddress,
-              null,
-              null,
-              null
+              Variables.Variables[i]
             );
         }
 
@@ -132,5 +215,39 @@ namespace SquirrelDebugEngine
     {
       return _Result.GetUnderlyingString();
     }
+
+    #region Service
+
+    DkmSuccessEvaluationResult CreateSquirrelSuccessEvaluationResult(
+        DkmRuntimeInstance   _RuntimeInstance,
+        DkmInspectionContext _InspectionContext,
+        DkmStackWalkFrame    _StackFrame,
+        SquirrelVariableInfo _VariableInfo
+      )
+    {
+      DkmDataAddress DataAddress                  = DkmDataAddress.Create(_RuntimeInstance, 0, null);
+      SquirrelVariableEvaluatorData EvaluatorData = _VariableInfo.Value.EvaluationData;
+
+      return DkmSuccessEvaluationResult.Create(
+            _InspectionContext,
+            _StackFrame,
+            _VariableInfo.Name,
+            _VariableInfo.Name,
+            EvaluatorData.Flags,
+            EvaluatorData.Value,
+            null,
+            EvaluatorData.Type,
+            EvaluatorData.Category,
+            EvaluatorData.AccessType,
+            EvaluatorData.StorageType,
+            EvaluatorData.TypeModifierFlags,
+            DataAddress,
+            null,
+            null,
+            new SquirrelVariableDataHolder { Address = "0x" + _VariableInfo.Value.ValueAddress.ToString("x") }
+          );
+    }
+
+    #endregion
   }
 }

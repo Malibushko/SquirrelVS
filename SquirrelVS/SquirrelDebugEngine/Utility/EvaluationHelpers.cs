@@ -84,6 +84,57 @@ namespace SquirrelDebugEngine
       return ExecuteExpression(expression + ",sb", inspectionSession, thread, input, flags, false, out _);
     }
 
+    internal static DkmEvaluationResult EvaluateCppExpression(
+          string               _Expression,
+          DkmInspectionSession _Session,
+          DkmThread            _Thread,
+          DkmStackWalkFrame    _Input,
+          DkmEvaluationFlags   _Flags,
+          uint                 _Timeout
+        )
+    {
+      var CompilerID         = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp);
+      var CppLanguage        = DkmLanguage.Create("C++", CompilerID);
+      var LanguageExpression = DkmLanguageExpression.Create(CppLanguage, DkmEvaluationFlags.None, _Expression, null);
+
+      DkmInspectionContext InspectionContext = DkmInspectionContext.Create(
+          _Session,
+          _Input.RuntimeInstance,
+          _Thread,
+          _Timeout,
+          _Flags,
+          DkmFuncEvalFlags.None,
+          10,
+          CppLanguage,
+          null
+        );
+
+      var WorkList = DkmWorkList.Create(null);
+
+      try
+      {
+        DkmEvaluationResult Result = null;
+
+        InspectionContext.EvaluateExpression(WorkList, LanguageExpression, _Input, AsyncResult =>
+        {
+          if (AsyncResult.ErrorCode == 0)
+          {
+            Result = AsyncResult.ResultObject as DkmSuccessEvaluationResult;
+
+            AsyncResult.ResultObject.Close();
+          }
+        });
+
+        WorkList.Execute();
+
+        return Result;
+      }
+      catch (Exception _Ex)
+      {
+        return null;
+      }
+    }
+
     internal static string ExecuteExpression(
           string _Expression,
           DkmInspectionSession _Session,
@@ -152,6 +203,15 @@ namespace SquirrelDebugEngine
         return _Ex.StackTrace;
       }
     }
-    
+
+    internal static string GetExpressionForObject(string moduleName, string typeName, string address, string tail = "")
+    {
+      string expr = string.Format("(*(::{0}*){1}ULL){2}", typeName, address, tail);
+      if (moduleName != null)
+      {
+        expr = "{,," + moduleName + "}" + expr;
+      }
+      return expr;
+    }
   }
 }
