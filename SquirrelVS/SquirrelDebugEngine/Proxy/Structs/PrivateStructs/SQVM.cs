@@ -11,6 +11,8 @@ namespace SquirrelDebugEngine.Proxy
   {
     private class Fields
     {
+#pragma warning disable 0649
+
       public StructField<PointerProxy>                       _debughook;
 
       public StructField<PointerProxy<ArrayProxy<CallInfo>>> _callsstack;
@@ -19,6 +21,8 @@ namespace SquirrelDebugEngine.Proxy
       public StructField<PointerProxy>                       _top;
       public StructField<SQObjectPtrVec>                     _stack;
       public StructField<Int64Proxy>                         _stackbase;
+
+#pragma warning restore 0649
     }
 
     private readonly Fields FieldsData;

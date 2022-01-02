@@ -6,12 +6,14 @@ using System;
 namespace SquirrelDebugEngine.Proxy
 {
   [StructProxy(StructName = "SQFunctionProto")]
-  internal class SQFunctionProto : SQObject
+  internal class SQFunctionProto : StructProxy, ISQObject
   {
     private class Fields
     {
-      public StructField<SQObject> _name;
-      public StructField<SQObject> _sourcename;
+#pragma warning disable 0649
+
+      public StructField<SQObjectPtr> _name;
+      public StructField<SQObjectPtr> _sourcename;
 
       public StructField<Int64Proxy>                               _nlocalvarinfos;
       public StructField<PointerProxy<ArrayProxy<SQLocalVarInfo>>> _localvarinfos;
@@ -25,6 +27,8 @@ namespace SquirrelDebugEngine.Proxy
       
       public StructField<PointerProxy<ArrayProxy<SQLineInfo>>> _lineinfos;
       public StructField<Int64Proxy>                           _nlineinfos;
+
+#pragma warning restore 0649
     }
 
     private readonly Fields m_Fields;
@@ -37,19 +41,19 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public SQObject Name
+    public SQObjectPtr Name
     {
       get
       {
-        return GetFieldProxy(m_Fields._name, RawValue.Read());
+        return GetFieldProxy(m_Fields._name);
       }
     }
 
-    public SQObject SourceName
+    public SQObjectPtr SourceName
     {
       get
       {
-        return GetFieldProxy(m_Fields._sourcename, RawValue.Read());
+        return GetFieldProxy(m_Fields._sourcename);
       }
     }
 
@@ -57,14 +61,14 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return (int)GetFieldProxy<Int64Proxy>(m_Fields._nlocalvarinfos, RawValue.Read()).Read();
+        return (int)GetFieldProxy<Int64Proxy>(m_Fields._nlocalvarinfos).Read();
       }
     }
     public int ParametersCount
     {
       get
       {
-        return (int)GetFieldProxy<Int64Proxy>(m_Fields._nparameters, RawValue.Read()).Read();
+        return (int)GetFieldProxy<Int64Proxy>(m_Fields._nparameters).Read();
       }
     }
 
@@ -72,7 +76,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return (int)GetFieldProxy<Int64Proxy>(m_Fields._noutervalues, RawValue.Read()).Read();
+        return (int)GetFieldProxy<Int64Proxy>(m_Fields._noutervalues).Read();
       }
     }
 
@@ -80,7 +84,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return GetFieldProxy(m_Fields._outervalues, RawValue.Read());
+        return GetFieldProxy(m_Fields._outervalues);
       }
     }
 
@@ -88,7 +92,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return GetFieldProxy(m_Fields._localvarinfos, RawValue.Read());
+        return GetFieldProxy(m_Fields._localvarinfos);
       }
     }
 
@@ -96,7 +100,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return (int)GetFieldProxy(m_Fields._nlineinfos, RawValue.Read()).Read();
+        return (int)GetFieldProxy(m_Fields._nlineinfos).Read();
       }
     }
 
@@ -104,7 +108,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return GetFieldProxy(m_Fields._lineinfos, RawValue.Read());
+        return GetFieldProxy(m_Fields._lineinfos);
       }
     }
 
@@ -112,7 +116,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return GetFieldProxy(m_Fields._instructions, RawValue.Read());
+        return GetFieldProxy(m_Fields._instructions);
       }
     }
 
@@ -178,11 +182,11 @@ namespace SquirrelDebugEngine.Proxy
 
             SquirrelVariableInfo LocalVariable = new SquirrelVariableInfo()
             {
-              Name  = Variable.Name.ReadValue() as string,
-              Value = Stack.RawGet(VariableIndex, SizeOf<SQObject>(Process))
+              Name  = (Variable.Name.Value as SQString).Read(),
+              Value = Stack[_StackBase + (long)Variables[j].Position.Read()]
             };
 
-            var VariableInfoType = LocalVariable.Value?.Type.Read();
+            var VariableInfoType = LocalVariable.Value?.Type;
 
             if (VariableInfoType != null &&
                 VariableInfoType != SquirrelVariableInfo.Type.Invalid &&
@@ -229,18 +233,8 @@ namespace SquirrelDebugEngine.Proxy
       List<string> Names = new List<string>();
 
       for (int i = VariablesCount - ParametersCount; i < VariablesCount - 1; i++)
-      {
-        var VariableName = Variables[i].Name;
+        Names.Add((Variables[i].Name.Value as SQString).Read());
 
-        if (VariableName?.Type.Read() != SquirrelVariableInfo.Type.String)
-        {
-          Names.Add("<failed to get variable name>");
-          continue;
-        }
-
-        Names.Add((VariableName.Value as SQString).Read());
-      }
-      
       Names.Reverse();
 
       return Names;

@@ -7,10 +7,14 @@ namespace SquirrelDebugEngine.Proxy
   {
     public class Fields
     {
-      public StructField<SQString>    _name;
+#pragma warning disable 0649
+
+      public StructField<SQObjectPtr> _name;
       public StructField<UInt64Proxy> _pos;
       public StructField<UInt64Proxy> _start_op;
       public StructField<UInt64Proxy> _end_op;
+
+#pragma warning restore 0649
     }
 
     private readonly Fields m_Fields;
@@ -24,11 +28,11 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public SQString Name
+    public SQObjectPtr Name
     {
       get
       {
-        return GetFieldProxy(m_Fields._name, false);
+        return GetFieldProxy(m_Fields._name);
       }
     }
 
@@ -36,7 +40,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return GetFieldProxy(m_Fields._pos, false);
+        return GetFieldProxy(m_Fields._pos);
       }
     }
 

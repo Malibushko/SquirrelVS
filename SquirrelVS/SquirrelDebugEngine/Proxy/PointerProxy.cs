@@ -58,9 +58,9 @@ namespace SquirrelDebugEngine.Proxy {
             Write((ulong)value);
         }
 
-        public PointerProxy<TProxy> ReinterpretCast<TProxy>(bool polymorphic = true) 
+        public PointerProxy<TProxy> ReinterpretCast<TProxy>() 
             where TProxy : IDataProxy {
-            return new PointerProxy<TProxy>(Process, Address, polymorphic);
+            return new PointerProxy<TProxy>(Process, Address);
         }
     }
 
@@ -71,18 +71,11 @@ namespace SquirrelDebugEngine.Proxy {
         public DkmProcess Process { get; private set; }
         public ulong Address { get; private set; }
 
-        private readonly bool _polymorphic;
-
         public PointerProxy(DkmProcess process, ulong address)
-            : this(process, address, true) {
-        }
-
-        public PointerProxy(DkmProcess process, ulong address, bool polymorphic)
             : this() {
             Debug.Assert(process != null && address != 0);
             Process = process;
             Address = address;
-            _polymorphic = polymorphic;
         }
 
         public long ObjectSize {
@@ -107,7 +100,7 @@ namespace SquirrelDebugEngine.Proxy {
             }
 
             var ptr = Raw.Read();
-            return DataProxy.Create<TProxy>(Process, ptr, _polymorphic);
+            return DataProxy.Create<TProxy>(Process, ptr);
         }
 
         /// <summary>
@@ -119,7 +112,7 @@ namespace SquirrelDebugEngine.Proxy {
             }
 
             var ptr = Raw.Read();
-            return DataProxy.Create<TProxy>(Process, ptr, _polymorphic);
+            return DataProxy.Create<TProxy>(Process, ptr);
         }
 
         object IValueStore.Read() {
@@ -134,9 +127,9 @@ namespace SquirrelDebugEngine.Proxy {
             Write((TProxy)value);
         }
 
-        public PointerProxy<TOtherProxy> ReinterpretCast<TOtherProxy>(bool polymorphic = true)
+        public PointerProxy<TOtherProxy> ReinterpretCast<TOtherProxy>()
             where TOtherProxy : IDataProxy {
-            return new PointerProxy<TOtherProxy>(Process, Address, polymorphic);
+            return new PointerProxy<TOtherProxy>(Process, Address);
         }
 
 #if DEBUG

@@ -131,18 +131,18 @@ namespace SquirrelDebugEngine.Proxy {
             return new { _process, _address }.GetHashCode();
         }
 
-        protected TProxy GetFieldProxy<TProxy>(StructField<TProxy>? field, bool polymorphic = true)
+        protected TProxy GetFieldProxy<TProxy>(StructField<TProxy>? field)
             where TProxy : IDataProxy {
             return field.HasValue ? GetFieldProxy(field.Value) : default(TProxy);
         }
 
-        protected TProxy GetFieldProxy<TProxy>(StructField<TProxy> field, bool polymorphic = true)
+        protected TProxy GetFieldProxy<TProxy>(StructField<TProxy> field)
             where TProxy : IDataProxy {
-            return DataProxy.Create<TProxy>(Process, Address.OffsetBy(field.Offset), polymorphic);
+            return DataProxy.Create<TProxy>(Process, Address.OffsetBy(field.Offset));
         }
-        protected TProxy GetFieldProxy<TProxy>(StructField<TProxy> field, ulong _Address, bool polymorphic = true)
+        protected TProxy GetFieldProxy<TProxy>(StructField<TProxy> field, ulong _Address)
             where TProxy : IDataProxy {
-            return DataProxy.Create<TProxy>(Process, _Address.OffsetBy(field.Offset), polymorphic);
+            return DataProxy.Create<TProxy>(Process, _Address.OffsetBy(field.Offset));
         }
     public static bool operator ==(StructProxy lhs, StructProxy rhs) {
             if ((object)lhs == null) {

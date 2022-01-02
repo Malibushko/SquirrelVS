@@ -173,8 +173,12 @@ namespace SquirrelDebugEngine
       var               HelperLocations = Utility.GetOrCreateDataItem<HelperLocationsDataHolder>(_Process);
       SquirrelLocations Locations       = Utility.GetOrCreateDataItem<SquirrelLocations>(_Process);
 
-      if (LocalData.SquirrelHandle == null || LocalData.SquirrelHandle.Address == 0)
+      if (LocalData.SquirrelHandle         == null || 
+          LocalData.SquirrelHandle.Address == 0    ||
+          LocalData.HelperState            != HelperState.Initialized)
+      {
         return false;
+      }
 
       HookData.SquirrelSetDebugHook.Write(Locations.SquirrelSetDebugHook);
       HookData.SquirrelNewClosure  .Write(Locations.SquirrelNewClosure);
@@ -375,7 +379,7 @@ namespace SquirrelDebugEngine
 
       LocalData.SquirrelHandle = new SQVM(_Process, _SquirrelHandleAddress.Value);
 
-      if (TrySetupDebugHooks(_Process))
+      if (TrySetupDebugHooks(_Process) || LocalData.HelperState != HelperState.Initialized)
       {
         HookData.SuspendThread = _Thread;
 
@@ -755,20 +759,6 @@ namespace SquirrelDebugEngine
 
           Message.SendToVsService(Guids.SquirelDebuggerComponentID, true);
         }
-      }
-    }
-    [DataContract]
-    [MessageTo(Guids.SquirrelLocalComponentID)]
-    internal class OnRemoteComponentException : MessageBase<OnRemoteComponentException>
-    {
-      [DataMember]
-      public string Message;
-
-      public override void Handle(
-         DkmProcess _Process
-        )
-      {
-        Debug.WriteLine(Message);
       }
     }
 

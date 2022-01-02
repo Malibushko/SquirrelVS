@@ -40,7 +40,7 @@ namespace SquirrelDebugEngine
           if (FunctionProto == null)
             CachedSourceName = "<failed to get source name>";
           else
-            CachedSourceName = FunctionProto.SourceName.ReadValue() as string;
+            CachedSourceName = (FunctionProto.SourceName.Value as SQString).Read();
         }
 
         return CachedSourceName;
@@ -55,7 +55,7 @@ namespace SquirrelDebugEngine
           if (FunctionProto == null)
             CachedFunctionName = "<failed to get function name>";
           else
-            CachedFunctionName = FunctionProto.Name.ReadValue() as string;
+            CachedFunctionName = (FunctionProto.Name.Value as SQString).Read();
         }
 
         return CachedFunctionName;
@@ -102,7 +102,7 @@ namespace SquirrelDebugEngine
 
         var FunctionObject = (NativeFrame.Closure.Value as SQClosure).Function;
 
-        if (FunctionObject?.Type.Read() != SquirrelVariableInfo.Type.FuncProto)
+        if (FunctionObject?.Type != SquirrelVariableInfo.Type.FuncProto)
           return null;
 
         return FunctionObject.Value as SQFunctionProto;
@@ -111,7 +111,7 @@ namespace SquirrelDebugEngine
 
     public bool IsClosure()
     {
-      return NativeFrame?.Closure != null && NativeFrame?.Closure.Type.Read() == SquirrelVariableInfo.Type.Closure;
+      return NativeFrame?.Closure != null && NativeFrame?.Closure.Type == SquirrelVariableInfo.Type.Closure;
     }
   }
 }

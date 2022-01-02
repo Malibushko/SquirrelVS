@@ -3,11 +3,15 @@
 namespace SquirrelDebugEngine.Proxy
 {
   [StructProxy(StructName = "SQClosure")]
-  internal class SQClosure : SQObject
+  internal class SQClosure : StructProxy, ISQObject
   {
     private class Fields
     {
+#pragma warning disable 0649
+
       public StructField<SQObjectPtr> _function;
+
+#pragma warning restore 0649
     }
 
     private readonly Fields m_Fields;
@@ -25,7 +29,7 @@ namespace SquirrelDebugEngine.Proxy
     {
       get
       {
-        return GetFieldProxy(m_Fields._function, RawValue.Read(), false);
+        return GetFieldProxy(m_Fields._function);
       }
     }
   }

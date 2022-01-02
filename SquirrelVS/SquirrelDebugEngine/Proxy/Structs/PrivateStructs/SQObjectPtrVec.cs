@@ -7,9 +7,13 @@ namespace SquirrelDebugEngine.Proxy
   {
     public class Fields
     {
-      public StructField<PointerProxy<ArrayProxy<SQObject>>> _vals;
-      public StructField<UInt64Proxy>                        _size;
-      public StructField<UInt64Proxy>                        _allocated;
+#pragma warning disable 0649
+
+      public StructField<PointerProxy<ArrayProxy<SQObjectPtr>>> _vals;
+      public StructField<UInt64Proxy>                           _size;
+      public StructField<UInt64Proxy>                           _allocated;
+
+#pragma warning restore 0649
     }
 
     private readonly Fields m_Fields;
@@ -23,11 +27,11 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public PointerProxy<ArrayProxy<SQObject>> Values
+    public PointerProxy<ArrayProxy<SQObjectPtr>> Values
     {
       get
       {
-        return GetFieldProxy(m_Fields._vals, false);
+        return GetFieldProxy(m_Fields._vals);
       }
     }
   }

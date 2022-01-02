@@ -52,38 +52,33 @@ namespace SquirrelDebugEngine.Proxy {
     /// </summary>
     internal static class DataProxy {
         private static class FactoryBuilder<TProxy> where TProxy : IDataProxy {
-            public delegate TProxy FactoryFunc(DkmProcess process, ulong address, bool polymorphic);
+            public delegate TProxy FactoryFunc(DkmProcess process, ulong address);
 
             public static readonly FactoryFunc Factory;
 
             static FactoryBuilder() {
-                FactoryFunc nonPolymorphicFactory;
+                FactoryFunc objectsFactory;
                 var ctor = typeof(TProxy).GetConstructor(new[] { typeof(DkmProcess), typeof(ulong) });
                 if (ctor != null) {
                     var processParam = Expression.Parameter(typeof(DkmProcess));
                     var addressParam = Expression.Parameter(typeof(ulong));
-                    var polymorphicParam = Expression.Parameter(typeof(bool));
-                    nonPolymorphicFactory = Expression.Lambda<FactoryFunc>(
+                    objectsFactory = Expression.Lambda<FactoryFunc>(
                         Expression.New(ctor, processParam, addressParam),
-                        new[] { processParam, addressParam, polymorphicParam })
+                        new[] { processParam, addressParam })
                         .Compile();
                 } else {
-                    nonPolymorphicFactory = (process, address, polymorphic) => {
+                    objectsFactory = (process, address) => {
                         Debug.Fail("IDebuggeeReference-derived type " + typeof(TProxy).Name + " does not have a (DkmProcess, ulong) constructor.");
                         throw new NotSupportedException();
                     };
                 }
 
                 if (typeof(ISQObject).IsAssignableFrom(typeof(TProxy))) {
-                    Factory = (process, address, polymorphic) => {
-                        if (polymorphic) {
-                            return (TProxy)(object)SQObject.FromAddress(process, address);
-                        } else {
-                            return nonPolymorphicFactory(process, address, polymorphic);
-                        }
+                    Factory = (process, address) => {
+                        return objectsFactory(process, address);
                     };
                 } else {
-                    Factory = nonPolymorphicFactory;
+                    Factory = objectsFactory;
                 }
             }
         }
@@ -92,9 +87,9 @@ namespace SquirrelDebugEngine.Proxy {
         /// Create a new proxy of a given type. This method exists to facilitate generic programming, as a workaround for the lack
         /// of parametrized constructor constraint in CLR generics.
         /// </summary>
-        public static TProxy Create<TProxy>(DkmProcess process, ulong address, bool polymorphic = true)
+        public static TProxy Create<TProxy>(DkmProcess process, ulong address)
             where TProxy : IDataProxy {
-            return FactoryBuilder<TProxy>.Factory(process, address, polymorphic);
+            return FactoryBuilder<TProxy>.Factory(process, address);
         }
 
         /// <summary>

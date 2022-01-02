@@ -7,8 +7,12 @@ namespace SquirrelDebugEngine.Proxy
   {
     public class Fields
     {
+#pragma warning disable 0649
+
       public StructField<Int64Proxy> _line;
       public StructField<Int64Proxy> _op;
+
+#pragma warning restore 0649
     }
 
     private readonly Fields m_Fields;

@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Debugger;
 namespace SquirrelDebugEngine.Proxy
 {
   [StructProxy(StructName = "SQString")]
-  internal class SQString : SQObject
+  internal class SQString : StructProxy, ISQObject
   {
     public class Fields
     {
@@ -21,19 +21,9 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public new string Read()
+    public string Read()
     {
-      var StringAddress = RawValue.Read() + (ulong)m_Fields._val.Offset;
-      
-      if (StringAddress != 0)
-        return Utility.ReadStringVariable(Process, StringAddress, 1024);
-
-      return null;
-    }
-
-    public override object ReadValue()
-    {
-      return Read();
+      return Utility.ReadStringVariable(Process, Address.OffsetBy(m_Fields._val.Offset), 1024);
     }
   }
 }

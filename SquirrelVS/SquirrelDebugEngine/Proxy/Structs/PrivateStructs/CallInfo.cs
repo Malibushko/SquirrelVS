@@ -11,9 +11,13 @@ namespace SquirrelDebugEngine.Proxy
   {
     private class Fields
     {
-      public StructField<SQObject>     _closure;
+#pragma warning disable 0649
+
+      public StructField<SQObjectPtr>  _closure;
       public StructField<PointerProxy> _ip;
       public StructField<Int32Proxy>   _prevstkbase;
+
+#pragma warning restore 0649
     }
 
     private readonly Fields m_Fields;
@@ -27,7 +31,7 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public SQObject Closure
+    public SQObjectPtr Closure
     {
       get
       {
