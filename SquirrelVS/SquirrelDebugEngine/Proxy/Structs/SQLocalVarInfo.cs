@@ -7,7 +7,10 @@ namespace SquirrelDebugEngine.Proxy
   {
     public class Fields
     {
-      public StructField<SQString> _name;
+      public StructField<SQString>    _name;
+      public StructField<UInt64Proxy> _pos;
+      public StructField<UInt64Proxy> _start_op;
+      public StructField<UInt64Proxy> _end_op;
     }
 
     private readonly Fields m_Fields;
@@ -26,6 +29,30 @@ namespace SquirrelDebugEngine.Proxy
       get
       {
         return GetFieldProxy(m_Fields._name, false);
+      }
+    }
+
+    public UInt64Proxy Position
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._pos, false);
+      }
+    }
+
+    public UInt64Proxy StartOpcode
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._start_op);
+      }
+    }
+
+    public UInt64Proxy EndOpcode
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._end_op);
       }
     }
   }

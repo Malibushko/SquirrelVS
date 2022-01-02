@@ -41,11 +41,13 @@ namespace SquirrelDebugEngine
         DkmCompletionRoutine<DkmGetFrameLocalsAsyncResult> _CompletionRoutine
       )
     {
-      SquirrelFunctionVariables Variables = TryExtraxtFrameVariables(
-          _StackFrame.Process,
-          _InspectionContext.InspectionSession,
-          _StackFrame.Data.GetDataItem<SquirrelStackFrameData>()
-        );
+      var FrameData = _StackFrame.Data.GetDataItem<SquirrelStackFrameData>();
+
+      SquirrelFunctionVariables Variables = new SquirrelFunctionVariables()
+      {
+        Process   = _StackFrame.Process,
+        Variables = FrameData.NativeFrame.GetFrameLocals()
+      };
 
       if (Variables != null)
         _CompletionRoutine(new DkmGetFrameLocalsAsyncResult(DkmEvaluationResultEnumContext.Create(Variables.Variables.Count, _StackFrame, _InspectionContext, Variables)));
@@ -93,9 +95,9 @@ namespace SquirrelDebugEngine
               Variable.Name,
               Variable.Name,
               DkmEvaluationResultFlags.ReadOnly,
-              Variable.Value,
+              Variable.Value == null ? "<undefined>" : Variable.Value.ReadValue().ToString(),
               null,
-              Variable.ItemType.ToString(),
+              Variable.Value == null ? "<undefined>" : Variable.Value.Type.Read().ToString(),
               DkmEvaluationResultCategory.Data,
               DkmEvaluationResultAccessType.Public,
               DkmEvaluationResultStorageType.None,
@@ -129,24 +131,6 @@ namespace SquirrelDebugEngine
       )
     {
       return _Result.GetUnderlyingString();
-    }
-
-    private SquirrelFunctionVariables TryExtraxtFrameVariables(
-        DkmProcess             _Process,
-        DkmInspectionSession   _Session,
-        SquirrelStackFrameData _Frame
-     )
-    {
-      SquirrelFunctionVariables Variables = new SquirrelFunctionVariables()
-      {
-        Process = _Process
-      };
-
-      LocalProcessData  ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
-      
-      DkmStackWalkFrame ParentFrame = _Frame.ParentFrame;
-
-      return Variables;
     }
   }
 }

@@ -23,9 +23,14 @@ namespace SquirrelDebugEngine.Proxy
     {
       InitializeStruct(this, out m_Fields);
     }
-    public new long Read()
+    public new Int64 Read()
     {
       return GetFieldProxy(m_Fields._unVal).Read();
+    }
+
+    public override object ReadValue()
+    {
+      return Read();
     }
   }
 }

@@ -231,7 +231,7 @@ extern "C"
       const int64_t  _Line
     )
   {
-    const size_t Length = IsSQUnicode ? std::wcslen((const wchar_t *)_SourceName) : std::strlen((const char *)_SourceName);
+    const size_t Length = GetSquirrelByteLength(_SourceName);
 
     for (int i = 0; i < ActiveBreakpointsCount; ++i)
     {
@@ -239,8 +239,10 @@ extern "C"
 
       if (Data.Line == _Line)
       {
+        const char * DummyData = static_cast<const char *>(Data.SourceName);
+
         if (Data.SourceLength == 0)
-          Data.SourceLength = IsSQUnicode ? std::wcslen((const wchar_t *)_SourceName) : std::strlen((const char *)_SourceName);
+          Data.SourceLength = GetSquirrelByteLength(Data.SourceName);
 
         if (Data.SourceLength == Length && StringsEqual(Data.SourceName, _SourceName, Length))
           return i;
@@ -258,6 +260,9 @@ extern "C"
       const void *   _FunctionName
     )
   {
+    if (_SourceName == nullptr || _FunctionName == nullptr)
+      return;
+
     const char* SourceDummy = static_cast<const char*>(_SourceName);
     const char* FuncDummy   = static_cast<const char*>(_FunctionName);
 

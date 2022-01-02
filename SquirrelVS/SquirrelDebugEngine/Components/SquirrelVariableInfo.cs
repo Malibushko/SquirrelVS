@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SquirrelDebugEngine.Proxy;
 
 namespace SquirrelDebugEngine
 {
@@ -55,8 +51,7 @@ namespace SquirrelDebugEngine
       FuncProto     = SquirrelTypeMasks.FUNCPROTO | SquirrelTypeMasks.SQOBJECT_REF_COUNTED
     };
 
-    public Type   ItemType;
-    public string Name;
-    public string Value;
+    internal string   Name;
+    internal SQObject Value;
   }
 }

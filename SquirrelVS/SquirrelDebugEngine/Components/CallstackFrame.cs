@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using SquirrelDebugEngine.Proxy;
 using System;
+using System.Collections.Generic;
 
 namespace SquirrelDebugEngine
 {
@@ -15,11 +16,18 @@ namespace SquirrelDebugEngine
     private string    CachedSourceName;
     private long      CachedLine;
 
+    internal Int32 PreviousStackBase { get; set; }
+    internal long  StackBase { get; set; }
+
     internal CallstackFrame(
         CallInfo _NativeFrame
       )
     {
       NativeFrame = _NativeFrame;
+      
+      if (NativeFrame != null)
+        PreviousStackBase = NativeFrame.PreviousStackBase;
+
       CachedLine  = 0;
     }
 
@@ -32,7 +40,7 @@ namespace SquirrelDebugEngine
           if (FunctionProto == null)
             CachedSourceName = "<failed to get source name>";
           else
-            CachedSourceName = (FunctionProto.SourceName as SQString).Read();
+            CachedSourceName = FunctionProto.SourceName.ReadValue() as string;
         }
 
         return CachedSourceName;
@@ -47,11 +55,16 @@ namespace SquirrelDebugEngine
           if (FunctionProto == null)
             CachedFunctionName = "<failed to get function name>";
           else
-            CachedFunctionName = (FunctionProto.Name as SQString).Read();
+            CachedFunctionName = FunctionProto.Name.ReadValue() as string;
         }
 
         return CachedFunctionName;
       }
+    }
+
+    internal List<SquirrelVariableInfo> GetFrameLocals()
+    {
+      return FunctionProto?.GetLocals(StackBase, NativeFrame.InstructionPointer);
     }
 
     internal string FrameName
@@ -87,13 +100,18 @@ namespace SquirrelDebugEngine
         if (NativeFrame?.Closure == null)
           return null;
 
-        var FunctionObject = NativeFrame.Closure.Function;
+        var FunctionObject = (NativeFrame.Closure.Value as SQClosure).Function;
 
         if (FunctionObject?.Type.Read() != SquirrelVariableInfo.Type.FuncProto)
           return null;
 
         return FunctionObject.Value as SQFunctionProto;
       }
+    }
+
+    public bool IsClosure()
+    {
+      return NativeFrame?.Closure != null && NativeFrame?.Closure.Type.Read() == SquirrelVariableInfo.Type.Closure;
     }
   }
 }

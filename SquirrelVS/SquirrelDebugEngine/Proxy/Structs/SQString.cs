@@ -30,5 +30,10 @@ namespace SquirrelDebugEngine.Proxy
 
       return null;
     }
+
+    public override object ReadValue()
+    {
+      return Read();
+    }
   }
 }

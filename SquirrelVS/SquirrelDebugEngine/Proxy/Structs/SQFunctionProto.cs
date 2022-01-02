@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Debugger;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace SquirrelDebugEngine.Proxy
 {
@@ -141,6 +142,78 @@ namespace SquirrelDebugEngine.Proxy
       }
 
       return 1;
+    }
+
+    public SquirrelVariableInfo GetLocalVariable(
+          int          _Index,
+          long         _StackBase,
+          PointerProxy _InstructionPointer
+        )
+    {
+      var VariablesPtr = LocalVariables;
+
+      if (VariablesPtr.IsNull)
+        return null;
+
+      var Variables      = VariablesPtr.Read();
+      var VariablesCount = LocalVariablesCount;
+
+      UInt64 InstructionObjectSize = (UInt64)SizeOf<SQInstruction>(Process);
+      UInt64 OpcodeNumber          = (UInt64)((_InstructionPointer.Read() - Instructions.Address) / InstructionObjectSize) - 1;
+      
+      var SquirrelHandle = Process.GetDataItem<LocalProcessData>().SquirrelHandle;
+      var Stack          = SquirrelHandle.Stack.Values.Read();
+
+      int SkipVariables = _Index;
+
+      for (int j = 0; j < VariablesCount; j++)
+      {
+        var Variable = Variables[j];
+
+        if (Variable.StartOpcode.Read() <= OpcodeNumber && Variable.EndOpcode.Read() >= OpcodeNumber)
+        {
+          if (SkipVariables == 0)
+          {
+            var VariableIndex = _StackBase + (long)Variables[j].Position.Read();
+
+            SquirrelVariableInfo LocalVariable = new SquirrelVariableInfo()
+            {
+              Name  = Variable.Name.ReadValue() as string,
+              Value = Stack.RawGet(VariableIndex, SizeOf<SQObject>(Process))
+            };
+
+            var VariableInfoType = LocalVariable.Value?.Type.Read();
+
+            if (VariableInfoType != null &&
+                VariableInfoType != SquirrelVariableInfo.Type.Invalid &&
+                VariableInfoType != SquirrelVariableInfo.Type.Null)
+            {
+              return LocalVariable;
+            }
+          }
+          --SkipVariables;
+        }
+      }
+
+      return null;
+   }
+    public List<SquirrelVariableInfo> GetLocals(
+          long         _StackBase,
+          PointerProxy _InstructionPointer
+        )
+    {
+      List<SquirrelVariableInfo> Locals         = new List<SquirrelVariableInfo>();
+      var                        VariablesCount = LocalVariablesCount;
+
+      for (int i = 0; i < VariablesCount; i++)
+      {
+        var LocalVariable = GetLocalVariable(i, _StackBase, _InstructionPointer);
+
+        if (LocalVariable != null)
+          Locals.Add(LocalVariable);
+      }
+
+      return Locals;
     }
 
     public List<string> GetInputParameterNames()

@@ -59,7 +59,14 @@ namespace SquirrelDebugEngine.Proxy {
                 return result;
             }
         }
-
+        
+        public TProxy RawGet(
+            long _Index, 
+            long _ObjectSize
+          )
+        {
+            return DataProxy.Create<TProxy>(Process, Address.OffsetBy(_Index * _ObjectSize));
+        }
         /// <summary>
         /// Enumerates elements in the array and returns a sequence of proxies for them. The returned sequence is lazy and unbounded,
         /// so the caller should either count the elements, or look for some sentinel value to know when to stop reading.

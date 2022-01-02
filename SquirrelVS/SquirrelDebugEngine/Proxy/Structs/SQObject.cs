@@ -83,13 +83,18 @@ namespace SquirrelDebugEngine.Proxy
         case SquirrelVariableInfo.Type.FuncProto:
           return new SQFunctionProto(_Process, _Address);
         default:
-          return null;
+          break;
       }
 
-      return null;
+      return new SQObject(_Process, _Address);
     }
 
     public SQObject Read()
+    {
+      return this;
+    }
+
+    public virtual object ReadValue()
     {
       return this;
     }

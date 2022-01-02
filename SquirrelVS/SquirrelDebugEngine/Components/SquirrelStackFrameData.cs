@@ -5,7 +5,6 @@ namespace SquirrelDebugEngine
 {
   public class SquirrelStackFrameData : DkmDataItem
   {
-    public DkmStackWalkFrame ParentFrame;
-    public int               IndexFromTop = -1;
+    internal CallstackFrame NativeFrame;
   }
 }

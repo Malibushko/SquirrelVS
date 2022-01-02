@@ -67,13 +67,14 @@ namespace SquirrelDebugEngine
         if ((_NativeFrame.Flags | DkmStackWalkFrameFlags.TopFrame) != 0)
           SquirrelFrameFlags |= DkmStackWalkFrameFlags.TopFrame;
 
-        var Callstack      = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process).Callstack;
+        var Callstack      = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
         var SquirrelFrames = new List<DkmStackWalkFrame>();
 
-        int IndexFromTop = 0;
-
-        foreach (var Call in Callstack)
+        foreach (var Call in Callstack.Callstack)
         {
+          if (!Call.IsClosure())
+            continue;
+
           DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
               ProcessData.RuntimeInstance,
               ProcessData.ModuleInstance,
@@ -82,6 +83,8 @@ namespace SquirrelDebugEngine
               null,
               null
             );
+
+          Callstack.GetFrameStackBase(Call, ProcessData.SquirrelHandle.StackBase.Read());
 
           SquirrelFrames.Add(DkmStackWalkFrame.Create(
               _StackContext.Thread,
@@ -98,8 +101,7 @@ namespace SquirrelDebugEngine
                   _StackContext.InspectionSession, 
                   new SquirrelStackFrameData 
                   { 
-                    ParentFrame  = _NativeFrame, 
-                    IndexFromTop = IndexFromTop++ 
+                    NativeFrame = Call
                   }
                 )
               )

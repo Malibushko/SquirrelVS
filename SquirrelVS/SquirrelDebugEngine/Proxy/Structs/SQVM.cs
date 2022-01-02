@@ -17,7 +17,8 @@ namespace SquirrelDebugEngine.Proxy
       public StructField<Int64Proxy>                         _callsstacksize;
 
       public StructField<PointerProxy>                       _top;
-      public StructField<PointerProxy>                       _stack;
+      public StructField<SQObjectPtrVec>                     _stack;
+      public StructField<Int64Proxy>                         _stackbase;
     }
 
     private readonly Fields FieldsData;
@@ -39,11 +40,27 @@ namespace SquirrelDebugEngine.Proxy
       }
     }
 
+    public SQObjectPtrVec Stack
+    {
+      get
+      {
+        return GetFieldProxy(FieldsData._stack);
+      }
+    }
+
     public long StackOffset
     {
       get
       {
         return FieldsData._stack.Offset;
+      }
+    }
+
+    public Int64Proxy StackBase
+    {
+      get
+      {
+        return GetFieldProxy(FieldsData._stackbase);
       }
     }
 

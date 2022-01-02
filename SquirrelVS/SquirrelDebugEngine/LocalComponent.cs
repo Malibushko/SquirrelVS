@@ -781,26 +781,15 @@ namespace SquirrelDebugEngine
         {
           try
           {
-            CallInfo NativeFrame = CallstackPointer.Read()[i];
-
-            var Closure = NativeFrame?.Closure?.Value;
-
-            if (Closure?.Type.Read() != SquirrelVariableInfo.Type.Closure)
-              continue;
-
-            SQClosure NativeClosure = Closure as SQClosure;
-            SQObject  FunctionProto = NativeClosure.Function.Value;
-
-            if (FunctionProto?.Type.Read() != SquirrelVariableInfo.Type.FuncProto)
-              continue;
-
-            CallstackData.Callstack.Push(new CallstackFrame(NativeFrame));
+            CallstackData.Callstack.Add(new CallstackFrame(CallstackPointer.Read()[i]));
           }
           catch (Exception Ex)
           {
             // TODO: Remove this after ensuring no bad thing can happen OR add a logs
           }
         }
+
+        CallstackData.Callstack.Reverse();
       }
     }
     #endregion

@@ -11,8 +11,9 @@ namespace SquirrelDebugEngine.Proxy
   {
     private class Fields
     {
-      public StructField<SQClosure>    _closure;
+      public StructField<SQObject>     _closure;
       public StructField<PointerProxy> _ip;
+      public StructField<Int32Proxy>   _prevstkbase;
     }
 
     private readonly Fields m_Fields;
@@ -26,7 +27,7 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public SQClosure Closure
+    public SQObject Closure
     {
       get
       {
@@ -39,6 +40,14 @@ namespace SquirrelDebugEngine.Proxy
       get
       {
         return GetFieldProxy(m_Fields._ip);
+      }
+    }
+
+    public Int32 PreviousStackBase
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._prevstkbase).Read();
       }
     }
   }
