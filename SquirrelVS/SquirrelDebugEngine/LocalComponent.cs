@@ -19,15 +19,15 @@ using System.Runtime.InteropServices;
 
 namespace SquirrelDebugEngine
 {
-  public class LocalComponent : 
+  public class LocalComponent :
       IComponentBase,
-      IDkmCallStackFilter, 
-      IDkmModuleInstanceLoadNotification, 
-      IDkmSymbolQuery, 
-      IDkmSymbolCompilerIdQuery, 
-      IDkmSymbolDocumentCollectionQuery, 
-      IDkmSymbolDocumentSpanQuery, 
-      IDkmModuleUserCodeDeterminer, 
+      IDkmCallStackFilter,
+      IDkmModuleInstanceLoadNotification,
+      IDkmSymbolQuery,
+      IDkmSymbolCompilerIdQuery,
+      IDkmSymbolDocumentCollectionQuery,
+      IDkmSymbolDocumentSpanQuery,
+      IDkmModuleUserCodeDeterminer,
       IDkmSymbolHiddenAttributeQuery,
       IDkmLanguageExpressionEvaluator
   {
@@ -43,15 +43,15 @@ namespace SquirrelDebugEngine
 
     private class HelperHookDataHolder : DkmDataItem
     {
-      public DkmThread    SuspendThread;
+      public DkmThread SuspendThread;
 
       public PointerProxy SquirrelNewClosure;
       public PointerProxy SquirrelSetDebugHook;
       public PointerProxy SquirrelHandle;
 
-      public Guid         SquirrelNativeClosureCreated;
+      public Guid SquirrelNativeClosureCreated;
 
-      public ulong        HelperOffsetsAddress;
+      public ulong HelperOffsetsAddress;
     }
 
     private class SquirrelBreakpointsDataHolder : DkmDataItem
@@ -64,7 +64,7 @@ namespace SquirrelDebugEngine
 
     internal class HelperLocationsDataHolder : DkmDataItem
     {
-      public ulong             WorkingDirectoryAddress;
+      public ulong WorkingDirectoryAddress;
       public Proxy.UInt64Proxy IsSquirrelUnicode;
     }
 
@@ -74,8 +74,8 @@ namespace SquirrelDebugEngine
       public AddressRange SquirrelClose;    // sq_close
       public AddressRange SquirrelLoadFile; // sqstd_loadfile
       public AddressRange SquirrelCall;     // sq_call
-      public ulong        SquirrelNewClosure; // sq_newclosure
-      public ulong        SquirrelSetDebugHook; // sq_setdebughook
+      public ulong SquirrelNewClosure; // sq_newclosure
+      public ulong SquirrelSetDebugHook; // sq_setdebughook
     }
 
     public LocalComponent() : base(Guids.SquirrelLocalComponentGuid)
@@ -85,8 +85,8 @@ namespace SquirrelDebugEngine
 
     #region Interface
     public void OnModuleInstanceLoad(
-        DkmModuleInstance   _ModuleInstance,
-        DkmWorkList         _WorkList,
+        DkmModuleInstance _ModuleInstance,
+        DkmWorkList _WorkList,
         DkmEventDescriptorS _EventDescriptor)
     {
       DkmNativeModuleInstance NativeModuleInstance = _ModuleInstance as DkmNativeModuleInstance;
@@ -94,8 +94,8 @@ namespace SquirrelDebugEngine
       if (NativeModuleInstance == null)
         return;
 
-      string           ModuleName  = NativeModuleInstance.FullName;
-      DkmProcess       Process     = NativeModuleInstance.Process;
+      string ModuleName = NativeModuleInstance.FullName;
+      DkmProcess Process = NativeModuleInstance.Process;
       LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(NativeModuleInstance.Process);
 
       if (ModuleName != null)
@@ -135,33 +135,56 @@ namespace SquirrelDebugEngine
     #region Service
     private bool TryInitSquirrelModule(
         DkmNativeModuleInstance _Module,
-        LocalProcessData        _ProcessData
+        LocalProcessData _ProcessData
       )
     {
       DkmWorkerProcessConnection Connection = DkmWorkerProcessConnection.GetLocalSymbolsConnection();
 
       if (Connection != null)
       {
-          DkmCustomMessage Reply = DkmCustomMessage.Create(
-            _Module.Process.Connection, 
-            _Module.Process,
-            MessageToLocalWorker.Guid,
-            (int)MessageToLocalWorker.MessageType.FetchSquirrelSymbols,
-            _Module.UniqueId.ToByteArray(),
-            null,
-            null,
-            Connection
-          ).SendLower();
+        DkmCustomMessage Reply = DkmCustomMessage.Create(
+          _Module.Process.Connection,
+          _Module.Process,
+          MessageToLocalWorker.Guid,
+          (int)MessageToLocalWorker.MessageType.FetchSquirrelSymbols,
+          _Module.UniqueId.ToByteArray(),
+          null,
+          null,
+          Connection
+        ).SendLower();
 
         if (Reply != null)
         {
           _Module.Process.SetDataItem(DkmDataCreationDisposition.CreateNew, Reply.Parameter1 as SquirrelLocations);
-          
+
           _ProcessData.SquirrelModule = _Module;
         }
       }
 
       return false;
+    }
+
+    private static bool TrySetupDebugHooks(
+          DkmProcess _Process
+        )
+    {
+      var               LocalData       = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
+      var               HookData        = Utility.GetOrCreateDataItem<HelperHookDataHolder>(_Process);
+      var               HelperLocations = Utility.GetOrCreateDataItem<HelperLocationsDataHolder>(_Process);
+      SquirrelLocations Locations       = Utility.GetOrCreateDataItem<SquirrelLocations>(_Process);
+
+      if (LocalData.SquirrelHandle == null || LocalData.SquirrelHandle.Address == 0)
+        return false;
+
+      HookData.SquirrelSetDebugHook.Write(Locations.SquirrelSetDebugHook);
+      HookData.SquirrelNewClosure  .Write(Locations.SquirrelNewClosure);
+      HookData.SquirrelHandle      .Write(LocalData.SquirrelHandle.Address);
+
+      LocalData.WorkingDirectory = Utility.ReadStringVariable(_Process, HelperLocations.WorkingDirectoryAddress, 1024);
+
+      InitHelperOffsets(_Process);
+
+      return true;
     }
 
     private bool InjectDebugHelper(
@@ -352,16 +375,12 @@ namespace SquirrelDebugEngine
 
       LocalData.SquirrelHandle = new SQVM(_Process, _SquirrelHandleAddress.Value);
 
-      if (LocalData.HelperState != HelperState.Initialized)
+      if (TrySetupDebugHooks(_Process))
       {
         HookData.SuspendThread = _Thread;
 
         _Thread.Suspend(true);
-
-        return;
       }
-      
-      InitHelperOffsets(_Process);
 
       LocalData.Symbols.FetchOrCreate(_SquirrelHandleAddress.Value);
     }
@@ -669,19 +688,17 @@ namespace SquirrelDebugEngine
         if (BreakpointID == HookData.SquirrelNativeClosureCreated)
         {
           HookData.SuspendThread.Resume(true);
+
+          return;
         }
 
         if (BreakpointID == RuntimeDllBreakpoints.SquirrelHelperInitialized)
         {
-          SquirrelLocations Locations = Utility.GetOrCreateDataItem<SquirrelLocations>(_Process);
+          LocalData.HelperState = HelperState.Initialized;
+          
+          TrySetupDebugHooks(_Process);
 
-          HookData.SquirrelSetDebugHook.Write(Locations.SquirrelSetDebugHook);
-          HookData.SquirrelNewClosure  .Write(Locations.SquirrelNewClosure);
-          HookData.SquirrelHandle      .Write(LocalData.SquirrelHandle.Address);
-
-          LocalData.WorkingDirectory = Utility.ReadStringVariable(_Process, HelperLocations.WorkingDirectoryAddress, 1024);
-
-          InitHelperOffsets(_Process);
+          return;
         }
 
         if (BreakpointID == RuntimeDllBreakpoints.SquirrelOpenBreakpoint)
@@ -696,7 +713,7 @@ namespace SquirrelDebugEngine
               DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects
             );
 
-          if (!SquirrelHandleAddress.HasValue || true)
+          if (!SquirrelHandleAddress.HasValue)
             SquirrelHandleAddress = EvaluationHelpers.TryEvaluateAddressExpression("@rax", InspectionSession, Thread, _Frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
 
           if (SquirrelHandleAddress != 0)
@@ -718,7 +735,7 @@ namespace SquirrelDebugEngine
 
           string SourceName = Utility.ReadStringVariable(_Process, SourceNameAddress.Value, 256);
 
-          string SourcePath = Path.Combine(LocalData.WorkingDirectory, SourceName);
+          string SourcePath = Path.GetFullPath(Path.Combine(LocalData.WorkingDirectory, SourceName));
 
           string ScriptContent = File.ReadAllText(SourcePath);
 
