@@ -277,7 +277,7 @@ namespace SquirrelDebugEngine
 
     private bool InitalizeDebugHelper(
         DkmNativeModuleInstance _Module,
-        LocalProcessData _ProcessData
+        LocalProcessData        _ProcessData
       )
     {
       var IsInitialzeAddress = _Module.FindExportName("IsInitialized", false);
@@ -832,6 +832,21 @@ namespace SquirrelDebugEngine
         }
 
         CallstackData.Callstack.Reverse();
+      }
+    }
+
+    [DataContract]
+    [MessageTo(Guids.SquirrelLocalComponentID)]
+    internal class HandleCustomMessage : MessageBase<HandleCustomMessage>
+    {
+      [DataMember]
+      public string Message;
+
+      public override void Handle(
+          DkmProcess _Process
+        )
+      {
+        Debug.WriteLine(Message);
       }
     }
     #endregion

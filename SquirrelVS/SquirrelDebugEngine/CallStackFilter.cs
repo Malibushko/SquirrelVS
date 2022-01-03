@@ -108,6 +108,7 @@ namespace SquirrelDebugEngine
             );
         }
 
+        SquirrelFrames.Add(_NativeFrame);
         return SquirrelFrames.ToArray();
       }
       else

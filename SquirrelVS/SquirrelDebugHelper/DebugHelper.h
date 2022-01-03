@@ -283,14 +283,14 @@ extern "C"
       HitBreakpoint = TraceCall(_SourceName, _Line);
     }
 
-    UpdateStepper(_Type);
-
     if (HitBreakpoint != -1)
     {
       ::HitBreakpointIndex = HitBreakpoint;
 
       OnSquirrelHelperAsyncBreak();
     }
+    else
+      UpdateStepper(_Type);
   }
 
   extern "C" __declspec(dllexport) int64_t TraceRoutineHelper(

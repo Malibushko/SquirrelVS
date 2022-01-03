@@ -52,7 +52,7 @@ namespace SquirrelDebugEngine
               
               Locations.SquirrelCall = new AddressRange
               {
-                Start = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "sq_call", out _).GetValueOrDefault(0),
+                Start = AttachmentHelpers.TryGetFunctionAddress(Module, "sq_call", out _).GetValueOrDefault(0),
                 End   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd  (Module, "sq_call", out _).GetValueOrDefault(0)
               };
 

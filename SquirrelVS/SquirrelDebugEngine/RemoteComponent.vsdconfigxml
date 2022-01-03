@@ -7,7 +7,7 @@
 
   <ManagedComponent
     ComponentId="GuidRemoteDebuggerComponent"
-    ComponentLevel="35000"
+    ComponentLevel="40500"
     AssemblyName="SquirrelDebugEngine">
 
     <Class Name="SquirrelDebugEngine.RemoteComponent">

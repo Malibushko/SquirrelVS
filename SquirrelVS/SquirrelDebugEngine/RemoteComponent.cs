@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Exceptions;
 using Microsoft.VisualStudio.Debugger.Stepping;
 using Microsoft.VisualStudio.Debugger.Symbols;
+using Microsoft.VisualStudio.Debugger.Native;
 using Microsoft.VisualStudio.Debugger.CallStack;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -187,13 +188,7 @@ namespace SquirrelDebugEngine
         DkmStepArbitrationReason _Reason
       )
     {
-      if (_Stepper.StartingAddress == null)
-        return false;
-
-      var Locations          = Utility.GetOrCreateDataItem<LocationsDataHolder>(_RuntimeInstance.Process);
-      var InstructionAddress = _Stepper.StartingAddress.CPUInstructionPart.InstructionPointer;
-
-      return Locations.HelperLocation.In(InstructionAddress) || Locations.SquirrelLocation.In(InstructionAddress);
+      return OwnsCurrentExecuteLocation(_RuntimeInstance, _Stepper);
     }
 
     void IDkmRuntimeStepper.Step(
@@ -289,7 +284,13 @@ namespace SquirrelDebugEngine
         DkmStepper         _Stepper
       )
     {
-      // Empty
+      /*
+        When we step into some transition functions like sq_call step manager calls OwnsCurrentExecution
+        only on next step. This means the users will have to make two identical steps to get into scripts. 
+        To avoid this behaviour we check after-step instruction address and recreate a stepper to step into 
+        Squirrel code without any pause
+      */
+      TryInterceptTransitionStep(_RuntimeInstance, _Stepper);
     }
 
     #endregion
@@ -395,6 +396,89 @@ namespace SquirrelDebugEngine
       StepperData.ActiveStepper = null;
 
       StepperData.ActiveStepKind.Write((uint)StepperState.None);
+    }
+
+    bool OwnsCurrentExecuteLocation(
+        DkmRuntimeInstance _Instance,
+        DkmStepper         _Stepper
+      )
+    {
+      if (_Stepper.StartingAddress == null)
+        return false;
+
+      var Locations          = Utility.GetOrCreateDataItem<LocationsDataHolder>(_Instance.Process);
+      var InstructionAddress = _Stepper.Thread.GetCurrentRegisters(new DkmUnwoundRegister[0]).GetInstructionPointer();
+
+      return Locations.HelperLocation.In(InstructionAddress) || Locations.SquirrelLocation.In(InstructionAddress);
+    }
+
+    bool TryInterceptTransitionStep(
+        DkmRuntimeInstance _RuntimeInstance,
+        DkmStepper         _Stepper
+      )
+    {
+      if (_Stepper.StepKind == DkmStepKind.StepIntoSpecific)
+        return false;
+
+      if (OwnsCurrentExecuteLocation(_RuntimeInstance, _Stepper))
+      {
+        try
+        {
+          DkmProcess        Process     = _RuntimeInstance.Process;
+          StepperDataHolder StepperData = Utility.GetOrCreateDataItem<StepperDataHolder>(Process);
+          RemoteProcessData ProcessData = Utility.GetOrCreateDataItem<RemoteProcessData>(_RuntimeInstance.Process);
+
+          if (ProcessData.ModuleInstance == null)
+            return false;
+
+          if (!_Stepper.StepControlRequested(DkmStepArbitrationReason.EnterRuntime, _RuntimeInstance))
+            return false;
+
+          _Stepper.TakeStepControl(true, DkmStepArbitrationReason.EnterRuntime, _RuntimeInstance);
+
+          var InstructionAddress = _Stepper.Thread.GetCurrentRegisters(new DkmUnwoundRegister[0]).GetInstructionPointer();
+
+          var Instruction = DkmCustomInstructionAddress.Create(
+              _RuntimeInstance,
+              ProcessData.ModuleInstance,
+              null,
+              0,
+              null,
+              new DkmInstructionAddress.CPUInstruction(InstructionAddress)
+           );
+
+          StepperData.ActiveStepper = DkmStepper.Create(
+              _Stepper.Thread,
+              Instruction,
+              _Stepper.FrameBase,
+              _Stepper.StepKind,
+              _Stepper.StepUnit,
+              _Stepper.SourceId,
+              null,
+              null,
+              null
+            );
+
+          StepperData.ActiveStepKind.Write((uint)_Stepper.StepKind);
+
+          StepperData.ActiveStepper.Enable(true);
+
+          return true;
+        }
+        catch (Exception _Exception)
+        {
+          new LocalComponent.HandleCustomMessage()
+          {
+            Message = $"Exception in TryInterceptTransitionStep: '{_Exception.Message}'"
+          }.SendHigher(_RuntimeInstance.Process);
+
+          // TODO add log
+          if (_Stepper?.GetControllingRuntimeInstance() == _RuntimeInstance)
+            _Stepper.Close();
+        }
+      }
+
+      return false;
     }
 
     #endregion
