@@ -196,6 +196,7 @@ namespace SquirrelDebugEngine
 
         return;
       }
+
       _EnumContext.GetItems(_WorkList, _StartIndex, _Count, _CompletionRoutine);
     }
 

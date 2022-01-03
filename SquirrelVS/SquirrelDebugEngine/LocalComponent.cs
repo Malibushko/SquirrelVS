@@ -29,6 +29,7 @@ namespace SquirrelDebugEngine
       IDkmSymbolDocumentSpanQuery,
       IDkmModuleUserCodeDeterminer,
       IDkmSymbolHiddenAttributeQuery,
+      IDkmCustomVisualizer,
       IDkmLanguageExpressionEvaluator
   {
     [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -74,8 +75,8 @@ namespace SquirrelDebugEngine
       public AddressRange SquirrelClose;    // sq_close
       public AddressRange SquirrelLoadFile; // sqstd_loadfile
       public AddressRange SquirrelCall;     // sq_call
-      public ulong SquirrelNewClosure; // sq_newclosure
-      public ulong SquirrelSetDebugHook; // sq_setdebughook
+      public ulong SquirrelNewClosure;      // sq_newclosure
+      public ulong SquirrelSetDebugHook;    // sq_setdebughook
     }
 
     public LocalComponent() : base(Guids.SquirrelLocalComponentGuid)
@@ -407,7 +408,7 @@ namespace SquirrelDebugEngine
       {
         StackAddress              = (ulong)LocalData.SquirrelHandle.StackOffset + (ulong)(SQVectorMetadata?._vals.Offset),
         StackTopOffset            = (ulong)LocalData.SquirrelHandle.StackTopOffset,
-        SquirrelObjectPtrSize     = (ulong)(StructProxy.GetStructMetadata<SQObjectPtr>(_Process).Size),
+        SquirrelObjectPtrSize     = (ulong)StructProxy.GetStructMetadata<SQObjectPtr>(_Process).Size,
         SquirrelObjectValueOffset = (ulong)SQObjectMetadata._unVal.Offset,
         SquirrelStrignValueOffset = (ulong)SQStringMetadata._val.Offset
       };
@@ -653,6 +654,40 @@ namespace SquirrelDebugEngine
 
         return _Result.GetUnderlyingString();
       }
+    }
+
+    #endregion
+
+
+    #region Custom Visualizer
+    public void EvaluateVisualizedExpression(DkmVisualizedExpression visualizedExpression, out DkmEvaluationResult resultObject)
+    {
+      visualizedExpression.EvaluateVisualizedExpression(out resultObject);
+    }
+
+    public void UseDefaultEvaluationBehavior(DkmVisualizedExpression visualizedExpression, out bool useDefaultEvaluationBehavior, out DkmEvaluationResult defaultEvaluationResult)
+    {
+      visualizedExpression.UseDefaultEvaluationBehavior(out useDefaultEvaluationBehavior, out defaultEvaluationResult);
+    }
+
+    public void GetChildren(DkmVisualizedExpression visualizedExpression, int initialRequestSize, DkmInspectionContext inspectionContext, out DkmChildVisualizedExpression[] initialChildren, out DkmEvaluationResultEnumContext enumContext)
+    {
+      visualizedExpression.GetChildren(initialRequestSize, inspectionContext, out initialChildren, out enumContext);
+    }
+
+    public void GetItems(DkmVisualizedExpression visualizedExpression, DkmEvaluationResultEnumContext enumContext, int startIndex, int count, out DkmChildVisualizedExpression[] items)
+    {
+      visualizedExpression.GetItems(enumContext, startIndex, count, out items);
+    }
+
+    public void SetValueAsString(DkmVisualizedExpression visualizedExpression, string value, int timeout, out string errorText)
+    {
+      visualizedExpression.SetValueAsString(value, timeout, out errorText);
+    }
+
+    public string GetUnderlyingString(DkmVisualizedExpression visualizedExpression)
+    {
+      return visualizedExpression.GetUnderlyingString();
     }
 
     #endregion
