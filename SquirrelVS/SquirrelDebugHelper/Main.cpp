@@ -22,7 +22,7 @@ extern "C"
   __declspec(dllexport) void * SquirrelHandle = nullptr;
 }
 
-DWORD __stdcall HelperLoop(void * context)
+DWORD HelperLoop(void * context)
 {
   while (true)
   {

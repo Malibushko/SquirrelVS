@@ -56,6 +56,12 @@ namespace SquirrelDebugEngine
                 End   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd  (Module, "sq_call", out _).GetValueOrDefault(0)
               };
 
+              Locations.SquirrelCallNative = new AddressRange
+              {
+                Start = AttachmentHelpers.TryGetFunctionAddressAtDebugStart(Module, "SQVM::CallNative", out _).GetValueOrDefault(0),
+                End   = AttachmentHelpers.TryGetFunctionAddressAtDebugEnd(Module, "SQVM::CallNative", out _).GetValueOrDefault(0)
+              };
+
               Locations.SquirrelNewClosure   = AttachmentHelpers.TryGetFunctionAddress(Module, "sq_newclosure", out _).GetValueOrDefault(0);
               Locations.SquirrelSetDebugHook = AttachmentHelpers.TryGetFunctionAddress(Module, "sq_setdebughook", out _).GetValueOrDefault(0);
 

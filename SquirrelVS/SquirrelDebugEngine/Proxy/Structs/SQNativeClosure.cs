@@ -9,7 +9,8 @@ namespace SquirrelDebugEngine.Proxy
     {
 #pragma warning disable 0649
 
-      public StructField<SQObjectPtr> _function;
+      public StructField<PointerProxy>   _function;
+      public StructField<SQObjectPtrVec> _outervalues;
 
 #pragma warning restore 0649
     }
@@ -25,11 +26,19 @@ namespace SquirrelDebugEngine.Proxy
       InitializeStruct(this, out m_Fields);
     }
 
-    public SQObjectPtr Function
+    public PointerProxy Function
     {
       get
       {
         return GetFieldProxy(m_Fields._function);
+      }
+    }
+
+    public SQObjectPtrVec OuterValues
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._outervalues);
       }
     }
   }

@@ -111,7 +111,20 @@ namespace SquirrelDebugEngine
 
     public bool IsClosure()
     {
-      return NativeFrame?.Closure != null && NativeFrame?.Closure.Type == SquirrelVariableInfo.Type.Closure;
+      return NativeFrame?.Closure?.Type == SquirrelVariableInfo.Type.Closure;
+    }
+
+    public bool IsNativeClosure()
+    {
+      return NativeFrame?.Closure?.Type == SquirrelVariableInfo.Type.NativeClosure;
+    }
+
+    public SQObjectPtr Closure
+    {
+      get
+      {
+        return NativeFrame?.Closure;
+      }
     }
   }
 }

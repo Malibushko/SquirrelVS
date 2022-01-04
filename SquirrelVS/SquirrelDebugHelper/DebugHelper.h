@@ -84,12 +84,12 @@ extern "C"
   __declspec(dllexport) volatile uint64_t       ActiveBreakpointsCount = 0;
 
   // Current stepping action, if any
-  enum StepType : int32_t
+  enum StepType : uint32_t
   {
-    STEP_NONE,
-    STEP_INTO,
-    STEP_OVER,
-    STEP_OUT
+    STEP_NONE = (uint32_t)-1,
+    STEP_INTO = 0,
+    STEP_OVER = 1,
+    STEP_OUT  = 2
   };
 
   __declspec(dllexport) volatile StepType StepKind = STEP_NONE;

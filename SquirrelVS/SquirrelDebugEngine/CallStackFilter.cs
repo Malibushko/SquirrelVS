@@ -70,6 +70,15 @@ namespace SquirrelDebugEngine
         var Callstack      = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
         var SquirrelFrames = new List<DkmStackWalkFrame>();
 
+        if (Callstack.Callstack.Count == 0)
+        {
+          // If sq_call is exist in callstack and there're no frames available that means
+          // we hit breakpoint from native closure and have to fetch callstack 
+          new LocalComponent.FetchCallstackRequest().SendHigher(Process);
+
+          if (Callstack.Callstack.Count == 0)
+            SquirrelFrames.Add(_NativeFrame);
+        }
         foreach (var Call in Callstack.Callstack)
         {
           if (!Call.IsClosure())
@@ -108,11 +117,10 @@ namespace SquirrelDebugEngine
             );
         }
 
-        SquirrelFrames.Add(_NativeFrame);
         return SquirrelFrames.ToArray();
       }
       else
-      if (MethodName.StartsWith("SQVM") || MethodName.StartsWith("sq_") || MethodName.StartsWith("sqstd_"))
+      if (MethodName.StartsWith("SQVM"))
       {
         var Flags = (_NativeFrame.Flags & ~DkmStackWalkFrameFlags.UserStatusNotDetermined) | DkmStackWalkFrameFlags.NonuserCode;
 

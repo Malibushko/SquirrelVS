@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Debugger;
+using System;
 
 namespace SquirrelDebugEngine.Proxy
 {
@@ -25,6 +26,14 @@ namespace SquirrelDebugEngine.Proxy
       base(_Process, _Address)
     {
       InitializeStruct(this, out m_Fields);
+    }
+
+    public UInt64 Size
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._size).Read();
+       }
     }
 
     public PointerProxy<ArrayProxy<SQObjectPtr>> Values

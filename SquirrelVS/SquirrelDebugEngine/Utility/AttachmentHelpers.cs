@@ -434,16 +434,19 @@ namespace SquirrelDebugEngine
             return 0;
         }
 
-        internal static DkmRuntimeInstructionBreakpoint CreateTargetFunctionBreakpointObjectAtAddress(DkmProcess process, DkmModuleInstance moduleWithLoadedLua, string name, string desc, ulong address, bool enabled)
+        internal static DkmRuntimeInstructionBreakpoint CreateTargetFunctionBreakpointObjectAtAddress(DkmProcess process, DkmModuleInstance moduleWithLoadedLua, string name, string desc, ulong address, bool enabled, int? hitCount = null)
         {
             if (address != 0)
             {
                 var nativeAddress = process.CreateNativeInstructionAddress(address);
 
                 var breakpoint = DkmRuntimeInstructionBreakpoint.Create(Guids.SquirrelSupportBreakpointID, null, nativeAddress, false, null);
-
+                
+                if (hitCount.HasValue)
+                  breakpoint.SetHitCountCondition(DkmBreakpointHitCountCondition.Create(DkmBreakpointHitCountConditionOperator.Equal, hitCount.Value), 0);
+                
                 if (enabled)
-                    breakpoint.Enable();
+                  breakpoint.Enable();
 
                 return breakpoint;
             }
@@ -451,9 +454,9 @@ namespace SquirrelDebugEngine
             return null;
         }
 
-        internal static Guid? CreateTargetFunctionBreakpointAtAddress(DkmProcess process, DkmModuleInstance moduleWithLoadedLua, string name, string desc, ulong address)
+        internal static Guid? CreateTargetFunctionBreakpointAtAddress(DkmProcess process, DkmModuleInstance moduleWithLoadedLua, string name, string desc, ulong address, int? hitCount = null)
         {
-            DkmRuntimeInstructionBreakpoint breakpoint = CreateTargetFunctionBreakpointObjectAtAddress(process, moduleWithLoadedLua, name, desc, address, true);
+            DkmRuntimeInstructionBreakpoint breakpoint = CreateTargetFunctionBreakpointObjectAtAddress(process, moduleWithLoadedLua, name, desc, address, true, hitCount);
 
             if (breakpoint != null)
                 return breakpoint.UniqueId;
