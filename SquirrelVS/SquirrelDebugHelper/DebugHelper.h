@@ -94,7 +94,7 @@ extern "C"
 
   __declspec(dllexport) volatile StepType StepKind = STEP_NONE;
 
-  __declspec(dllexport) volatile uint32_t SteppingStackDepth = 0;
+  __declspec(dllexport) volatile int32_t SteppingStackDepth = 0;
 
   size_t GetSquirrelStringLength(
       const void * _String
@@ -162,18 +162,24 @@ extern "C"
       {
         switch ((char)HookCallType)
         {
-          case 'l':
-            if (SteppingStackDepth == 0)
-              OnSquirrelHelperStepComplete();
-            break;
-
           case 'c':
+          {
             ++SteppingStackDepth;
             break;
+          }
+          case 'l':
+          {
+            if (SteppingStackDepth <= 0)
+              OnSquirrelHelperStepComplete();
 
-          case 'r':
-            --SteppingStackDepth;
             break;
+          }
+          case 'r':
+          {
+            --SteppingStackDepth;
+
+            break;
+          }
         }
 
         break;
@@ -193,37 +199,24 @@ extern "C"
       }
       case STEP_OUT:
       {
-        case 'c':
-          ++SteppingStackDepth;
-          break;
-        case 'r':
-        {
-          if (SteppingStackDepth == 0)
-            StepKind = STEP_OVER;
-          else
-            --SteppingStackDepth;
+          switch ((char)HookCallType)
+          {
+              case 'c':
+                  ++SteppingStackDepth;
+                  break;
+              case 'r':
+              {
+                  if (SteppingStackDepth == 0)
+                      StepKind = STEP_INTO;
+                  else
+                      --SteppingStackDepth;
 
-          break;
-        }
+                  break;
+              }
+          }
         break;
       }
     }
-  }
-
-  int TraceCall(
-      const void *   _SourceName,
-      const int64_t  _Line
-    )
-  {
-    return -1;
-  }
-
-  int TraceReturn(
-      const void *   _SourceName,
-      const int64_t  _Line
-    )
-  {
-    return -1;
   }
 
   int TraceLine(
@@ -239,8 +232,6 @@ extern "C"
 
       if (Data.Line == _Line)
       {
-        const char * DummyData = static_cast<const char *>(Data.SourceName);
-
         if (Data.SourceLength == 0)
           Data.SourceLength = GetSquirrelByteLength(Data.SourceName);
 
@@ -263,29 +254,23 @@ extern "C"
     if (_SourceName == nullptr || _FunctionName == nullptr)
       return;
 
-    const char* SourceDummy = static_cast<const char*>(_SourceName);
-    const char* FuncDummy   = static_cast<const char*>(_FunctionName);
-
-    int HitBreakpoint = -1;
-
-    if (_Type == 'r')
+    const int HitBreakpointID = [&]() -> int
     {
-      HitBreakpoint = TraceReturn(_SourceName, _Line);
-    }
-    else
-    if (_Type == 'l')
-    { 
-      HitBreakpoint = TraceLine(_SourceName, _Line);
-    }
-    else
-    if (_Type == 'c')
-    { 
-      HitBreakpoint = TraceCall(_SourceName, _Line);
-    }
+      switch (_Type)
+      {
+        case 'l': // Line
+          return TraceLine(_SourceName, _Line);
+        case 'r': // Return
+        case 'c': // Call
+          break; 
+      }
 
-    if (HitBreakpoint != -1)
+      return -1;
+    }();
+
+    if (HitBreakpointID != -1)
     {
-      ::HitBreakpointIndex = HitBreakpoint;
+      ::HitBreakpointIndex = HitBreakpointID;
 
       OnSquirrelHelperAsyncBreak();
     }

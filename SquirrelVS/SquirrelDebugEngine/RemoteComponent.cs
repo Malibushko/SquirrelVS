@@ -39,7 +39,8 @@ namespace SquirrelDebugEngine
     {
       public Guid BreakpointHitGuid;
       public Guid StepCompleteGuid;
-      public Guid StepFallthroughGuid;
+      public Guid StepInFallthroughGuid;
+      public Guid StepOutFallthroughGuid;
     }
 
     private class LocationsDataHolder : DkmDataItem
@@ -55,6 +56,7 @@ namespace SquirrelDebugEngine
     {
       public DkmStepper  ActiveStepper;
       public UInt32Proxy ActiveStepKind;
+      public Int32Proxy  SteppingStackDepth;
     }
 
     private class ActiveBreakpointsDataHolder : DkmDataItem
@@ -80,26 +82,17 @@ namespace SquirrelDebugEngine
       var Process           = _Thread.Process;
       var HelperBreakpoints = Utility.GetOrCreateDataItem<BreakpointsGuidsDataHolder>(Process);
 
-      if (_Breakpoint.UniqueId == HelperBreakpoints.BreakpointHitGuid ||
-          _Breakpoint.UniqueId == HelperBreakpoints.StepCompleteGuid  || 
-          _Breakpoint.UniqueId == HelperBreakpoints.StepFallthroughGuid)
+      var Router = new Dictionary<Guid, Action>()
       {
-        _EventDescriptior.Suppress();
+        [HelperBreakpoints.BreakpointHitGuid]      = () => OnBreakpointHit(_Thread),
+        [HelperBreakpoints.StepCompleteGuid]       = () => OnStepCompleted(_Thread),
+        [HelperBreakpoints.StepInFallthroughGuid]  = () => OnStepFallthrough(_Thread),
+        [HelperBreakpoints.StepOutFallthroughGuid] = () => OnStepFallthrough(_Thread)
+      };
 
-        if (_Breakpoint.UniqueId == HelperBreakpoints.BreakpointHitGuid)
-        {
-          OnBreakpointHit(_Thread);
-        }
-        else
-        if (_Breakpoint.UniqueId == HelperBreakpoints.StepCompleteGuid)
-        {
-          OnStepCompleted(_Thread);
-        }
-        else
-        if (_Breakpoint.UniqueId == HelperBreakpoints.StepFallthroughGuid)
-        {
-          OnStepFallthrough(_Thread);
-        }
+      if (Router.ContainsKey(_Breakpoint.UniqueId))
+      {
+        Router[_Breakpoint.UniqueId]();
 
         return;
       }
@@ -214,10 +207,11 @@ namespace SquirrelDebugEngine
 
       StepperData.ActiveStepper = _Stepper;
 
-      StepperData.ActiveStepKind.Write((uint)_Stepper.StepKind);
+      StepperData.ActiveStepKind    .Write((uint)_Stepper.StepKind);
+      StepperData.SteppingStackDepth.Write(0);
 
       new LocalComponent.OnStepNotification()
-      { 
+      {
         StepKind = _Stepper.StepKind
       }.SendHigher(Process);
     }
@@ -277,7 +271,7 @@ namespace SquirrelDebugEngine
       )
     {
       /*
-        When we step into some transition functions like sq_call step manager calls OwnsCurrentExecution
+        When we step into/out some transition functions like sq_call step manager calls OwnsCurrentExecution
         only on next step. This means the users will have to make two identical steps to eventually get into scripts. 
         To avoid this behaviour we check after-step instruction address and recreate a stepper to step into 
         Squirrel code without any pause
@@ -373,7 +367,7 @@ namespace SquirrelDebugEngine
           new LocalComponent.OnStepFinishedNotification().SendHigher(_Thread.Process);
           
           StepperData.ActiveStepKind.Write(InvalidStepKind);
-
+          
           StepperData.ActiveStepper.OnStepComplete(_Thread, false);
 
           StepperData.ActiveStepper = null;
@@ -400,7 +394,8 @@ namespace SquirrelDebugEngine
 
       StepperData.ActiveStepper = null;
 
-      StepperData.ActiveStepKind.Write(InvalidStepKind);
+      StepperData.SteppingStackDepth.Write(0);
+      StepperData.ActiveStepKind    .Write(InvalidStepKind);
     }
 
     bool OwnsCurrentExecuteLocation(
@@ -496,13 +491,17 @@ namespace SquirrelDebugEngine
       [DataMember]
       public ulong StepperKindAddress;
 
+      [DataMember]
+      public ulong SteppingStackDepth;
+
       public override void Handle(
           DkmProcess _Process
         )
       {
         StepperDataHolder Data = Utility.GetOrCreateDataItem<StepperDataHolder>(_Process);
 
-        Data.ActiveStepKind = new UInt32Proxy(_Process, StepperKindAddress);
+        Data.ActiveStepKind     = new UInt32Proxy(_Process, StepperKindAddress);
+        Data.SteppingStackDepth = new Int32Proxy(_Process, SteppingStackDepth);
       }
     }
 
@@ -555,14 +554,18 @@ namespace SquirrelDebugEngine
       [DataMember]
       public Guid StepCompleteBPGuid;
 
+      [DataMember]
+      public Guid StepOutFallthroughGuid;
+
       public override void Handle(
           DkmProcess _Process
         )
       {
         BreakpointsGuidsDataHolder Data = Utility.GetOrCreateDataItem<BreakpointsGuidsDataHolder>(_Process);
 
-        Data.BreakpointHitGuid = BreakpointHitBPGuid;
-        Data.StepCompleteGuid  = StepCompleteBPGuid;
+        Data.BreakpointHitGuid      = BreakpointHitBPGuid;
+        Data.StepCompleteGuid       = StepCompleteBPGuid;
+        Data.StepOutFallthroughGuid = StepOutFallthroughGuid;
       }
     }
 
@@ -639,7 +642,7 @@ namespace SquirrelDebugEngine
 
         if (StepperData.ActiveStepper != null)
         {
-          BreakpointsData.StepFallthroughGuid = BreakpointGuid;
+          BreakpointsData.StepInFallthroughGuid = BreakpointGuid;
         }
       }
     }
