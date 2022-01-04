@@ -172,7 +172,7 @@ namespace SquirrelDebugEngine.Proxy
           {
             Data.Flags |= DkmEvaluationResultFlags.Boolean;
 
-            goto case SquirrelVariableInfo.Type.String;
+            goto case SquirrelVariableInfo.Type.Float;
           }
           case SquirrelVariableInfo.Type.WeakRef:
           case SquirrelVariableInfo.Type.UserPointer:

@@ -523,11 +523,8 @@ namespace SquirrelDebugEngine
         DkmStackContext   _StackContext, 
         DkmStackWalkFrame _NativeFrame
       )
-    {
-      if (_NativeFrame == null)
-        return null;
-
-      var Filter = Utility.GetOrCreateDataItem<CallStackFilter>(_NativeFrame.Process);
+    { 
+      var Filter = Utility.GetOrCreateDataItem<CallStackFilter>(_StackContext.Thread.Process);
 
       try
       {

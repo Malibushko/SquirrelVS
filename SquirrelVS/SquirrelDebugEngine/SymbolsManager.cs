@@ -120,7 +120,7 @@ namespace SquirrelDebugEngine
       {
         SourceLocation CallData = SourceLocation.Decode(InstructionSymbol.EntityId.ToArray());
 
-        string FilePath = Path.Combine(ProcessData.WorkingDirectory, CallData.Source);
+        string FilePath = Path.GetFullPath(Path.Combine(ProcessData.WorkingDirectory, CallData.Source));
 
         _StartOfLine = true;
 

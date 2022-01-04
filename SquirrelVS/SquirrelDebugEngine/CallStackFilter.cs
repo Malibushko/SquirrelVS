@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.CustomRuntimes;
-using Microsoft.VisualStudio.Debugger.Evaluation;
-using Microsoft.VisualStudio.Debugger.Native;
+using SquirrelDebugEngine.Proxy;
 
 namespace SquirrelDebugEngine
 {
@@ -17,7 +14,10 @@ namespace SquirrelDebugEngine
         DkmStackWalkFrame _NativeFrame
       )
     {
-      if (_NativeFrame?.InstructionAddress?.ModuleInstance == null)
+      if (_NativeFrame == null) // End of stack
+        return null;
+
+      if (_NativeFrame.InstructionAddress?.ModuleInstance == null)
         return new DkmStackWalkFrame[1] { _NativeFrame };
 
       if (_NativeFrame.ModuleInstance != null && _NativeFrame.ModuleInstance.Name == "SquirrelDebugHelper.dll")
@@ -67,33 +67,49 @@ namespace SquirrelDebugEngine
         if ((_NativeFrame.Flags | DkmStackWalkFrameFlags.TopFrame) != 0)
           SquirrelFrameFlags |= DkmStackWalkFrameFlags.TopFrame;
 
-        var Callstack      = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
-        var SquirrelFrames = new List<DkmStackWalkFrame>();
+        var HelperLocations     = Utility.GetOrCreateDataItem<LocalComponent.HelperLocationsDataHolder>(Process);
+        var CallstackDataHolder = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
+        var Callstack           = CallstackDataHolder.Callstack;
+        var SquirrelFrames      = new List<DkmStackWalkFrame>();
 
-        if (Callstack.Callstack.Count == 0)
+        if (Callstack.Count == 0)
         {
           // If sq_call is exist in callstack and there're no frames available that means
           // we hit breakpoint from native closure and have to fetch callstack 
           new LocalComponent.FetchCallstackRequest().SendHigher(Process);
 
-          if (Callstack.Callstack.Count == 0)
+          if (Callstack.Count == 0)
             SquirrelFrames.Add(_NativeFrame);
         }
-        foreach (var Call in Callstack.Callstack)
+
+        foreach (var CallFrame in Callstack)
         {
-          if (!Call.IsClosure())
+          if (CallFrame.ParentFrameBase == 0)
+            CallFrame.ParentFrameBase = _NativeFrame.FrameBase;
+          else
+          if (CallFrame.ParentFrameBase != _NativeFrame.FrameBase)
             continue;
+
+          if (CallFrame.IsNativeClosure())
+          {
+            var NativeClosure = CallFrame.Closure.Value as SQNativeClosure;
+
+            if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
+              continue;
+
+            break;
+          };
 
           DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
               ProcessData.RuntimeInstance,
               ProcessData.ModuleInstance,
-              new SourceLocation { Source = Call.SourceName, Line = Call.Line }.Encode(),
+              new SourceLocation { Source = CallFrame.SourceName, Line = CallFrame.Line }.Encode(),
               0,
               null,
               null
             );
 
-          Callstack.GetFrameStackBase(Call, ProcessData.SquirrelHandle.StackBase.Read());
+          CallstackDataHolder.GetFrameStackBase(CallFrame, ProcessData.SquirrelHandle.StackBase.Read());
 
           SquirrelFrames.Add(DkmStackWalkFrame.Create(
               _StackContext.Thread,
@@ -101,7 +117,7 @@ namespace SquirrelDebugEngine
               _NativeFrame.FrameBase,
               _NativeFrame.FrameSize,
               SquirrelFrameFlags,
-              Call.FrameName,
+              CallFrame.FrameName,
               _NativeFrame.Registers,
               _NativeFrame.Annotations,
               null,
@@ -110,7 +126,7 @@ namespace SquirrelDebugEngine
                   _StackContext.InspectionSession, 
                   new SquirrelStackFrameData 
                   { 
-                    NativeFrame = Call
+                    NativeFrame = CallFrame
                   }
                 )
               )

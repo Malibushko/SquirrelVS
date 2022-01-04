@@ -18,6 +18,7 @@ namespace SquirrelDebugEngine
 
     internal Int32 PreviousStackBase { get; set; }
     internal long  StackBase { get; set; }
+    internal ulong ParentFrameBase { get; set; }
 
     internal CallstackFrame(
         CallInfo _NativeFrame
@@ -97,7 +98,7 @@ namespace SquirrelDebugEngine
     {
       get
       {
-        if (NativeFrame?.Closure == null)
+        if (NativeFrame?.Closure == null || NativeFrame?.Closure.Type != SquirrelVariableInfo.Type.Closure)
           return null;
 
         var FunctionObject = (NativeFrame.Closure.Value as SQClosure).Function;

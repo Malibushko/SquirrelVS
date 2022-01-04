@@ -148,7 +148,7 @@ namespace SquirrelDebugEngine
         Variables = FrameData.NativeFrame.GetFrameLocals()
       };
 
-      if (Variables != null)
+      if (Variables?.Variables != null)
         _CompletionRoutine(new DkmGetFrameLocalsAsyncResult(DkmEvaluationResultEnumContext.Create(Variables.Variables.Count, _StackFrame, _InspectionContext, Variables)));
       else
         _InspectionContext.GetFrameLocals(_WorkList, _StackFrame, _CompletionRoutine);
