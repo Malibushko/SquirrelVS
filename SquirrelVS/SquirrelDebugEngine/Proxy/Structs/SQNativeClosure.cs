@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Debugger;
+using System.Collections.Generic;
 
 namespace SquirrelDebugEngine.Proxy
 {
@@ -9,6 +10,8 @@ namespace SquirrelDebugEngine.Proxy
     {
 #pragma warning disable 0649
 
+      public StructField<SQObjectPtr>    _name;
+      public StructField<SQObjectPtrVec> _env;
       public StructField<PointerProxy>   _function;
       public StructField<SQObjectPtrVec> _outervalues;
 
@@ -34,6 +37,22 @@ namespace SquirrelDebugEngine.Proxy
       }
     }
 
+    public SQObjectPtr Name
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._name);
+      }
+    }
+
+    public SQObjectPtrVec EnvironmentalVariables
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._env);
+      }
+    }
+
     public SQObjectPtrVec OuterValues
     {
       get
@@ -54,17 +73,43 @@ namespace SquirrelDebugEngine.Proxy
 
     public string GetDisplayValue()
     {
-      return "0x" + Function.Address.ToString("x");
+      return $"[Native Closure {(Name.Type == SquirrelVariableInfo.Type.String ? Name.GetDisplayValue() : "0x" + Function.Address.ToString("x"))}]";
     }
 
     public DkmEvaluationFlags GetEvaluationFlags()
     {
-      return SQObject.DefaultEvaluationFlags;
+      return SQObject.ExpandableEvaluationFlags;
     }
 
-    public ExpandableDataItem[] GetChildren()
+    public FieldDataItem[] GetChildren()
     {
-      return new ExpandableDataItem[0];
+      List<FieldDataItem> Items = new List<FieldDataItem>();
+
+      Items.Add(new FieldDataItem
+      {
+        Name         = "Name",
+        NativeObject = Name
+      });
+/*
+      Items.Add(new FieldDataItem
+      {
+        Name         = "Function",
+        NativeObject = Function
+      });
+*/
+      Items.Add(new FieldDataItem
+      {
+        Name         = "[Outer Values]",
+        NativeObject = OuterValues
+      });
+
+      Items.Add(new FieldDataItem
+      {
+        Name = "[Environmental Variables]",
+        NativeObject = EnvironmentalVariables
+      });
+
+      return Items.ToArray();
     }
   }
 }

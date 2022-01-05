@@ -90,7 +90,7 @@ namespace SquirrelDebugEngine
       }
 
       var LocalData     = Utility.GetOrCreateDataItem<LocalProcessData>(_InspectionContext.Thread.Process);
-      var VariableData  = _Result.GetDataItem<ExpandableDataItem>();
+      var VariableData  = _Result.GetDataItem<FieldDataItem>();
       var Results       = new List<DkmEvaluationResult>();
 
       if (VariableData.NativeObject == null)
@@ -151,7 +151,7 @@ namespace SquirrelDebugEngine
               DkmDataAddress.Create(_InspectionContext.RuntimeInstance, 0, null),
               null,
               null,
-              new ExpandableDataItem { NativeObject = Child.NativeObject, Name = Child.Name }
+              new FieldDataItem { NativeObject = Child.NativeObject, Name = Child.Name }
             ));
         }
       }
@@ -283,7 +283,7 @@ namespace SquirrelDebugEngine
             DataAddress,
             null,
             null,
-            new ExpandableDataItem { Name = _VariableInfo.Name, NativeObject = SquirrelObject }
+            new FieldDataItem { Name = _VariableInfo.Name, NativeObject = SquirrelObject }
           );
     }
 

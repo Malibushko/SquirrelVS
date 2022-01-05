@@ -18,10 +18,10 @@ namespace SquirrelDebugEngine.Proxy
 
     DkmEvaluationFlags GetEvaluationFlags();
 
-    ExpandableDataItem[] GetChildren();
+    FieldDataItem[] GetChildren();
   }
 
-  internal class ExpandableDataItem : DkmDataItem
+  internal class FieldDataItem : DkmDataItem
   {
     public IVisualizableObject NativeObject;
     public string              Name;
@@ -152,9 +152,9 @@ namespace SquirrelDebugEngine.Proxy
       return IsValueVizualizable() ? (Value as IVisualizableObject).GetEvaluationFlags() : DefaultEvaluationFlags;
     }
 
-    public ExpandableDataItem[] GetChildren()
+    public FieldDataItem[] GetChildren()
     {
-      return IsValueVizualizable() ? (Value as IVisualizableObject).GetChildren() : new ExpandableDataItem[0];
+      return IsValueVizualizable() ? (Value as IVisualizableObject).GetChildren() : new FieldDataItem[0];
     }
 
     public static DkmEvaluationFlags DefaultEvaluationFlags
@@ -163,14 +163,28 @@ namespace SquirrelDebugEngine.Proxy
       {
         return new DkmEvaluationFlags()
         {
-          Flags = DkmEvaluationResultFlags.ReadOnly,
-          Category = DkmEvaluationResultCategory.Data,
-          AccessType = DkmEvaluationResultAccessType.Public,
-          StorageType = DkmEvaluationResultStorageType.None,
+          Flags             = DkmEvaluationResultFlags.ReadOnly,
+          Category          = DkmEvaluationResultCategory.Data,
+          AccessType        = DkmEvaluationResultAccessType.Public,
+          StorageType       = DkmEvaluationResultStorageType.None,
           TypeModifierFlags = DkmEvaluationResultTypeModifierFlags.None
         };
       }
     }
 
+    public static DkmEvaluationFlags ExpandableEvaluationFlags
+    {
+      get
+      {
+        return new DkmEvaluationFlags()
+        {
+          Flags             = DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.Expandable,
+          Category          = DkmEvaluationResultCategory.Data,
+          AccessType        = DkmEvaluationResultAccessType.Public,
+          StorageType       = DkmEvaluationResultStorageType.None,
+          TypeModifierFlags = DkmEvaluationResultTypeModifierFlags.None
+        };
+      }
+    }
   }
 }

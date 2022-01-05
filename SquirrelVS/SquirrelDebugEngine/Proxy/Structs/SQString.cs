@@ -46,9 +46,9 @@ namespace SquirrelDebugEngine.Proxy
       return SQObject.DefaultEvaluationFlags;
     }
 
-    public ExpandableDataItem[] GetChildren()
+    public FieldDataItem[] GetChildren()
     {
-      return new ExpandableDataItem[0];
+      return new FieldDataItem[0];
     }
   }
 }

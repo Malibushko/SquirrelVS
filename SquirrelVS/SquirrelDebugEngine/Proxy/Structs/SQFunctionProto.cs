@@ -252,17 +252,31 @@ namespace SquirrelDebugEngine.Proxy
 
     public string GetDisplayValue()
     {
-      return "0x" + Address.ToString("x");
+      return Name.GetDisplayValue();
     }
 
     public DkmEvaluationFlags GetEvaluationFlags()
     {
-      return SQObject.DefaultEvaluationFlags;
+      return SQObject.ExpandableEvaluationFlags;
     }
 
-    public ExpandableDataItem[] GetChildren()
+    public FieldDataItem[] GetChildren()
     {
-      return new ExpandableDataItem[0];
+      List<FieldDataItem> Items = new List<FieldDataItem>();
+
+      Items.Add(new FieldDataItem
+      {
+        Name         = "Name",
+        NativeObject = Name
+      });
+
+      Items.Add(new FieldDataItem
+      {
+        Name         = "Source Name",
+        NativeObject = SourceName
+      });
+  
+      return Items.ToArray();
     }
   }
 }

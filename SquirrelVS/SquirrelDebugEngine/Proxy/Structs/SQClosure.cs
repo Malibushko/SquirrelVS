@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Debugger;
+using System.Collections.Generic;
 
 namespace SquirrelDebugEngine.Proxy
 {
@@ -9,7 +10,10 @@ namespace SquirrelDebugEngine.Proxy
     {
 #pragma warning disable 0649
 
-      public StructField<SQObjectPtr> _function;
+      public StructField<SQObjectPtr>    _env;
+      public StructField<SQObjectPtr>    _function;
+      public StructField<SQObjectPtrVec> _outervalues;
+      public StructField<SQObjectPtrVec> _defaultparams;
 
 #pragma warning restore 0649
     }
@@ -33,6 +37,30 @@ namespace SquirrelDebugEngine.Proxy
       }
     }
 
+    public SQObjectPtr EnvironmentalVariables
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._env);
+      }
+    }
+
+    public SQObjectPtrVec OuterVariables
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._outervalues);
+      }
+    }
+
+    public SQObjectPtrVec DefaultParameters
+    {
+      get
+      {
+        return GetFieldProxy(m_Fields._defaultparams);
+      }
+    }
+
     public string GetDisplayType()
     {
       return SquirrelVariableInfo.Type.Closure.ToString();
@@ -45,17 +73,43 @@ namespace SquirrelDebugEngine.Proxy
 
     public string GetDisplayValue()
     {
-      return "0x" + Address.ToString("x");
+      return $"[Squirrel Closure {Function?.GetDisplayValue()}]";
     }
 
     public DkmEvaluationFlags GetEvaluationFlags()
     {
-      return SQObject.DefaultEvaluationFlags;
+      return SQObject.ExpandableEvaluationFlags;
     }
 
-    public ExpandableDataItem[] GetChildren()
+    public FieldDataItem[] GetChildren()
     {
-      return new ExpandableDataItem[0];
+      List<FieldDataItem> Items = new List<FieldDataItem>();
+
+      Items.Add(new FieldDataItem
+      {
+        Name         = "[Environmental Variables]",
+        NativeObject = EnvironmentalVariables
+      });
+
+      Items.Add(new FieldDataItem
+      {
+        Name         = "[Function]",
+        NativeObject = Function
+      });
+
+      Items.Add(new FieldDataItem
+      {
+        Name         = "[Outer Variables]",
+        NativeObject = OuterVariables
+      });
+
+      Items.Add(new FieldDataItem
+      {
+        Name         = "[Default Parameters]",
+        NativeObject = DefaultParameters
+      });
+
+      return Items.ToArray();
     }
   }
 }
