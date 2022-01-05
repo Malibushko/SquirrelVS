@@ -399,7 +399,7 @@ namespace SquirrelDebugEngine
           _Session,
           _Thread,
           _Frame,
-          DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects
+          Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.TreatAsExpression | Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.NoSideEffects
         );
 
       if (IsSQUnicode.HasValue && HelperLocations.IsSquirrelUnicode.Address != 0)
@@ -682,34 +682,60 @@ namespace SquirrelDebugEngine
     #endregion
 
     #region Custom Visualizer
-    public void EvaluateVisualizedExpression(DkmVisualizedExpression visualizedExpression, out DkmEvaluationResult resultObject)
+    void IDkmCustomVisualizer.EvaluateVisualizedExpression(
+        DkmVisualizedExpression _Expression, 
+        out DkmEvaluationResult _ResultObject
+      )
     {
-      visualizedExpression.EvaluateVisualizedExpression(out resultObject);
+      _Expression.EvaluateVisualizedExpression(out _ResultObject);
     }
 
-    public void UseDefaultEvaluationBehavior(DkmVisualizedExpression visualizedExpression, out bool useDefaultEvaluationBehavior, out DkmEvaluationResult defaultEvaluationResult)
+    void IDkmCustomVisualizer.UseDefaultEvaluationBehavior(
+        DkmVisualizedExpression _Expression, 
+        out bool                _UseDefaultEvaluationBehaviour, 
+        out DkmEvaluationResult _DefaultEvaluationResult
+      )
     {
-      visualizedExpression.UseDefaultEvaluationBehavior(out useDefaultEvaluationBehavior, out defaultEvaluationResult);
+      _Expression.UseDefaultEvaluationBehavior(out _UseDefaultEvaluationBehaviour, out _DefaultEvaluationResult);
     }
 
-    public void GetChildren(DkmVisualizedExpression visualizedExpression, int initialRequestSize, DkmInspectionContext inspectionContext, out DkmChildVisualizedExpression[] initialChildren, out DkmEvaluationResultEnumContext enumContext)
+    void IDkmCustomVisualizer.GetChildren(
+        DkmVisualizedExpression            _Expression, 
+        int                                _InitialRequestSize, 
+        DkmInspectionContext               _InspectionContext, 
+        out DkmChildVisualizedExpression[] _InitialChildren, 
+        out DkmEvaluationResultEnumContext _EnumContext
+      )
     {
-      visualizedExpression.GetChildren(initialRequestSize, inspectionContext, out initialChildren, out enumContext);
+      _Expression.GetChildren(_InitialRequestSize, _InspectionContext, out _InitialChildren, out _EnumContext);
     }
 
-    public void GetItems(DkmVisualizedExpression visualizedExpression, DkmEvaluationResultEnumContext enumContext, int startIndex, int count, out DkmChildVisualizedExpression[] items)
+    void IDkmCustomVisualizer.GetItems(
+        DkmVisualizedExpression            _VisualizedExpression, 
+        DkmEvaluationResultEnumContext     _EnumContext, 
+        int                                _StartIndex, 
+        int                                _Count, 
+        out DkmChildVisualizedExpression[] _Items
+      )
     {
-      visualizedExpression.GetItems(enumContext, startIndex, count, out items);
+      _VisualizedExpression.GetItems(_EnumContext, _StartIndex, _Count, out _Items);
     }
 
-    public void SetValueAsString(DkmVisualizedExpression visualizedExpression, string value, int timeout, out string errorText)
+    void IDkmCustomVisualizer.SetValueAsString(
+        DkmVisualizedExpression _Expression, 
+        string                  _Value, 
+        int                     _Timeout, 
+        out string              _ErrorText
+      )
     {
-      visualizedExpression.SetValueAsString(value, timeout, out errorText);
+      _Expression.SetValueAsString(_Value, _Timeout, out _ErrorText);
     }
 
-    public string GetUnderlyingString(DkmVisualizedExpression visualizedExpression)
+    string IDkmCustomVisualizer.GetUnderlyingString(
+        DkmVisualizedExpression _Expression
+      )
     {
-      return visualizedExpression.GetUnderlyingString();
+      return _Expression.GetUnderlyingString();
     }
 
     #endregion
@@ -769,11 +795,11 @@ namespace SquirrelDebugEngine
               InspectionSession,
               Thread,
               _Frame,
-              DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects
+              Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.TreatAsExpression | Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.NoSideEffects
             );
 
           if (!SquirrelHandleAddress.HasValue)
-            SquirrelHandleAddress = EvaluationHelpers.TryEvaluateAddressExpression("@rax", InspectionSession, Thread, _Frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
+            SquirrelHandleAddress = EvaluationHelpers.TryEvaluateAddressExpression("@rax", InspectionSession, Thread, _Frame, Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.TreatAsExpression | Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.NoSideEffects);
 
           if (SquirrelHandleAddress != 0)
             RegisterSquirrelState(_Process, InspectionSession, Thread, _Frame, SquirrelHandleAddress);
@@ -787,7 +813,7 @@ namespace SquirrelDebugEngine
         {
           var InspectionSession = EvaluationHelpers.CreateInspectionSession(_Process, Thread, FrameBase, VFrame, out DkmStackWalkFrame Frame);
 
-          var SourceNameAddress = EvaluationHelpers.TryEvaluateAddressExpression("filename", InspectionSession, Thread, Frame, DkmEvaluationFlags.TreatAsExpression | DkmEvaluationFlags.NoSideEffects);
+          var SourceNameAddress = EvaluationHelpers.TryEvaluateAddressExpression("filename", InspectionSession, Thread, Frame, Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.TreatAsExpression | Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.NoSideEffects);
 
           if (!SourceNameAddress.HasValue)
             throw new Exception("Unable to locate source name");
@@ -819,7 +845,7 @@ namespace SquirrelDebugEngine
         {
           var Session = EvaluationHelpers.CreateInspectionSession(_Process, Thread, FrameBase, VFrame, out DkmStackWalkFrame _Frame);
 
-          var ClosureAddress = EvaluationHelpers.TryEvaluateAddressExpression("nclosure", Session, Thread, _Frame, DkmEvaluationFlags.NoSideEffects);
+          var ClosureAddress = EvaluationHelpers.TryEvaluateAddressExpression("nclosure", Session, Thread, _Frame, Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.NoSideEffects);
 
           if (ClosureAddress.HasValue)
           {

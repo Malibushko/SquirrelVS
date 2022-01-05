@@ -34,7 +34,7 @@ namespace SquirrelDebugEngine.Proxy {
 
         public DkmProcess Process { get; private set; }
         public ulong Address { get; private set; }
-
+        
         public ArrayProxy(DkmProcess process, ulong address)
             : this() {
             Debug.Assert(process != null && address != 0);

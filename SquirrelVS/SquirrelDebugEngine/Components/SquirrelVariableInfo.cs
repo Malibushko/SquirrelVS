@@ -56,10 +56,8 @@ namespace SquirrelDebugEngine
     internal SQObject Value;
   }
 
-  public class SquirrelVariableEvaluatorData
+  public class DkmEvaluationFlags
   {
-    public string                               Type;
-    public string                               Value;
     public DkmEvaluationResultFlags             Flags;
     public DkmEvaluationResultCategory          Category;
     public DkmEvaluationResultAccessType        AccessType;

@@ -73,7 +73,7 @@ namespace SquirrelSyntaxHighlight
         {
             public SquirrelKeywordFormat()
             {
-              ForegroundColor = Colors.Blue;
+              ForegroundColor = Color.FromRgb(63, 147, 214);
             }
         }
         
@@ -95,7 +95,7 @@ namespace SquirrelSyntaxHighlight
         {
           public SquirrelStringFormat()
           {
-            ForegroundColor = Colors.DarkRed;
+            ForegroundColor = Color.FromRgb(214, 130, 81);
           }
         }
 
@@ -117,7 +117,7 @@ namespace SquirrelSyntaxHighlight
         {
           public SquirrelClassFormat()
           {
-            ForegroundColor = Colors.DarkCyan;
+            ForegroundColor = Colors.Cyan;
           }
         }
 

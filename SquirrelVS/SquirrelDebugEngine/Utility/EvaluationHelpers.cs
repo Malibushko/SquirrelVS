@@ -43,7 +43,7 @@ namespace SquirrelDebugEngine
           DkmInspectionSession _Session,
           DkmThread _Thread,
           DkmStackWalkFrame _Input,
-          DkmEvaluationFlags _Flags
+          Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags _Flags
         )
     {
       if (ExecuteExpression(_Expression, _Session, _Thread, _Input, _Flags, true, out ulong address) != null)
@@ -51,7 +51,7 @@ namespace SquirrelDebugEngine
 
       return null;
     }
-    internal static long? TryEvaluateNumberExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
+    internal static long? TryEvaluateNumberExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags flags)
     {
       string result = ExecuteExpression(expression, inspectionSession, thread, input, flags, true, out ulong Address);
 
@@ -79,7 +79,7 @@ namespace SquirrelDebugEngine
       return true;
     }
 
-    internal static string TryEvaluateStringExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, DkmEvaluationFlags flags)
+    internal static string TryEvaluateStringExpression(string expression, DkmInspectionSession inspectionSession, DkmThread thread, DkmStackWalkFrame input, Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags flags)
     {
       return ExecuteExpression(expression + ",sb", inspectionSession, thread, input, flags, false, out _);
     }
@@ -89,13 +89,13 @@ namespace SquirrelDebugEngine
           DkmInspectionSession _Session,
           DkmThread            _Thread,
           DkmStackWalkFrame    _Input,
-          DkmEvaluationFlags   _Flags,
+          Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags   _Flags,
           uint                 _Timeout
         )
     {
       var CompilerID         = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp);
       var CppLanguage        = DkmLanguage.Create("C++", CompilerID);
-      var LanguageExpression = DkmLanguageExpression.Create(CppLanguage, DkmEvaluationFlags.None, _Expression, null);
+      var LanguageExpression = DkmLanguageExpression.Create(CppLanguage, Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.None, _Expression, null);
 
       DkmInspectionContext InspectionContext = DkmInspectionContext.Create(
           _Session,
@@ -140,14 +140,14 @@ namespace SquirrelDebugEngine
           DkmInspectionSession _Session,
           DkmThread _Thread,
           DkmStackWalkFrame _Input,
-          DkmEvaluationFlags _Flags,
+          Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags _Flags,
           bool _AllowZero,
           out ulong _Address
         )
     {
       var CompilerID = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp);
       var CppLanguage = DkmLanguage.Create("C++", CompilerID);
-      var LanguageExpression = DkmLanguageExpression.Create(CppLanguage, DkmEvaluationFlags.None, _Expression, null);
+      var LanguageExpression = DkmLanguageExpression.Create(CppLanguage, Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.None, _Expression, null);
 
       DkmInspectionContext InspectionContext = DkmInspectionContext.Create(
           _Session,

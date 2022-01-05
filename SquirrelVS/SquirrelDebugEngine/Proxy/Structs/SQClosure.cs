@@ -3,7 +3,7 @@
 namespace SquirrelDebugEngine.Proxy
 {
   [StructProxy(StructName = "SQClosure")]
-  internal class SQClosure : StructProxy, ISQObject
+  internal class SQClosure : StructProxy, ISQObject, IVisualizableObject
   {
     private class Fields
     {
@@ -31,6 +31,31 @@ namespace SquirrelDebugEngine.Proxy
       {
         return GetFieldProxy(m_Fields._function);
       }
+    }
+
+    public string GetDisplayType()
+    {
+      return SquirrelVariableInfo.Type.Closure.ToString();
+    }
+
+    public string GetDisplayNativeType()
+    {
+      return "SQClosure";
+    }
+
+    public string GetDisplayValue()
+    {
+      return "0x" + Address.ToString("x");
+    }
+
+    public DkmEvaluationFlags GetEvaluationFlags()
+    {
+      return SQObject.DefaultEvaluationFlags;
+    }
+
+    public ExpandableDataItem[] GetChildren()
+    {
+      return new ExpandableDataItem[0];
     }
   }
 }

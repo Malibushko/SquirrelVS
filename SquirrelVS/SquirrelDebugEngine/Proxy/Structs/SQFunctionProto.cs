@@ -6,7 +6,7 @@ using System;
 namespace SquirrelDebugEngine.Proxy
 {
   [StructProxy(StructName = "SQFunctionProto")]
-  internal class SQFunctionProto : StructProxy, ISQObject
+  internal class SQFunctionProto : StructProxy, ISQObject, IVisualizableObject
   {
     private class Fields
     {
@@ -238,6 +238,31 @@ namespace SquirrelDebugEngine.Proxy
       Names.Reverse();
 
       return Names;
+    }
+
+    public string GetDisplayType()
+    {
+      return SquirrelVariableInfo.Type.FuncProto.ToString();
+    }
+
+    public string GetDisplayNativeType()
+    {
+      return "SQFunctionProto";
+    }
+
+    public string GetDisplayValue()
+    {
+      return "0x" + Address.ToString("x");
+    }
+
+    public DkmEvaluationFlags GetEvaluationFlags()
+    {
+      return SQObject.DefaultEvaluationFlags;
+    }
+
+    public ExpandableDataItem[] GetChildren()
+    {
+      return new ExpandableDataItem[0];
     }
   }
 }
