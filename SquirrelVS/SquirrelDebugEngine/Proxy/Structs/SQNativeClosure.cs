@@ -88,28 +88,37 @@ namespace SquirrelDebugEngine.Proxy
       Items.Add(new FieldDataItem
       {
         Name         = "Name",
-        NativeObject = Name
+        Object = Name
       });
-/*
+
       Items.Add(new FieldDataItem
       {
         Name         = "Function",
-        NativeObject = Function
+        Object       = new NativeVisualizationProxy
+        {
+          NativeType    = "SQFUNCTION",
+          NativeAddress = Function.Address
+        }
       });
-*/
+
       Items.Add(new FieldDataItem
       {
         Name         = "[Outer Values]",
-        NativeObject = OuterValues
+        Object = OuterValues
       });
 
       Items.Add(new FieldDataItem
       {
-        Name = "[Environmental Variables]",
-        NativeObject = EnvironmentalVariables
+        Name         = "[Environmental Variables]",
+        Object = EnvironmentalVariables
       });
 
       return Items.ToArray();
+    }
+
+    public bool IsNativeExpression()
+    {
+      return false;
     }
   }
 }

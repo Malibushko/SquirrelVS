@@ -266,17 +266,42 @@ namespace SquirrelDebugEngine.Proxy
 
       Items.Add(new FieldDataItem
       {
-        Name         = "Name",
-        NativeObject = Name
+        Name   = "Name",
+        Object = Name
       });
 
       Items.Add(new FieldDataItem
       {
-        Name         = "Source Name",
-        NativeObject = SourceName
+        Name   = "Source Name",
+        Object = SourceName
       });
-  
+
+      Items.Add(new FieldDataItem
+      {
+        Name = "Parameters count",
+        Object = new PrimitiveVisualizationProxy<int>
+        {
+          Type   = SquirrelVariableInfo.Type.Integer.ToString(),
+          Object = ParametersCount
+        }
+      });
+
+      Items.Add(new FieldDataItem
+      {
+        Name = "Outer variables count",
+        Object = new PrimitiveVisualizationProxy<int>
+        {
+          Type   = SquirrelVariableInfo.Type.Integer.ToString(),
+          Object = OuterVariablesCount
+        }
+      });
+
       return Items.ToArray();
+    }
+
+    public bool IsNativeExpression()
+    {
+      return false;
     }
   }
 }

@@ -93,25 +93,29 @@ namespace SquirrelDebugEngine
       var VariableData  = _Result.GetDataItem<FieldDataItem>();
       var Results       = new List<DkmEvaluationResult>();
 
-      if (VariableData.NativeObject == null)
+      if (VariableData.Object == null)
         return;
 
       /*
        * Evaluate Native view
        */
 
-      if (VariableData.NativeObject is ISQObject)
+      var CompilerID  = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp);
+      var CppLanguage = DkmLanguage.Create("C++", CompilerID);
+
+      if (VariableData.Object is ISQObject)
       {
+        var NativeAddress = (VariableData.Object is SQObject) ?
+                                (VariableData.Object as SQObject).NativeValueAddress :
+                                (VariableData.Object as ISQObject).Address;
+
         string CppExpression = EvaluationHelpers.GetExpressionForObject(
             LocalData.SquirrelModule.Name,
-            VariableData.NativeObject.GetDisplayNativeType(),
-            "0x" + (VariableData.NativeObject as ISQObject).Address.ToString("x"),
+            VariableData.Object.GetDisplayNativeType(),
+            "0x" + NativeAddress.ToString("x"),
             ",!"
           );
-
-        var CompilerID = new DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.Cpp);
-        var CppLanguage = DkmLanguage.Create("C++", CompilerID);
-
+        
         var EvaluationResult = DkmIntermediateEvaluationResult.Create(
               _InspectionContext,
               _Result.StackFrame,
@@ -122,38 +126,63 @@ namespace SquirrelDebugEngine
               _Result.StackFrame.Process.GetNativeRuntimeInstance(),
               null
             );
-
+        
         Results.Add(EvaluationResult);
       }
 
       /*
        * Evaluate Squirrel View
-       */ 
-      if (VariableData.NativeObject is IVisualizableObject)
+       */
+      if (VariableData.Object is IVisualizableObject)
       {
-        foreach (var Child in (VariableData.NativeObject as IVisualizableObject).GetChildren())
+        foreach (var Child in VariableData.Object.GetChildren())
         {
-          var EvaluationFlags = Child.NativeObject.GetEvaluationFlags();
+          var EvaluationFlags = Child.Object.GetEvaluationFlags();
 
-          Results.Add(DkmSuccessEvaluationResult.Create(
-              _InspectionContext,
-              _Result.StackFrame,
-              Child.Name,
-              Child.Name,
-              EvaluationFlags.Flags,
-              Child.NativeObject.GetDisplayValue(),
-              null,
-              Child.NativeObject.GetDisplayType(),
-              EvaluationFlags.Category,
-              EvaluationFlags.AccessType,
-              EvaluationFlags.StorageType,
-              EvaluationFlags.TypeModifierFlags,
-              DkmDataAddress.Create(_InspectionContext.RuntimeInstance, 0, null),
-              null,
-              null,
-              new FieldDataItem { NativeObject = Child.NativeObject, Name = Child.Name }
-            ));
-        }
+          if (Child.Object.IsNativeExpression())
+          {
+            string CppExpression = EvaluationHelpers.GetExpressionForObject(
+             LocalData.SquirrelModule.Name,
+             Child.Object.GetDisplayNativeType(),
+             Child.Object.GetDisplayValue(),
+             ",!"
+           );
+
+            var EvaluationResult = DkmIntermediateEvaluationResult.Create(
+                  _InspectionContext,
+                  _Result.StackFrame,
+                  Child.Name,
+                  "{C++}" + CppExpression,
+                  CppExpression,
+                  CppLanguage,
+                  _Result.StackFrame.Process.GetNativeRuntimeInstance(),
+                  null
+                );
+
+            Results.Add(EvaluationResult);
+          }
+          else
+          {
+            Results.Add(DkmSuccessEvaluationResult.Create(
+                _InspectionContext,
+                _Result.StackFrame,
+                Child.Name,
+                Child.Name,
+                EvaluationFlags.Flags,
+                Child.Object.GetDisplayValue(),
+                null,
+                Child.Object.GetDisplayType(),
+                EvaluationFlags.Category,
+                EvaluationFlags.AccessType,
+                EvaluationFlags.StorageType,
+                EvaluationFlags.TypeModifierFlags,
+                DkmDataAddress.Create(_InspectionContext.RuntimeInstance, 0, null),
+                null,
+                null,
+                new FieldDataItem { Object = Child.Object, Name = Child.Name }
+              ));
+          }
+          }
       }
 
       _CompletionRoutine(
@@ -283,7 +312,7 @@ namespace SquirrelDebugEngine
             DataAddress,
             null,
             null,
-            new FieldDataItem { Name = _VariableInfo.Name, NativeObject = SquirrelObject }
+            new FieldDataItem { Name = _VariableInfo.Name, Object = SquirrelObject }
           );
     }
 

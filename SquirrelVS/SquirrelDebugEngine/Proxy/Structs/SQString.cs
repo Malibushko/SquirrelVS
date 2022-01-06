@@ -50,5 +50,10 @@ namespace SquirrelDebugEngine.Proxy
     {
       return new FieldDataItem[0];
     }
+
+    public bool IsNativeExpression()
+    {
+      return false;
+    }
   }
 }

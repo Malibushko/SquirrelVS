@@ -5,7 +5,6 @@ namespace SquirrelDebugEngine.Proxy
 {
   internal interface ISQObject : IDataProxy<StructProxy>
   {
-
   }
 
   internal interface IVisualizableObject
@@ -19,11 +18,13 @@ namespace SquirrelDebugEngine.Proxy
     DkmEvaluationFlags GetEvaluationFlags();
 
     FieldDataItem[] GetChildren();
+
+    bool IsNativeExpression();
   }
 
   internal class FieldDataItem : DkmDataItem
   {
-    public IVisualizableObject NativeObject;
+    public IVisualizableObject Object;
     public string              Name;
 
   }
@@ -96,7 +97,7 @@ namespace SquirrelDebugEngine.Proxy
           case SquirrelVariableInfo.Type.Closure:
             return new SQClosure(Process, SquirrelObjectAddress);
           case SquirrelVariableInfo.Type.Generator:
-            break;
+            return new SQGenerator(Process, SquirrelObjectAddress);
           case SquirrelVariableInfo.Type.NativeClosure:
             return new SQNativeClosure(Process, SquirrelObjectAddress);
           case SquirrelVariableInfo.Type.String:
@@ -104,7 +105,7 @@ namespace SquirrelDebugEngine.Proxy
           case SquirrelVariableInfo.Type.FuncProto:
             return new SQFunctionProto(Process, SquirrelObjectAddress);
           case SquirrelVariableInfo.Type.Thread:
-            break;
+            return new SQVM(Process, SquirrelObjectAddress);
           case SquirrelVariableInfo.Type.Class:
             return new SQClass(Process, SquirrelObjectAddress);
           case SquirrelVariableInfo.Type.Instance:
@@ -119,11 +120,29 @@ namespace SquirrelDebugEngine.Proxy
       }
     }
 
-    public ulong ValueAddress
+    public ulong NativeValueAddress
     {
       get
       {
-        return Address.OffsetBy(m_Fields._unVal.Offset);
+        var ValueAddress = Address.OffsetBy(m_Fields._unVal.Offset);
+
+        switch (Type)
+        {
+          case SquirrelVariableInfo.Type.Table:
+          case SquirrelVariableInfo.Type.Array:
+          case SquirrelVariableInfo.Type.Closure:
+          case SquirrelVariableInfo.Type.Generator:
+          case SquirrelVariableInfo.Type.NativeClosure:
+          case SquirrelVariableInfo.Type.String:
+          case SquirrelVariableInfo.Type.FuncProto:
+          case SquirrelVariableInfo.Type.Thread:
+          case SquirrelVariableInfo.Type.Class:
+          case SquirrelVariableInfo.Type.Instance:
+          case SquirrelVariableInfo.Type.WeakRef:
+            return new PointerProxy(Process, ValueAddress).Read();
+        }
+
+        return ValueAddress;
       }
     }
 
@@ -155,6 +174,11 @@ namespace SquirrelDebugEngine.Proxy
     public FieldDataItem[] GetChildren()
     {
       return IsValueVizualizable() ? (Value as IVisualizableObject).GetChildren() : new FieldDataItem[0];
+    }
+
+    public bool IsNativeExpression()
+    {
+      return false;
     }
 
     public static DkmEvaluationFlags DefaultEvaluationFlags

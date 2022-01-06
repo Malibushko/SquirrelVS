@@ -72,6 +72,9 @@
     <Compile Include="Proxy\PointerProxy.cs" />
     <Compile Include="Proxy\PrimitiveProxies.cs" />
     <Compile Include="Proxy\StructProxy.cs" />
+    <Compile Include="Proxy\Structs\VisualizationStructs\ArrayVisualizationProxy.cs" />
+    <Compile Include="Proxy\Structs\VisualizationStructs\NativeAddressVisualizationProxy.cs" />
+    <Compile Include="Proxy\Structs\VisualizationStructs\PrimitiveVisualizationProxy.cs" />
     <Compile Include="Proxy\Structs\PrivateStructs\CallInfo.cs" />
     <Compile Include="Proxy\Structs\PrivateStructs\HashNode.cs" />
     <Compile Include="Proxy\Structs\PrivateStructs\SQClassMember.cs" />
@@ -81,6 +84,7 @@
     <Compile Include="Proxy\Structs\PrivateStructs\SQInstruction.cs" />
     <Compile Include="Proxy\Structs\PrivateStructs\SQLineInfo.cs" />
     <Compile Include="Proxy\Structs\PrivateStructs\SQLocalVarInfo.cs" />
+    <Compile Include="Proxy\Structs\SQGenerator.cs" />
     <Compile Include="Proxy\Structs\SQInstance.cs" />
     <Compile Include="Proxy\Structs\SQNativeClosure.cs" />
     <Compile Include="Proxy\Structs\SQFunctionProto.cs" />
@@ -94,6 +98,7 @@
     <Compile Include="Proxy\Structs\PrivateStructs\SQVM.cs" />
     <Compile Include="Proxy\Structs\SQTable.cs" />
     <Compile Include="Proxy\Structs\SQWeakRef.cs" />
+    <Compile Include="Proxy\Structs\VisualizationStructs\TableVisualizationProxy.cs" />
     <Compile Include="Proxy\ValueStore.cs" />
     <Compile Include="RemoteComponent.cs" />
     <Compile Include="SymbolsManager.cs" />
