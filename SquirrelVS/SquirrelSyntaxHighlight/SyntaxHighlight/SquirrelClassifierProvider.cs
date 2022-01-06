@@ -18,7 +18,7 @@ namespace SquirrelSyntaxHighlight
         {
             if (Classifier == null)
                 Classifier = new SquirrelClasifier(ClassificationRegistry);
-            
+
             return Classifier;
         }
     }

@@ -158,6 +158,9 @@ namespace SquirrelDebugEngine.Proxy
 
     public string GetDisplayValue()
     {
+      if (Value is null)
+        return "<invalid>";
+
       return IsValueVizualizable() ? (Value as IVisualizableObject).GetDisplayValue() : Value.ToString();
     }
 

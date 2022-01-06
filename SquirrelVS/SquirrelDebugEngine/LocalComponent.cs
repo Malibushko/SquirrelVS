@@ -774,13 +774,13 @@ namespace SquirrelDebugEngine
 
         if (BreakpointID == HookData.SquirrelNativeClosureCreated)
         {
-          HookData.SuspendThread.Resume(true);
+          HookData.SuspendThread?.Resume(true);
         }
         else
         if (BreakpointID == SquirrelBreakpoints.SquirrelHelperInitialized)
         {
           LocalData.HelperState = HelperState.Initialized;
-          
+
           TrySetupDebugHooks(_Process);
 
           return;

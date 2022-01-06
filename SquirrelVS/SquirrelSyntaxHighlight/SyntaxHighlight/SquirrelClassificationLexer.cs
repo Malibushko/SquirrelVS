@@ -23,7 +23,7 @@ namespace SquirrelSyntaxHighlight
       ClassificationRegistry = _Registry;
       Keywords               = SquirrelKeywords();
 
-      CurrentPosition = 0;
+      CurrentPosition = Snapshot.Start.Position;
     }
     
     public List<ClassificationSpan> Lex()
@@ -166,7 +166,7 @@ namespace SquirrelSyntaxHighlight
     }
     private char CurrentChar()
     {
-      if (CurrentPosition >= Snapshot.Snapshot.Length - 1)
+      if (CurrentPosition >= Snapshot.End.Position)
         return SquirrelEOB;
 
       return Snapshot.Snapshot[CurrentPosition];

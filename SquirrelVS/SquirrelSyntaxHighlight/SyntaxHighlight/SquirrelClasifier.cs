@@ -11,14 +11,14 @@ namespace SquirrelSyntaxHighlight
 
         internal SquirrelClasifier(IClassificationTypeRegistryService _Registry)
         {
-            ClassificationTypeRegistry = _Registry;
+          ClassificationTypeRegistry = _Registry;
         }
-
+      
         #region Public Methods
         public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan _Span)
         {
             SquirrelClassificationLexer Lexer = new SquirrelClassificationLexer(_Span, ClassificationTypeRegistry);
-
+      
             return Lexer.Lex();
         }
 

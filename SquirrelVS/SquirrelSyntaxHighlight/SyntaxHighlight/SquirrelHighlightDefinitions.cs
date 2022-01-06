@@ -2,11 +2,17 @@
 using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell.Interop;
+using System;
 
 namespace SquirrelSyntaxHighlight
 {
-    internal static class SquirrelClassificationDefinitions
+    internal class SquirrelClassificationDefinitions
     {
+        private static Guid Category = new Guid("75A05685-00A8-4DED-BAE5-E7A50BFA929A");
+        
         #region Content Type and File Extension Definition
 
         [Export]
@@ -25,42 +31,42 @@ namespace SquirrelSyntaxHighlight
 
         [Export]
         [Name("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelTypeDefinition = null;
+        public static ClassificationTypeDefinition SquirrelTypeDefinition = null;
 
         [Export]
         [Name("Squirrel.Keyword")]
         [BaseDefinition("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelKeywordDefinition = null;
+        public static ClassificationTypeDefinition SquirrelKeywordDefinition = null;
 
         [Export]
         [Name("Squirrel.Comment")]
         [BaseDefinition("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelCommentDefinition = null;
+        public static ClassificationTypeDefinition SquirrelCommentDefinition = null;
         
         [Export]
         [Name("Squirrel.String")]
         [BaseDefinition("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelStringDefinition  = null;
+        public static ClassificationTypeDefinition SquirrelStringDefinition  = null;
         
         [Export]
         [Name("Squirrel.Global")]
         [BaseDefinition("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelGlobalVariablesDefinition = null;
+        public static ClassificationTypeDefinition SquirrelGlobalVariablesDefinition = null;
 
         [Export]
         [Name("Squirrel.Class")]
         [BaseDefinition("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelClassDefinition = null;
+        public static ClassificationTypeDefinition SquirrelClassDefinition = null;
 
         [Export]
         [Name("Squirrel.LoopVariable")]
         [BaseDefinition("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelLoopVariableDefinition = null;
+        public static ClassificationTypeDefinition SquirrelLoopVariableDefinition = null;
 
         [Export]
         [Name("Squirrel.FunctionVariable")]
         [BaseDefinition("Squirrel")]
-        internal static ClassificationTypeDefinition SquirrelFunctionVariableDefinition = null;
+        public static ClassificationTypeDefinition SquirrelFunctionVariableDefinition = null;
 
         #endregion
 
@@ -69,79 +75,113 @@ namespace SquirrelSyntaxHighlight
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = "Squirrel.Keyword")]
         [Name("Squirrel.Keyword")]
-        internal sealed class SquirrelKeywordFormat : ClassificationFormatDefinition
+        [UserVisible(true)]
+        public sealed class SquirrelKeywordFormat : ClassificationFormatDefinition
         {
-            public SquirrelKeywordFormat()
-            {
-              ForegroundColor = Color.FromRgb(63, 147, 214);
-            }
+          public SquirrelKeywordFormat()
+          {
+            ForegroundColor = Color.FromRgb(0xFF, 0x22, 0x22);
+            DisplayName     = "Squirrel Keywords Color";
+          }
         }
         
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = "Squirrel.Comment")]
         [Name("Squirrel.Comment")]
-        internal sealed class SquirrelCommentFormat : ClassificationFormatDefinition
+        [UserVisible(true)]
+        public sealed class SquirrelCommentFormat : ClassificationFormatDefinition
         {
           public SquirrelCommentFormat()
           {
-            ForegroundColor = Colors.Green;
+            ForegroundColor = Color.FromRgb(0xFF, 0x22, 0x22);
+            DisplayName     = "Squirrel Comments Color";
           }
         }
 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = "Squirrel.String")]
         [Name("Squirrel.String")]
-        internal sealed class SquirrelStringFormat : ClassificationFormatDefinition
+        [UserVisible(true)]
+        public sealed class SquirrelStringFormat : ClassificationFormatDefinition
         {
           public SquirrelStringFormat()
           {
-            ForegroundColor = Color.FromRgb(214, 130, 81);
+            ForegroundColor = Color.FromRgb(0xFF, 0x22, 0x22);
+            DisplayName     = "Squirrel String Literals Color";
           }
         }
 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = "Squirrel.Global")]
         [Name("Squirrel.Global")]
-        internal sealed class SquirrelGlobalVariablesFormat : ClassificationFormatDefinition
+        [UserVisible(true)]
+        public sealed class SquirrelGlobalVariablesFormat : ClassificationFormatDefinition
         {
           public SquirrelGlobalVariablesFormat()
           {
-            ForegroundColor = Colors.DarkGoldenrod;
+            ForegroundColor = Color.FromRgb(0xFF, 0x22, 0x22);
+            DisplayName     = "Squirrel Globals Color";
           }
         }
         
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = "Squirrel.Class")]
         [Name("Squirrel.Class")]
-        internal sealed class SquirrelClassFormat : ClassificationFormatDefinition
+        [UserVisible(true)]
+        public sealed class SquirrelClassFormat : ClassificationFormatDefinition
         {
           public SquirrelClassFormat()
           {
-            ForegroundColor = Colors.Cyan;
+            ForegroundColor = Color.FromRgb(0xFF, 0x22, 0x22);
+            DisplayName     = "Squirrel Class Color";
           }
         }
 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = "Squirrel.LoopVariable")]
         [Name("Squirrel.LoopVariable")]
-        internal sealed class SquirrelLoopVariableFormat : ClassificationFormatDefinition
+        [UserVisible(true)]
+        public sealed class SquirrelLoopVariableFormat : ClassificationFormatDefinition
         {
           public SquirrelLoopVariableFormat()
-          {
-            ForegroundColor = Colors.DarkGray;
+          { 
+            ForegroundColor = Color.FromRgb(0xFF, 0x22, 0x22);
+            DisplayName     = "Squirrel Loop Variable Color";
           }
         }
 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = "Squirrel.FunctionVariable")]
         [Name("Squirrel.FunctionVariable")]
-        internal sealed class SquirrelFunctionVariableFormat : ClassificationFormatDefinition
+        [UserVisible(true)]
+        public sealed class SquirrelFunctionVariableFormat : ClassificationFormatDefinition
         {
           public SquirrelFunctionVariableFormat()
           {
-            ForegroundColor = Colors.DarkGray;
+            ForegroundColor = Color.FromRgb(0xFF, 0x22, 0x22);
+            DisplayName     = "Squirrel Function Parameter Color";
           }
         }
+    #endregion
+
+        #region Service
+
+        static private Color? TryGetThemedColor(
+              string _Name
+            )
+        {
+          var  Key  = new ThemeResourceKey(Category, _Name, ThemeResourceKeyType.ForegroundColor);
+          uint ARGB = 0;
+          
+          if (VsColors.GetCurrentThemedColorValues().TryGetValue(Key, out ARGB))
+          { 
+            byte[] Bytes = BitConverter.GetBytes(ARGB);
+            return Color.FromArgb(Bytes[3], Bytes[2], Bytes[1], Bytes[0]);
+          }
+
+          return null;
+        }
+
     #endregion
   }
 }
