@@ -16,7 +16,13 @@ namespace SquirrelDebugEngine
     {
       if (_NativeFrame == null) // End of stack
       {
-        _StackContext.Thread.GetDataItem<SquirrelCallStack>()?.Callstack.Clear();
+        var CallstackData = _StackContext.Thread.Process.GetDataItem<SquirrelCallStack>();
+        
+        if (CallstackData != null)
+        {
+          CallstackData.Callstack.Clear();
+          CallstackData.ThreadStack.Clear();
+        }
 
         return null;
       }
@@ -47,7 +53,8 @@ namespace SquirrelDebugEngine
       if (MethodName == null)
         return new DkmStackWalkFrame[1] { _NativeFrame };
 
-      if (MethodName == "sq_wakeupvm")
+      if (MethodName  == "sq_wakeupvm" || 
+          MethodName  == "sq_call")
       {
         var ThreadHandle = EvaluationHelpers.TryEvaluateAddressExpression(
             "v",
@@ -69,7 +76,7 @@ namespace SquirrelDebugEngine
             }.SendHigher(Process);
           }
 
-          return GetNextSquirrelFrames(Process, _NativeFrame, _StackContext, Callstack.ThreadStack.Peek(), true);
+          return GetNextSquirrelFrames(Process, _NativeFrame, _StackContext, Callstack.ThreadStack.Peek(), (MethodName != "sq_call"));
         }
       }
 
@@ -82,22 +89,8 @@ namespace SquirrelDebugEngine
       {
         // TODO: Add support for generators
       }
+      
 
-      if (MethodName == "sq_call")
-      {
-        if (!Callstack.ThreadStack.Any((VM => VM.Address == LocalData.SquirrelHandle.Address)))
-        {
-          Callstack.ThreadStack.Push(LocalData.SquirrelHandle);
-
-          new LocalComponent.FetchCallstackRequest()
-          {
-            SquirrelHandle = LocalData.SquirrelHandle.Address
-          }.SendHigher(Process);
-        }
-
-        return GetNextSquirrelFrames(Process, _NativeFrame, _StackContext, LocalData.SquirrelHandle, false);
-      }
-      else
       if (MethodName.StartsWith("SQVM"))
       {
         var Flags = (_NativeFrame.Flags & ~DkmStackWalkFrameFlags.UserStatusNotDetermined) | DkmStackWalkFrameFlags.NonuserCode;
@@ -172,6 +165,9 @@ namespace SquirrelDebugEngine
 
       foreach (var CallFrame in Callstack)
       {
+        if (CallFrame.Thread != _Thread)
+          continue;
+
         if (CallFrame.ParentFrameBase == 0)
         {
           if (CallFrame.IsClosure())
