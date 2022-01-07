@@ -9,7 +9,7 @@ extern "C"
 
   __declspec(dllexport) char WorkingDirectory[1024] = {};
 
-  __declspec(dllexport) void (*sq_newclosure)(
+  __declspec(dllexport) const void (*sq_newclosure)(
       void *           _SquirrelVM, 
       void *           _ClosureRoutine,
       unsigned __int64 _FreeVariablesCount

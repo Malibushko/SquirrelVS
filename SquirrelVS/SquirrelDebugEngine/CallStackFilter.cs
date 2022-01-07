@@ -15,12 +15,16 @@ namespace SquirrelDebugEngine
       )
     {
       if (_NativeFrame == null) // End of stack
+      {
+        _StackContext.Thread.GetDataItem<SquirrelCallStack>()?.Callstack.Clear();
+
         return null;
+      }
 
       if (_NativeFrame.InstructionAddress?.ModuleInstance == null)
         return new DkmStackWalkFrame[1] { _NativeFrame };
 
-      if (_NativeFrame.ModuleInstance != null && _NativeFrame.ModuleInstance.Name == "SquirrelDebugHelper.dll" && false)
+      if (_NativeFrame.ModuleInstance != null && _NativeFrame.ModuleInstance.Name == "SquirrelDebugHelper.dll")
       {
         return new DkmStackWalkFrame[1] { DkmStackWalkFrame.Create(
             _StackContext.Thread,
@@ -34,106 +38,64 @@ namespace SquirrelDebugEngine
           ) };
       }
 
-      DkmProcess       Process          = _StackContext.InspectionSession.Process;
-      LocalProcessData ProcessData      = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
+      DkmProcess        Process   = _StackContext.InspectionSession.Process;
+      LocalProcessData  LocalData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
+      SquirrelCallStack Callstack = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
 
       string MethodName = GetFrameMethodName(_NativeFrame);
 
       if (MethodName == null)
         return new DkmStackWalkFrame[1] { _NativeFrame };
 
+      if (MethodName == "sq_wakeupvm")
+      {
+        var ThreadHandle = EvaluationHelpers.TryEvaluateAddressExpression(
+            "v",
+            _StackContext.InspectionSession,
+            _StackContext.Thread,
+            _NativeFrame,
+            Microsoft.VisualStudio.Debugger.Evaluation.DkmEvaluationFlags.NoSideEffects
+          );
+
+        if (ThreadHandle.HasValue)
+        {
+          if (Callstack.ThreadStack.Count == 0 || !Callstack.ThreadStack.Any((VM => VM.Address == ThreadHandle.Value)))
+          {
+            Callstack.ThreadStack.Push(new SQVM(Process, ThreadHandle.Value));
+
+            new LocalComponent.FetchCallstackRequest
+            {
+              SquirrelHandle = ThreadHandle.Value
+            }.SendHigher(Process);
+          }
+
+          return GetNextSquirrelFrames(Process, _NativeFrame, _StackContext, Callstack.ThreadStack.Peek(), true);
+        }
+      }
+
+      if (MethodName == "sq_suspendvm")
+      {
+
+      }
+
+      if (MethodName == "sq_resume")
+      {
+        // TODO: Add support for generators
+      }
+
       if (MethodName == "sq_call")
       {
-        if (ProcessData.RuntimeInstance == null)
+        if (!Callstack.ThreadStack.Any((VM => VM.Address == LocalData.SquirrelHandle.Address)))
         {
-          ProcessData.RuntimeInstance = Process
-                                          .GetRuntimeInstances()
-                                          .OfType<DkmCustomRuntimeInstance>()
-                                          .FirstOrDefault(el => el.Id.RuntimeType == Guids.SquirrelRuntimeID);
+          Callstack.ThreadStack.Push(LocalData.SquirrelHandle);
 
-          if (ProcessData.RuntimeInstance == null)
-            return new DkmStackWalkFrame[1] { _NativeFrame };
-
-          ProcessData.ModuleInstance = ProcessData.RuntimeInstance.GetModuleInstances().OfType<DkmCustomModuleInstance>().FirstOrDefault(el => el.Module != null && el.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
-
-          if (ProcessData.ModuleInstance == null)
-            return new DkmStackWalkFrame[1] { _NativeFrame };
-        }
-
-        var SquirrelFrameFlags = _NativeFrame.Flags;
-
-        SquirrelFrameFlags &= ~(DkmStackWalkFrameFlags.NonuserCode | DkmStackWalkFrameFlags.UserStatusNotDetermined);
-
-        if ((_NativeFrame.Flags | DkmStackWalkFrameFlags.TopFrame) != 0)
-          SquirrelFrameFlags |= DkmStackWalkFrameFlags.TopFrame;
-
-        var HelperLocations     = Utility.GetOrCreateDataItem<LocalComponent.HelperLocationsDataHolder>(Process);
-        var CallstackDataHolder = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
-        var Callstack           = CallstackDataHolder.Callstack;
-        var SquirrelFrames      = new List<DkmStackWalkFrame>();
-
-        if (Callstack.Count == 0)
-        {
-          // If sq_call is exist in callstack and there're no frames available that means
-          // we hit breakpoint from native closure and have to fetch callstack 
-          new LocalComponent.FetchCallstackRequest().SendHigher(Process);
-
-          if (Callstack.Count == 0)
-            SquirrelFrames.Add(_NativeFrame);
-        }
-
-        foreach (var CallFrame in Callstack)
-        {
-          if (CallFrame.ParentFrameBase == 0)
-            CallFrame.ParentFrameBase = _NativeFrame.FrameBase;
-          else
-          if (CallFrame.ParentFrameBase != _NativeFrame.FrameBase)
-            continue;
-
-          if (CallFrame.IsNativeClosure())
+          new LocalComponent.FetchCallstackRequest()
           {
-            var NativeClosure = CallFrame.Closure.Value as SQNativeClosure;
-
-            if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
-              continue;
-
-            break;
-          };
-
-          DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
-              ProcessData.RuntimeInstance,
-              ProcessData.ModuleInstance,
-              new SourceLocation { Source = CallFrame.SourceName, Line = CallFrame.Line }.Encode(),
-              0,
-              null,
-              null
-            );
-
-          CallstackDataHolder.GetFrameStackBase(CallFrame, ProcessData.SquirrelHandle.StackBase.Read());
-
-          SquirrelFrames.Add(DkmStackWalkFrame.Create(
-              _StackContext.Thread,
-              InstructionAddress,
-              _NativeFrame.FrameBase,
-              _NativeFrame.FrameSize,
-              SquirrelFrameFlags,
-              CallFrame.FrameName,
-              _NativeFrame.Registers,
-              _NativeFrame.Annotations,
-              null,
-              null,
-              DkmStackWalkFrameData.Create(
-                  _StackContext.InspectionSession, 
-                  new SquirrelStackFrameData 
-                  { 
-                    NativeFrame = CallFrame
-                  }
-                )
-              )
-            );
+            SquirrelHandle = LocalData.SquirrelHandle.Address
+          }.SendHigher(Process);
         }
 
-        return SquirrelFrames.ToArray();
+        return GetNextSquirrelFrames(Process, _NativeFrame, _StackContext, LocalData.SquirrelHandle, false);
       }
       else
       if (MethodName.StartsWith("SQVM"))
@@ -168,6 +130,104 @@ namespace SquirrelDebugEngine
         MethodName = _Input.BasicSymbolInfo.MethodName;
 
       return MethodName;
+    }
+
+    private DkmStackWalkFrame[] GetNextSquirrelFrames(
+          DkmProcess        _Process,
+          DkmStackWalkFrame _NativeFrame,
+          DkmStackContext   _StackContext,
+          SQVM              _Thread,
+          bool              _KeepNativeFrame
+        )
+    {
+      LocalProcessData ProcessData = Utility.GetOrCreateDataItem<LocalProcessData>(_Process);
+
+      if (ProcessData.RuntimeInstance == null)
+      {
+        ProcessData.RuntimeInstance = _Process
+                                        .GetRuntimeInstances()
+                                        .OfType<DkmCustomRuntimeInstance>()
+                                        .FirstOrDefault(el => el.Id.RuntimeType == Guids.SquirrelRuntimeID);
+
+        if (ProcessData.RuntimeInstance == null)
+          return new DkmStackWalkFrame[1] { _NativeFrame };
+
+        ProcessData.ModuleInstance = ProcessData.RuntimeInstance.GetModuleInstances().OfType<DkmCustomModuleInstance>().FirstOrDefault(el => el.Module != null && el.Module.CompilerId.VendorId == Guids.SquirrelCompilerID);
+
+        if (ProcessData.ModuleInstance == null)
+          return new DkmStackWalkFrame[1] { _NativeFrame };
+      }
+
+      var SquirrelFrameFlags = _NativeFrame.Flags;
+
+      SquirrelFrameFlags &= ~(DkmStackWalkFrameFlags.NonuserCode | DkmStackWalkFrameFlags.UserStatusNotDetermined);
+
+      if ((_NativeFrame.Flags | DkmStackWalkFrameFlags.TopFrame) != 0)
+        SquirrelFrameFlags |= DkmStackWalkFrameFlags.TopFrame;
+
+      var HelperLocations     = Utility.GetOrCreateDataItem<LocalComponent.HelperLocationsDataHolder>(_Process);
+      var CallstackDataHolder = Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process);
+      var Callstack           = CallstackDataHolder.Callstack;
+      var SquirrelFrames      = new List<DkmStackWalkFrame>();
+
+      foreach (var CallFrame in Callstack)
+      {
+        if (CallFrame.ParentFrameBase == 0)
+        {
+          if (CallFrame.IsClosure())
+            CallFrame.ParentFrameBase = _NativeFrame.FrameBase;
+        }
+
+        if (CallFrame.ParentFrameBase != _NativeFrame.FrameBase)
+          continue;
+
+        if (CallFrame.IsNativeClosure())
+        {
+          var NativeClosure = CallFrame.Closure.Value as SQNativeClosure;
+
+          if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
+            continue;
+
+          break;
+        };
+
+        DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
+            ProcessData.RuntimeInstance,
+            ProcessData.ModuleInstance,
+            new SourceLocation { Source = CallFrame.SourceName, Line = CallFrame.Line }.Encode(),
+            0,
+            null,
+            null
+          );
+
+        CallstackDataHolder.GetFrameStackBase(CallFrame, _Thread.StackBase.Read());
+
+        SquirrelFrames.Add(DkmStackWalkFrame.Create(
+            _StackContext.Thread,
+            InstructionAddress,
+            _NativeFrame.FrameBase,
+            _NativeFrame.FrameSize,
+            SquirrelFrameFlags,
+            CallFrame.FrameName,
+            _NativeFrame.Registers,
+            _NativeFrame.Annotations,
+            null,
+            null,
+            DkmStackWalkFrameData.Create(
+                _StackContext.InspectionSession,
+                new SquirrelStackFrameData
+                {
+                  NativeFrame = CallFrame
+                }
+              )
+            )
+          );
+      }
+
+      if (_KeepNativeFrame)
+        SquirrelFrames.Add(_NativeFrame);
+
+      return SquirrelFrames.ToArray();
     }
   }
 }

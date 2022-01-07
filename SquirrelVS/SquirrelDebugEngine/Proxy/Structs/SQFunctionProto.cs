@@ -149,6 +149,7 @@ namespace SquirrelDebugEngine.Proxy
     }
 
     public SquirrelVariableInfo GetLocalVariable(
+          SQVM         _Thread,
           int          _Index,
           long         _StackBase,
           PointerProxy _InstructionPointer
@@ -165,10 +166,8 @@ namespace SquirrelDebugEngine.Proxy
       UInt64 InstructionObjectSize = (UInt64)SizeOf<SQInstruction>(Process);
       UInt64 OpcodeNumber          = (UInt64)((_InstructionPointer.Read() - Instructions.Address) / InstructionObjectSize) - 1;
       
-      var SquirrelHandle = Process.GetDataItem<LocalProcessData>().SquirrelHandle;
-      var Stack          = SquirrelHandle.Stack.Values.Read();
-
-      int SkipVariables = _Index;
+      var Stack              = _Thread.Stack.Values.Read();
+      int SkipVariablesCount = _Index;
 
       for (int j = 0; j < VariablesCount; j++)
       {
@@ -176,7 +175,7 @@ namespace SquirrelDebugEngine.Proxy
 
         if (Variable.StartOpcode.Read() <= OpcodeNumber && Variable.EndOpcode.Read() >= OpcodeNumber)
         {
-          if (SkipVariables == 0)
+          if (SkipVariablesCount == 0)
           {
             SquirrelVariableInfo LocalVariable = new SquirrelVariableInfo()
             {
@@ -193,13 +192,14 @@ namespace SquirrelDebugEngine.Proxy
               return LocalVariable;
             }
           }
-          --SkipVariables;
+          --SkipVariablesCount;
         }
       }
 
       return null;
    }
     public List<SquirrelVariableInfo> GetLocals(
+          SQVM         _Thread,
           long         _StackBase,
           PointerProxy _InstructionPointer
         )
@@ -209,7 +209,7 @@ namespace SquirrelDebugEngine.Proxy
 
       for (int i = 0; i < VariablesCount; i++)
       {
-        var LocalVariable = GetLocalVariable(i, _StackBase, _InstructionPointer);
+        var LocalVariable = GetLocalVariable(_Thread, i, _StackBase, _InstructionPointer);
 
         if (LocalVariable != null)
           Locals.Add(LocalVariable);

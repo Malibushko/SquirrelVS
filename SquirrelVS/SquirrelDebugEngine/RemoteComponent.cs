@@ -338,8 +338,6 @@ namespace SquirrelDebugEngine
 
         if (RuntimeBreakpoint != null)
         {
-          new LocalComponent.FetchCallstackRequest().SendHigher(_Thread.Process);
-
           RuntimeBreakpoint.OnHit(_Thread, false);
 
           ActiveBreakpointData.HitBreakpointIndex.Write(ulong.MaxValue);
@@ -362,8 +360,6 @@ namespace SquirrelDebugEngine
 
         if (State != InvalidStepKind)
         {
-          new LocalComponent.FetchCallstackRequest().SendHigher(_Thread.Process);
-
           new LocalComponent.OnStepFinishedNotification().SendHigher(_Thread.Process);
           
           StepperData.ActiveStepKind.Write(InvalidStepKind);
@@ -641,9 +637,7 @@ namespace SquirrelDebugEngine
         BreakpointsGuidsDataHolder BreakpointsData = Utility.GetOrCreateDataItem<BreakpointsGuidsDataHolder>(_Process);
 
         if (StepperData.ActiveStepper != null)
-        {
           BreakpointsData.StepInFallthroughGuid = BreakpointGuid;
-        }
       }
     }
     #endregion

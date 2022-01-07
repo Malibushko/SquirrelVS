@@ -886,15 +886,17 @@ namespace SquirrelDebugEngine
     [MessageTo(Guids.SquirrelLocalComponentID)]
     internal class FetchCallstackRequest : MessageBase<FetchCallstackRequest>
     {
+      [DataMember]
+      public ulong SquirrelHandle;
+
       public override void Handle(
           DkmProcess _Process
         )
       {
-        var SQVM          = Utility.GetOrCreateDataItem<LocalProcessData>(_Process).SquirrelHandle;
-        var CallstackData = Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process);
-
-        if (SQVM.Address == 0)
+        if (SquirrelHandle == 0)
           return;
+
+        var SQVM = new SQVM(_Process, SquirrelHandle);
 
         long CallStackSize    = SQVM.CallStackSize.Read();
         var  CallstackPointer = SQVM.CallStack;
@@ -902,21 +904,22 @@ namespace SquirrelDebugEngine
         if (CallstackPointer.IsNull)
           return;
 
-        CallstackData.Callstack.Clear();
+        var ProcessCallstack = Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process);
 
         for (long i = 0; i < CallStackSize; ++i)
         {
           try
           {
-            CallstackData.Callstack.Add(new CallstackFrame(CallstackPointer.Read()[i]));
+            ProcessCallstack.Callstack.Insert(0, new CallstackFrame(CallstackPointer.Read()[i])
+            {
+              Thread = SQVM
+            });
           }
           catch (Exception Ex)
           {
             // TODO: Remove this after ensuring no bad thing can happen OR add a logs
           }
         }
-
-        CallstackData.Callstack.Reverse();
       }
     }
 

@@ -17,8 +17,12 @@ namespace SquirrelDebugEngine
     private long      CachedLine;
 
     internal Int32 PreviousStackBase { get; set; }
+
     internal long  StackBase { get; set; }
+
     internal ulong ParentFrameBase { get; set; }
+
+    internal SQVM Thread { get; set; }
 
     internal CallstackFrame(
         CallInfo _NativeFrame
@@ -65,7 +69,7 @@ namespace SquirrelDebugEngine
 
     internal List<SquirrelVariableInfo> GetFrameLocals()
     {
-      return FunctionProto?.GetLocals(StackBase, NativeFrame.InstructionPointer);
+      return FunctionProto?.GetLocals(Thread, StackBase, NativeFrame.InstructionPointer);
     }
 
     internal string FrameName
