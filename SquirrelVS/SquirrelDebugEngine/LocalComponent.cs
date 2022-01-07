@@ -73,6 +73,7 @@ namespace SquirrelDebugEngine
       public AddressRange ModuleAddresses;
       public ulong        WorkingDirectoryAddress;
       public UInt64Proxy  IsSquirrelUnicode;
+      public Int64Proxy   LastLine;
     }
 
     internal class SquirrelLocations : DkmDataItem
@@ -317,6 +318,7 @@ namespace SquirrelDebugEngine
       HelperLocations.WorkingDirectoryAddress = AttachmentHelpers.FindVariableAddress(_Module, "WorkingDirectory");
       HelperLocations.ModuleAddresses         = new AddressRange(_Module.BaseAddress, _Module.BaseAddress + _Module.Size);
       HelperLocations.IsSquirrelUnicode       = new UInt64Proxy(Process, AttachmentHelpers.FindVariableAddress(_Module, "IsSQUnicode"));
+      HelperLocations.LastLine                = new Int64Proxy(Process, AttachmentHelpers.FindVariableAddress(_Module, "LastLine"));
 
       new RemoteComponent.StepperLocationsNotification
       {

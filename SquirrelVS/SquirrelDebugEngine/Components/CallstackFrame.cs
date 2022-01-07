@@ -22,6 +22,8 @@ namespace SquirrelDebugEngine
 
     internal ulong ParentFrameBase { get; set; }
 
+    internal long? ForcedLine { get; set; }
+
     internal SQVM Thread { get; set; }
 
     internal CallstackFrame(
@@ -86,6 +88,9 @@ namespace SquirrelDebugEngine
     {
       get
       {
+        if (ForcedLine.HasValue)
+          return ForcedLine.Value;
+
         if (CachedLine == 0)
         {
           if (FunctionProto == null)

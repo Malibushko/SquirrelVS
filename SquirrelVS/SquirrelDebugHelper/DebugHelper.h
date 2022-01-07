@@ -92,6 +92,8 @@ extern "C"
     STEP_OUT  = 2
   };
 
+  __declspec(dllexport) volatile int64_t  LastLine = 0;
+
   __declspec(dllexport) volatile StepType StepKind = STEP_NONE;
 
   __declspec(dllexport) volatile int32_t SteppingStackDepth = 0;
@@ -153,30 +155,27 @@ extern "C"
   };
 
   void UpdateStepper(
-      int64_t HookCallType
+      int64_t _HookCallType
     )
   {
     switch (StepKind)
     {
       case STEP_OVER:
       {
-        switch ((char)HookCallType)
+        switch ((char)_HookCallType)
         {
           case 'c':
           {
             ++SteppingStackDepth;
             break;
           }
+          case 'r':
+            --SteppingStackDepth;
+            [[fallthrough]];
           case 'l':
           {
             if (SteppingStackDepth <= 0)
               OnSquirrelHelperStepComplete();
-
-            break;
-          }
-          case 'r':
-          {
-            --SteppingStackDepth;
 
             break;
           }
@@ -186,7 +185,7 @@ extern "C"
       }
       case STEP_INTO:
       {
-        switch((char)HookCallType)
+        switch((char)_HookCallType)
         {
           case 'l':
             SteppingStackDepth = 0;
@@ -199,7 +198,7 @@ extern "C"
       }
       case STEP_OUT:
       {
-          switch ((char)HookCallType)
+          switch ((char)_HookCallType)
           {
               case 'c':
                   ++SteppingStackDepth;
@@ -207,9 +206,9 @@ extern "C"
               case 'r':
               {
                   if (SteppingStackDepth == 0)
-                      StepKind = STEP_INTO;
+                    StepKind = STEP_INTO;
                   else
-                      --SteppingStackDepth;
+                    --SteppingStackDepth;
 
                   break;
               }
@@ -268,9 +267,11 @@ extern "C"
       return -1;
     }();
 
+    ::LastLine = _Line;
+
     if (HitBreakpointID != -1)
     {
-      ::HitBreakpointIndex = HitBreakpointID;
+      ::HitBreakpointIndex      = HitBreakpointID;
 
       OnSquirrelHelperAsyncBreak();
     }

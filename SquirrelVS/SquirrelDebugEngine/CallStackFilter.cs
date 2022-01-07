@@ -66,7 +66,7 @@ namespace SquirrelDebugEngine
 
         if (ThreadHandle.HasValue)
         {
-          if (Callstack.ThreadStack.Count == 0 || !Callstack.ThreadStack.Any((VM => VM.Address == ThreadHandle.Value)))
+          if (!Callstack.ThreadStack.Any(VM => VM.Address == ThreadHandle.Value))
           {
             Callstack.ThreadStack.Push(new SQVM(Process, ThreadHandle.Value));
 
@@ -163,6 +163,8 @@ namespace SquirrelDebugEngine
       var Callstack           = CallstackDataHolder.Callstack;
       var SquirrelFrames      = new List<DkmStackWalkFrame>();
 
+      long? ForcedLine = null;
+
       foreach (var CallFrame in Callstack)
       {
         if (CallFrame.Thread != _Thread)
@@ -172,20 +174,28 @@ namespace SquirrelDebugEngine
         {
           if (CallFrame.IsClosure())
             CallFrame.ParentFrameBase = _NativeFrame.FrameBase;
+          else
+          if (CallFrame.IsNativeClosure())
+          {
+            var NativeClosure = CallFrame.Closure.Value as SQNativeClosure;
+
+            if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
+            {
+              ForcedLine = HelperLocations.LastLine.Read();
+              continue;
+            }
+          }
         }
 
         if (CallFrame.ParentFrameBase != _NativeFrame.FrameBase)
           continue;
 
-        if (CallFrame.IsNativeClosure())
+        if (ForcedLine.HasValue)
         {
-          var NativeClosure = CallFrame.Closure.Value as SQNativeClosure;
+          CallFrame.ForcedLine = ForcedLine.Value;
 
-          if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
-            continue;
-
-          break;
-        };
+          ForcedLine = null;
+        }
 
         DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
             ProcessData.RuntimeInstance,
