@@ -62,7 +62,7 @@ namespace SquirrelDebugEngine
           if (FunctionProto == null)
             CachedFunctionName = "<failed to get function name>";
           else
-            CachedFunctionName = (FunctionProto.Name.Value as SQString).Read();
+            CachedFunctionName = (FunctionProto.Name.Value as SQString)?.Read();
         }
 
         return CachedFunctionName;

@@ -878,47 +878,6 @@ namespace SquirrelDebugEngine
 
     [DataContract]
     [MessageTo(Guids.SquirrelLocalComponentID)]
-    internal class FetchCallstackRequest : MessageBase<FetchCallstackRequest>
-    {
-      [DataMember]
-      public ulong SquirrelHandle;
-
-      public override void Handle(
-          DkmProcess _Process
-        )
-      {
-        if (SquirrelHandle == 0)
-          return;
-
-        var SQVM = new SQVM(_Process, SquirrelHandle);
-
-        long CallStackSize    = SQVM.CallStackSize.Read();
-        var  CallstackPointer = SQVM.CallStack;
-
-        if (CallstackPointer.IsNull)
-          return;
-
-        var ProcessCallstack = Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process);
-
-        for (long i = 0; i < CallStackSize; ++i)
-        {
-          try
-          {
-            ProcessCallstack.Callstack.Insert(0, new CallstackFrame(CallstackPointer.Read()[i])
-            {
-              Thread = SQVM
-            });
-          }
-          catch (Exception Ex)
-          {
-            // TODO: Remove this after ensuring no bad thing can happen OR add a logs
-          }
-        }
-      }
-    }
-
-    [DataContract]
-    [MessageTo(Guids.SquirrelLocalComponentID)]
     internal class HandleCustomMessage : MessageBase<HandleCustomMessage>
     {
       [DataMember]

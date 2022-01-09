@@ -5,10 +5,15 @@ using System;
 
 namespace SquirrelDebugEngine
 {
+  internal class SquirrelThreadData
+  {
+    public int                  LastFramePosition = 0;
+    public List<CallstackFrame> Callstack         = null;
+  }
   internal class SquirrelCallStack : DkmDataItem
   {
-    public List<CallstackFrame> Callstack   = new List<CallstackFrame>();
-    public Stack<SQVM>          ThreadStack = new Stack<SQVM>();
+    public Dictionary<SQVM, SquirrelThreadData> ActiveThreads = new Dictionary<SQVM, SquirrelThreadData>();
+    
     public Int64 GetFrameStackBase(
         CallstackFrame _Frame,
         Int64          _Base
@@ -16,13 +21,12 @@ namespace SquirrelDebugEngine
     {
       if (_Frame.StackBase == 0)
       {
+        var Callstack = ActiveThreads[_Frame.Thread].Callstack;
+
         Int64 StackBase = _Base;
 
         for (int i = 0; i < Callstack.Count; i++)
         {
-          if (Callstack[i].Thread.Address != _Frame.Thread.Address)
-            continue;
-
           if (Callstack[i] == _Frame)
             break;
 

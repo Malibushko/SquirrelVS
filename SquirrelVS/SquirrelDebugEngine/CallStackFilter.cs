@@ -19,10 +19,7 @@ namespace SquirrelDebugEngine
         var CallstackData = _StackContext.Thread.Process.GetDataItem<SquirrelCallStack>();
         
         if (CallstackData != null)
-        {
-          CallstackData.Callstack.Clear();
-          CallstackData.ThreadStack.Clear();
-        }
+          CallstackData.ActiveThreads.Clear();
 
         return null;
       }
@@ -44,9 +41,8 @@ namespace SquirrelDebugEngine
           ) };
       }
 
-      DkmProcess        Process   = _StackContext.InspectionSession.Process;
-      LocalProcessData  LocalData = Utility.GetOrCreateDataItem<LocalProcessData>(Process);
-      SquirrelCallStack Callstack = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
+      DkmProcess        Process             = _StackContext.InspectionSession.Process;
+      SquirrelCallStack CallstackDataHolder = Utility.GetOrCreateDataItem<SquirrelCallStack>(Process);
 
       string MethodName = GetFrameMethodName(_NativeFrame);
 
@@ -66,17 +62,18 @@ namespace SquirrelDebugEngine
 
         if (ThreadHandle.HasValue)
         {
-          if (!Callstack.ThreadStack.Any(VM => VM.Address == ThreadHandle.Value))
-          {
-            Callstack.ThreadStack.Push(new SQVM(Process, ThreadHandle.Value));
+          var Thread = new SQVM(Process, ThreadHandle.Value);
 
-            new LocalComponent.FetchCallstackRequest
+          if (!CallstackDataHolder.ActiveThreads.ContainsKey(Thread))
+          {
+            CallstackDataHolder.ActiveThreads[Thread] = new SquirrelThreadData
             {
-              SquirrelHandle = ThreadHandle.Value
-            }.SendHigher(Process);
+              Callstack         = FetchThreadCallstack(Process, Thread),
+              LastFramePosition = 0
+            };
           }
 
-          return GetNextSquirrelFrames(Process, _NativeFrame, _StackContext, Callstack.ThreadStack.Peek(), (MethodName != "sq_call"));
+          return GetNextSquirrelFrames(Process, _NativeFrame, _StackContext, Thread, true);
         }
       }
 
@@ -160,36 +157,53 @@ namespace SquirrelDebugEngine
 
       var HelperLocations     = Utility.GetOrCreateDataItem<LocalComponent.HelperLocationsDataHolder>(_Process);
       var CallstackDataHolder = Utility.GetOrCreateDataItem<SquirrelCallStack>(_Process);
-      var Callstack           = CallstackDataHolder.Callstack;
+      var ThreadData          = CallstackDataHolder.ActiveThreads[_Thread];
+      var Callstack           = ThreadData.Callstack;
       var SquirrelFrames      = new List<DkmStackWalkFrame>();
 
-      long? ForcedLine   = null;
-      bool  SkipNextFrame = false;
+      long? ForcedLine       = null;
+      bool  SkipNextFrame    = false;
+      bool  IsTopFrame       = false;
+      bool  HitNativeClosure = false;
 
-      foreach (var CallFrame in Callstack)
+      for (int i = 0; i < Callstack.Count; i++)
       {
-        if (CallFrame.Thread != _Thread)
+        var Frame = Callstack[i];
+
+        if (Frame.ParentFrameBase == 0)
+        {
+          if (Frame.IsClosure() || Frame.IsNativeClosure())
+            Frame.ParentFrameBase = _NativeFrame.FrameBase;
+        }
+
+        if (Frame.ParentFrameBase != _NativeFrame.FrameBase)
           continue;
 
-        if (CallFrame.ParentFrameBase == 0)
+        if (Frame.IsNativeClosure())
         {
-          if (CallFrame.IsClosure())
-            CallFrame.ParentFrameBase = _NativeFrame.FrameBase;
-          else
-          if (CallFrame.IsNativeClosure())
+          var NativeClosure = Frame.Closure.Value as SQNativeClosure;
+
+          if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
           {
-            var NativeClosure = CallFrame.Closure.Value as SQNativeClosure;
+            if (HelperLocations.LastType.Read() == (byte)'r')
+              SkipNextFrame = true;
+            else
+              ForcedLine = HelperLocations.LastLine.Read();
 
-            if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
-            {
-              if (HelperLocations.LastType.Read() == (byte)'r')
-                SkipNextFrame = true;
-              else
-                ForcedLine = HelperLocations.LastLine.Read();
-
-              continue;
-            }
+            IsTopFrame = true;
           }
+          else
+          {
+            if (HitNativeClosure == true || IsTopFrame == true)
+            {
+              Frame.ParentFrameBase = 0;
+              break;
+            }
+
+            HitNativeClosure = true;
+          }
+
+          continue;
         }
 
         if (SkipNextFrame)
@@ -198,12 +212,9 @@ namespace SquirrelDebugEngine
           continue;
         }
 
-        if (CallFrame.ParentFrameBase != _NativeFrame.FrameBase)
-          continue;
-
         if (ForcedLine.HasValue)
         {
-          CallFrame.ForcedLine = ForcedLine.Value;
+          Frame.ForcedLine = ForcedLine.Value;
 
           ForcedLine = null;
         }
@@ -211,13 +222,13 @@ namespace SquirrelDebugEngine
         DkmInstructionAddress InstructionAddress = DkmCustomInstructionAddress.Create(
             ProcessData.RuntimeInstance,
             ProcessData.ModuleInstance,
-            new SourceLocation { Source = CallFrame.SourceName, Line = CallFrame.Line }.Encode(),
+            new SourceLocation { Source = Frame.SourceName, Line = Frame.Line }.Encode(),
             0,
             null,
             null
           );
 
-        CallstackDataHolder.GetFrameStackBase(CallFrame, _Thread.StackBase.Read());
+        CallstackDataHolder.GetFrameStackBase(Frame, _Thread.StackBase.Read());
 
         SquirrelFrames.Add(DkmStackWalkFrame.Create(
             _StackContext.Thread,
@@ -225,7 +236,7 @@ namespace SquirrelDebugEngine
             _NativeFrame.FrameBase,
             _NativeFrame.FrameSize,
             SquirrelFrameFlags,
-            CallFrame.FrameName,
+            Frame.FrameName,
             _NativeFrame.Registers,
             _NativeFrame.Annotations,
             null,
@@ -234,7 +245,7 @@ namespace SquirrelDebugEngine
                 _StackContext.InspectionSession,
                 new SquirrelStackFrameData
                 {
-                  NativeFrame = CallFrame
+                  NativeFrame = Frame
                 }
               )
             )
@@ -245,6 +256,35 @@ namespace SquirrelDebugEngine
         SquirrelFrames.Add(_NativeFrame);
 
       return SquirrelFrames.ToArray();
+    }
+  
+    private List<CallstackFrame> FetchThreadCallstack(
+        DkmProcess _Process,
+        SQVM       _Thread
+      )
+    {
+      List<CallstackFrame> Callstack = new List<CallstackFrame>();
+
+      if (_Thread?.Address == 0)
+        return Callstack;
+
+      long CallStackSize    = _Thread.CallStackSize.Read();
+      var  CallstackPointer = _Thread.CallStack;
+
+      if (CallstackPointer.IsNull)
+        return Callstack;
+
+      for (long i = 0; i < CallStackSize; ++i)
+      {
+        Callstack.Add(new CallstackFrame(CallstackPointer.Read()[i])
+        {
+          Thread = _Thread
+        });
+      }
+
+      Callstack.Reverse();
+
+      return Callstack;
     }
   }
 }

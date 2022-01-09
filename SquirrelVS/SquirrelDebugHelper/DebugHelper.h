@@ -172,7 +172,11 @@ extern "C"
           }
           case 'r':
             --SteppingStackDepth;
-            [[fallthrough]];
+            
+            if (SteppingStackDepth < 0)
+              OnSquirrelHelperStepComplete();
+            break;
+
           case 'l':
           {
             if (SteppingStackDepth <= 0)
