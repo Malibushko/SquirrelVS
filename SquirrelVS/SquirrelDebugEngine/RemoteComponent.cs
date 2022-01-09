@@ -40,7 +40,6 @@ namespace SquirrelDebugEngine
       public Guid BreakpointHitGuid;
       public Guid StepCompleteGuid;
       public Guid StepInFallthroughGuid;
-      public Guid StepOutFallthroughGuid;
     }
 
     private class LocationsDataHolder : DkmDataItem
@@ -86,8 +85,7 @@ namespace SquirrelDebugEngine
       {
         [HelperBreakpoints.BreakpointHitGuid]      = () => OnBreakpointHit(_Thread),
         [HelperBreakpoints.StepCompleteGuid]       = () => OnStepCompleted(_Thread),
-        [HelperBreakpoints.StepInFallthroughGuid]  = () => OnStepFallthrough(_Thread),
-        [HelperBreakpoints.StepOutFallthroughGuid] = () => OnStepFallthrough(_Thread)
+        [HelperBreakpoints.StepInFallthroughGuid]  = () => OnStepFallthrough(_Thread)
       };
 
       if (Router.ContainsKey(_Breakpoint.UniqueId))
@@ -550,9 +548,6 @@ namespace SquirrelDebugEngine
       [DataMember]
       public Guid StepCompleteBPGuid;
 
-      [DataMember]
-      public Guid StepOutFallthroughGuid;
-
       public override void Handle(
           DkmProcess _Process
         )
@@ -561,7 +556,6 @@ namespace SquirrelDebugEngine
 
         Data.BreakpointHitGuid      = BreakpointHitBPGuid;
         Data.StepCompleteGuid       = StepCompleteBPGuid;
-        Data.StepOutFallthroughGuid = StepOutFallthroughGuid;
       }
     }
 

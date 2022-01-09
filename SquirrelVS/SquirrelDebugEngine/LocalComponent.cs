@@ -65,7 +65,6 @@ namespace SquirrelDebugEngine
       public Guid                            SquirrelHelperInitialized;
       public DkmRuntimeInstructionBreakpoint SquirrelCallNativeBreakpoint; // used only while stepping
       public DkmRuntimeInstructionBreakpoint SquirrelStepInFallthroughBreakpoint;
-      public DkmRuntimeInstructionBreakpoint SquirrelStepOutFallthroughBreakpoint;
     }
 
     internal class HelperLocationsDataHolder : DkmDataItem
@@ -74,6 +73,7 @@ namespace SquirrelDebugEngine
       public ulong        WorkingDirectoryAddress;
       public UInt64Proxy  IsSquirrelUnicode;
       public Int64Proxy   LastLine;
+      public Int64Proxy   LastType;
     }
 
     internal class SquirrelLocations : DkmDataItem
@@ -245,15 +245,6 @@ namespace SquirrelDebugEngine
           false
         );
 
-      Breakpoints.SquirrelStepOutFallthroughBreakpoint = AttachmentHelpers.CreateTargetFunctionBreakpointObjectAtAddress(
-          _Process,
-          _ProcessData.SquirrelModule,
-          "sq_call",
-          "Calls a closure",
-          Locations.SquirrelCall.End,
-          false
-        );
-
       string AssemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
       string DLLPathName = Path.Combine(AssemblyFolder, "SquirrelDebugHelper.dll");
@@ -319,6 +310,7 @@ namespace SquirrelDebugEngine
       HelperLocations.ModuleAddresses         = new AddressRange(_Module.BaseAddress, _Module.BaseAddress + _Module.Size);
       HelperLocations.IsSquirrelUnicode       = new UInt64Proxy(Process, AttachmentHelpers.FindVariableAddress(_Module, "IsSQUnicode"));
       HelperLocations.LastLine                = new Int64Proxy(Process, AttachmentHelpers.FindVariableAddress(_Module, "LastLine"));
+      HelperLocations.LastType                = new Int64Proxy(Process, AttachmentHelpers.FindVariableAddress(_Module, "LastType"));
 
       new RemoteComponent.StepperLocationsNotification
       {
@@ -328,9 +320,9 @@ namespace SquirrelDebugEngine
 
       new RemoteComponent.HelperBreakpointsNotification
       {
-        StepCompleteBPGuid     = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepComplete").GetValueOrDefault(Guid.Empty),
-        BreakpointHitBPGuid    = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperAsyncBreak").GetValueOrDefault(Guid.Empty),
-        StepOutFallthroughGuid = SquirrelBreakpoints.SquirrelStepOutFallthroughBreakpoint.UniqueId
+        StepCompleteBPGuid  = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperStepComplete").GetValueOrDefault(Guid.Empty),
+        BreakpointHitBPGuid = AttachmentHelpers.CreateHelperFunctionBreakpoint(_Module, "OnSquirrelHelperAsyncBreak").GetValueOrDefault(Guid.Empty),
+        
       }.SendLower(Process);
 
       new RemoteComponent.HelperLocationsNotification
@@ -968,10 +960,7 @@ namespace SquirrelDebugEngine
           DkmProcess _Process
         )
       {
-        var SquirrelBreakpoints = _Process.GetDataItem<SquirrelBreakpointsDataHolder>();
-
-        SquirrelBreakpoints.SquirrelCallNativeBreakpoint.Disable();
-        SquirrelBreakpoints.SquirrelStepOutFallthroughBreakpoint.Disable();
+        _Process.GetDataItem<SquirrelBreakpointsDataHolder>().SquirrelCallNativeBreakpoint.Disable();
       }
     }
 
@@ -986,7 +975,6 @@ namespace SquirrelDebugEngine
         var SquirrelBreakpoints = _Process.GetDataItem<SquirrelBreakpointsDataHolder>();
 
         SquirrelBreakpoints.SquirrelStepInFallthroughBreakpoint?.Close();
-        SquirrelBreakpoints.SquirrelStepOutFallthroughBreakpoint.Disable();
       }
     }
     #endregion

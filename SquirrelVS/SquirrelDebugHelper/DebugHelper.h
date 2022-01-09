@@ -92,6 +92,7 @@ extern "C"
     STEP_OUT  = 2
   };
 
+  __declspec(dllexport) volatile int64_t  LastType = 0;
   __declspec(dllexport) volatile int64_t  LastLine = 0;
 
   __declspec(dllexport) volatile StepType StepKind = STEP_NONE;
@@ -187,6 +188,7 @@ extern "C"
       {
         switch((char)_HookCallType)
         {
+          case 'r':
           case 'l':
             SteppingStackDepth = 0;
 
@@ -206,7 +208,7 @@ extern "C"
               case 'r':
               {
                   if (SteppingStackDepth == 0)
-                    StepKind = STEP_INTO;
+                    OnSquirrelHelperStepComplete();
                   else
                     --SteppingStackDepth;
 
@@ -268,6 +270,7 @@ extern "C"
     }();
 
     ::LastLine = _Line;
+    ::LastType = _Type;
 
     if (HitBreakpointID != -1)
     {

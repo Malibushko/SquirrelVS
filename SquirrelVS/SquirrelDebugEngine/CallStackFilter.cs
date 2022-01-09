@@ -163,7 +163,8 @@ namespace SquirrelDebugEngine
       var Callstack           = CallstackDataHolder.Callstack;
       var SquirrelFrames      = new List<DkmStackWalkFrame>();
 
-      long? ForcedLine = null;
+      long? ForcedLine   = null;
+      bool  SkipNextFrame = false;
 
       foreach (var CallFrame in Callstack)
       {
@@ -181,10 +182,20 @@ namespace SquirrelDebugEngine
 
             if (HelperLocations.ModuleAddresses.In(NativeClosure.Function.Read()))
             {
-              ForcedLine = HelperLocations.LastLine.Read();
+              if (HelperLocations.LastType.Read() == (byte)'r')
+                SkipNextFrame = true;
+              else
+                ForcedLine = HelperLocations.LastLine.Read();
+
               continue;
             }
           }
+        }
+
+        if (SkipNextFrame)
+        {
+          SkipNextFrame = false;
+          continue;
         }
 
         if (CallFrame.ParentFrameBase != _NativeFrame.FrameBase)
