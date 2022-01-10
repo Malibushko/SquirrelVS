@@ -42,6 +42,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Editor\SquirrelLanguageDebugInfo.cs" />
     <Compile Include="SyntaxHighlight\SquirrelClassificationLexer.cs" />
     <Compile Include="SyntaxHighlight\SquirrelClasifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

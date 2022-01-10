@@ -23,6 +23,8 @@ namespace SquirrelDebugEngine
     public static readonly Guid SquirrelSymbolProviderID  = new Guid("3AFE0003-855D-48EA-8C56-1024CB473B52");
 
     public static readonly Guid SquirrelSupportBreakpointID = new Guid("D58A34F5-0573-4A23-B2BE-39486E6DACAA");
+
+    public static readonly Guid SquirrelLanguageServiceID = new Guid("bf96a6aa-574b-3259-98fe-503a3ad636dd");
   }
 
   static class MessageToLocal

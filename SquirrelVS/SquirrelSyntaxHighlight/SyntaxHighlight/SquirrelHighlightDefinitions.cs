@@ -17,7 +17,7 @@ namespace SquirrelSyntaxHighlight
 
         [Export]
         [Name("Squirrel")]
-        [BaseDefinition("text")]
+        [BaseDefinition("code")]
         internal static ContentTypeDefinition SquirrelContentTypeDefinition = null;
 
         [Export]

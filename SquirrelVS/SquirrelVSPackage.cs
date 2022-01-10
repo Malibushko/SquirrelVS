@@ -34,6 +34,10 @@ namespace SquirrelVS
   /// </remarks>
   [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
   [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
+  /*
+  [ProvideLanguageService(typeof(SquirrelSyntaxHighlight.SquirrelLanguageInfo), "Squirrel", 106, RequestStockColors = true, ShowSmartIndent = true, ShowCompletion = true, DefaultToInsertSpaces = true, HideAdvancedMembersByDefault = true, EnableAdvancedMembersOption = true, ShowDropDownOptions = true)]
+  [ProvideLanguageExtension(typeof(SquirrelSyntaxHighlight.SquirrelLanguageInfo), ".nut")]
+  */
   [Guid(SquirrelVSPackage.PackageGuidString)]
   public sealed class SquirrelVSPackage : AsyncPackage
   {
