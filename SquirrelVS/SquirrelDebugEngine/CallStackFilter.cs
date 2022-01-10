@@ -163,7 +163,7 @@ namespace SquirrelDebugEngine
 
       long? ForcedLine       = null;
       bool  SkipNextFrame    = false;
-      bool  IsTopFrame       = false;
+      bool  HitHelperHook    = false;
       bool  HitNativeClosure = false;
 
       for (int i = 0; i < Callstack.Count; i++)
@@ -171,10 +171,7 @@ namespace SquirrelDebugEngine
         var Frame = Callstack[i];
 
         if (Frame.ParentFrameBase == 0)
-        {
-          if (Frame.IsClosure() || Frame.IsNativeClosure())
-            Frame.ParentFrameBase = _NativeFrame.FrameBase;
-        }
+          Frame.ParentFrameBase = _NativeFrame.FrameBase;
 
         if (Frame.ParentFrameBase != _NativeFrame.FrameBase)
           continue;
@@ -190,11 +187,11 @@ namespace SquirrelDebugEngine
             else
               ForcedLine = HelperLocations.LastLine.Read();
 
-            IsTopFrame = true;
+            HitHelperHook = true;
           }
           else
           {
-            if (HitNativeClosure == true || IsTopFrame == true)
+            if (HitNativeClosure == true || HitHelperHook == true)
             {
               Frame.ParentFrameBase = 0;
               break;

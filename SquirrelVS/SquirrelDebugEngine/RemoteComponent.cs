@@ -416,6 +416,14 @@ namespace SquirrelDebugEngine
 
       if (OwnsCurrentExecuteLocation(_RuntimeInstance, _Stepper))
       {
+        _Stepper.Thread.GetCurrentFrameInfo(out ulong _, out ulong _FrameBase, out ulong _);
+
+        /*
+         * Nothing to do if we fall out from native code back to squirrel
+         */ 
+        if (_Stepper.StartingAddress != null && _FrameBase >= _Stepper.FrameBase)
+          return false;
+
         try
         {
           DkmProcess        Process     = _RuntimeInstance.Process;
@@ -453,9 +461,11 @@ namespace SquirrelDebugEngine
               null
             );
 
-          StepperData.ActiveStepKind.Write((uint)_Stepper.StepKind);
+          StepperData.ActiveStepKind.Write((uint)DkmStepKind.Into);
 
           StepperData.ActiveStepper.Enable(true);
+
+          StepperData.ActiveStepper.OnStepComplete(_Stepper.Thread, false);
 
           return true;
         }
