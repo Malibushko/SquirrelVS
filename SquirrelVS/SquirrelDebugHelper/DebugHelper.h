@@ -10,22 +10,27 @@ extern "C"
   HELPER_API void OnSquirrelHelperInitialized()
   {
     volatile char dummy = 0;
+    dummy++;
   }
 
   HELPER_API void OnSquirrelHelperStepComplete()
   {
     volatile char dummy = 0;
+    dummy++;
   }
 
   HELPER_API void OnSquirrelHelperAsyncBreak()
   {
     volatile char dummy = 0;
+    dummy++;
   }
 
   HELPER_API void OnCreatedDebugHookNativeClosure()
   {
-    volatile char dummy = 0;
+    volatile char dummy = 0;    
+    dummy++;
   }
+
 
   // The following struct definitions should be kept in perfect sync with the corresponding ones in C# in Debugger.
   // To ensure matching layout, only types which are the same size on all platforms should be used. This means

@@ -906,8 +906,6 @@ namespace SquirrelDebugEngine
 
         if (StepKind == DkmStepKind.Into)
           SquirrelBreakpoints.SquirrelCallNativeBreakpoint.Enable();
-
-    //    SquirrelBreakpoints.SquirrelStepOutFallthroughBreakpoint.Enable();
       }
     }
 
