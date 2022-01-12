@@ -26,7 +26,6 @@ namespace SquirrelDebugEngine.Proxy
   {
     public IVisualizableObject Object;
     public string              Name;
-
   }
 
   [StructProxy(StructName = "tagSQObject")]

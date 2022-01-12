@@ -31,7 +31,7 @@
 *.la
 *.a
 *.lib
-
+*.exp
 # Executables
 *.exe
 *.out

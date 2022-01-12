@@ -148,16 +148,16 @@ namespace SquirrelDebugEngine
              ",!"
            );
 
-            var EvaluationResult = DkmIntermediateEvaluationResult.Create(
-                  _InspectionContext,
-                  _Result.StackFrame,
-                  Child.Name,
-                  "{C++}" + CppExpression,
-                  CppExpression,
-                  CppLanguage,
-                  _Result.StackFrame.Process.GetNativeRuntimeInstance(),
-                  null
-                );
+           var EvaluationResult = DkmIntermediateEvaluationResult.Create(
+               _InspectionContext,
+               _Result.StackFrame,
+               Child.Name,
+               "{C++}" + CppExpression,
+               CppExpression,
+               CppLanguage,
+               _Result.StackFrame.Process.GetNativeRuntimeInstance(),
+               null
+             );
 
             Results.Add(EvaluationResult);
           }
