@@ -32,6 +32,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -40,6 +41,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Editor\SquirrelLanguageDebugInfo.cs" />
@@ -63,6 +65,7 @@
     <Compile Include="Parsing\AST\NodeVariableDeclaraction.cs" />
     <Compile Include="Parsing\SquirrelLexer.cs" />
     <Compile Include="Parsing\SquirrelTokens.cs" />
+    <Compile Include="Parsing\TreeSitter.cs" />
     <Compile Include="SyntaxHighlight\SquirrelClasifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SyntaxHighlight\SquirrelHighlightDefinitions.cs" />
@@ -70,6 +73,9 @@
     <Compile Include="Parsing\SquirrelParser.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="CppSharp.Runtime">
+      <HintPath>..\..\Shared\CppSharp.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />

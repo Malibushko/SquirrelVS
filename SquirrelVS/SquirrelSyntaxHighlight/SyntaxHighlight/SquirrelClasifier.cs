@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using tree_sitter;
+using System.Linq;
 
 namespace SquirrelSyntaxHighlight
 {
@@ -10,7 +12,7 @@ namespace SquirrelSyntaxHighlight
     internal static object ColorKey = new object { };
 
     IClassificationTypeRegistryService ClassificationTypeRegistry;
-    ITextBuffer                        Buffer;
+    ITextBuffer Buffer;
 
     internal SquirrelClasifier(
         IClassificationTypeRegistryService _Registry,
@@ -35,37 +37,83 @@ namespace SquirrelSyntaxHighlight
         SnapshotSpan _Snapshot
       )
     {
-      List<NodeSpan> Spans;
+      if (Buffer.Properties.TryGetProperty(ColorKey, out List<ClassificationSpan> _Spans))
+      {
+        return _Spans.Where(Span => Span.Span.OverlapsWith(_Snapshot.Span)).ToList();
+      }
+
+      TSParser   Parse            = api.TsParserNew();
+      TSLanguage SquirrelLanguage = squirrel.TreeSitterSquirrel();
+
+      api.TsParserSetLanguage(Parse, SquirrelLanguage);
+
+      TSTree Tree = api.TsParserParseString(Parse, null, _Snapshot.Snapshot.GetText(), (uint)_Snapshot.Snapshot.Length);
+
+      TSNode Root = api.TsTreeRootNode(Tree);
+
+      var Spans = TryGetNodeSpans(_Snapshot, SquirrelLanguage, Root);
+      Buffer.Properties.AddProperty(ColorKey, Spans);
       
-      if (!Buffer.Properties.TryGetProperty(ColorKey, out Spans))
-      {
-        var Parser = new SquirrelParser(_Snapshot, ClassificationTypeRegistry);
+      api.TsTreeDelete(Tree);
+      api.TsParserDelete(Parse);
 
-        Parser.Parse();
-
-        Buffer.Properties.AddProperty(ColorKey, Parser.SyntaxTree.GetSpans());
-
-        Spans = Buffer.Properties.GetProperty(ColorKey) as List<NodeSpan>;
-      }
-
-      List<ClassificationSpan> ColoredSpans = new List<ClassificationSpan>();
-
-      foreach (var Span in Spans)
-      {
-        if (Span == null || !Span.Span.OverlapsWith(_Snapshot.Span))
-          continue;
-
-        ColoredSpans.Add(
-            new ClassificationSpan(
-              new SnapshotSpan(_Snapshot.Snapshot, Span.Span), 
-              ClassificationTypeRegistry.GetClassificationType(Span.Type)
-              )
-           );
-      }
-
-      return ColoredSpans;
+      return Spans.Where(Span => Span.Span.OverlapsWith(_Snapshot.Span)).ToList();
     }
 
+    private List<ClassificationSpan> TryGetNodeSpans(
+        SnapshotSpan _Snapshot,
+        TSLanguage   _Language,
+        TSNode       _Node
+      )
+    {
+      List<ClassificationSpan> Spans = new List<ClassificationSpan>();
+
+      uint ChildCount = api.TsNodeChildCount(_Node);
+
+      for (uint i = 0; i < ChildCount; i++)
+      {
+        TSNode Node = api.TsNodeChild(_Node, i);
+
+        var Span = TryGetClassificationSpan(_Snapshot, _Language, _Node);
+
+        if (Span != null)
+          Spans.Add(Span);
+
+        Spans.AddRange(TryGetNodeSpans(_Snapshot, _Language, Node));
+      }
+
+      return Spans;
+    }
+
+    private ClassificationSpan TryGetClassificationSpan(
+        SnapshotSpan _Snapshot,
+        TSLanguage   _Language,
+        TSNode       _Node
+      )
+    {
+      var StartPosition = api.TsNodeStartByte(_Node);
+      var EndPosition   = api.TsNodeEndByte(_Node);
+
+      if (api.TsNodeIsNamed(_Node))
+      {
+        ushort Symbol = api.TsNodeSymbol(_Node);
+
+        string Name = api.TsLanguageSymbolName(_Language, Symbol);
+
+        if (Name == "identifier" || Name == "function_name")
+        {
+          return new ClassificationSpan(
+                        new SnapshotSpan(
+                          _Snapshot.Snapshot,
+                          new Span((int)StartPosition, (int)(EndPosition - StartPosition)
+                         )
+                        ),
+                        ClassificationTypeRegistry.GetClassificationType("Squirrel.Keyword"));
+        }
+      }
+
+      return null;
+    }
     #endregion
 
     #region Public Events
