@@ -2281,35 +2281,40 @@ namespace tree_sitter
             __Internal.TsTreeEdit(__arg0, __arg1);
         }
 
-        /// <summary>
-        /// <para>Compare an old edited syntax tree to a new syntax tree representing the same</para>
-        /// <para>document, returning an array of ranges whose syntactic structure has changed.</para>
-        /// </summary>
-        /// <remarks>
-        /// <para>For this to work correctly, the old syntax tree must have been edited such</para>
-        /// <para>that its ranges match up to the new tree. Generally, you'll want to call</para>
-        /// <para>this function right after calling one of the `ts_parser_parse` functions.</para>
-        /// <para>You need to pass the old tree that was passed to parse, as well as the new</para>
-        /// <para>tree that was returned from that function.</para>
-        /// <para>The returned array is allocated using `malloc` and the caller is responsible</para>
-        /// <para>for freeing it using `free`. The length of the array will be written to the</para>
-        /// <para>given `length` pointer.</para>
-        /// </remarks>
-        public static global::tree_sitter.TSRange TsTreeGetChangedRanges(global::tree_sitter.TSTree old_tree, global::tree_sitter.TSTree new_tree, ref uint length)
-        {
-            var __arg0 = old_tree is null ? __IntPtr.Zero : old_tree.__Instance;
-            var __arg1 = new_tree is null ? __IntPtr.Zero : new_tree.__Instance;
-            fixed (uint* __length2 = &length)
-            {
-                var __arg2 = __length2;
-                var __ret = __Internal.TsTreeGetChangedRanges(__arg0, __arg1, __arg2);
-                var __result0 = global::tree_sitter.TSRange.__GetOrCreateInstance(__ret, false);
-                return __result0;
-            }
-        }
+    /// <summary>
+    /// <para>Compare an old edited syntax tree to a new syntax tree representing the same</para>
+    /// <para>document, returning an array of ranges whose syntactic structure has changed.</para>
+    /// </summary>
+    /// <remarks>
+    /// <para>For this to work correctly, the old syntax tree must have been edited such</para>
+    /// <para>that its ranges match up to the new tree. Generally, you'll want to call</para>
+    /// <para>this function right after calling one of the `ts_parser_parse` functions.</para>
+    /// <para>You need to pass the old tree that was passed to parse, as well as the new</para>
+    /// <para>tree that was returned from that function.</para>
+    /// <para>The returned array is allocated using `malloc` and the caller is responsible</para>
+    /// <para>for freeing it using `free`. The length of the array will be written to the</para>
+    /// <para>given `length` pointer.</para>
+    /// </remarks>
+    public static global::tree_sitter.TSRange[] TsTreeGetChangedRanges(global::tree_sitter.TSTree old_tree, global::tree_sitter.TSTree new_tree, ref uint length)
+    {
+      var __arg0 = old_tree is null ? __IntPtr.Zero : old_tree.__Instance;
+      var __arg1 = new_tree is null ? __IntPtr.Zero : new_tree.__Instance;
+      fixed (uint* __length2 = &length)
+      {
+        var __arg2 = __length2;
+        var __ret = __Internal.TsTreeGetChangedRanges(__arg0, __arg1, __arg2);
 
-        /// <summary>Write a DOT graph describing the syntax tree to the given file.</summary>
-        public static void TsTreePrintDotGraph(global::tree_sitter.TSTree _0, global::System.IntPtr _1)
+        TSRange[] __result = new TSRange[length];
+
+        for (int i = 0; i < length; i++)
+          __result[i] = global::tree_sitter.TSRange.__GetOrCreateInstance(new __IntPtr(__ret.ToInt64() + sizeof(TSRange.__Internal) * i), false);
+
+        return __result;
+      }
+    }
+
+    /// <summary>Write a DOT graph describing the syntax tree to the given file.</summary>
+    public static void TsTreePrintDotGraph(global::tree_sitter.TSTree _0, global::System.IntPtr _1)
         {
             var __arg0 = _0 is null ? __IntPtr.Zero : _0.__Instance;
             __Internal.TsTreePrintDotGraph(__arg0, _1);

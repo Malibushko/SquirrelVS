@@ -27,7 +27,9 @@ namespace SquirrelSyntaxHighlight
         { "var",        "Squirrel.Keyword" },
         { "class",      "Squirrel.Keyword" },
         { "try",        "Squirrel.Keyword" },
-        { "catch",      "Squirrel.Keyword" }
+        { "catch",      "Squirrel.Keyword" },
+        { "case",       "Squirrel.Keyword" },
+        { "local",      "Squirrel.Keyword" }
      };
 
     IClassificationTypeRegistryService ClassificationTypeRegistry;
@@ -38,8 +40,6 @@ namespace SquirrelSyntaxHighlight
     TSTreeCursor                       Walker;
     TSNode                             Root;
 
-    SortedList<int, ClassificationSpan> SpansCache;
-
     internal SquirrelClasifier(
         IClassificationTypeRegistryService _Registry,
         ITextBuffer                        _Buffer
@@ -48,7 +48,6 @@ namespace SquirrelSyntaxHighlight
       ClassificationTypeRegistry = _Registry;
       Parser                     = api.TsParserNew();
       Language                   = squirrel.TreeSitterSquirrel();
-      SpansCache                 = new SortedList<int, ClassificationSpan>();
 
       if (api.TsParserSetLanguage(Parser, Language))
       {
@@ -80,8 +79,35 @@ namespace SquirrelSyntaxHighlight
       
       var Text = _Args.After.GetText();
 
-      SyntaxTree = api.TsParserParseString(Parser, SyntaxTree, Text, (uint)Text.Length);
+      var EditedTree = api.TsParserParseString(Parser, SyntaxTree, Text, (uint)Text.Length);
+
+      uint      ChangesCount = 0;
+      TSRange[] Changes      = api.TsTreeGetChangedRanges(SyntaxTree, EditedTree, ref ChangesCount);
+
+      SyntaxTree = EditedTree;
       Root       = api.TsTreeRootNode(SyntaxTree);
+
+      for (uint i = 0; i < ChangesCount; i++)
+      {
+        try
+        {
+          ClassificationChanged.Invoke(
+            this,
+            new ClassificationChangedEventArgs(
+              new SnapshotSpan(
+                _Args.After,
+                new Span(
+                  (int)Changes[i].StartByte,
+                  (int)Changes[i].EndByte - (int)Changes[i].StartByte
+                  )
+                )
+              )
+            );;
+        } catch (Exception Ex)
+        {
+
+        }
+      }
     }
 
     #region Public Methods
