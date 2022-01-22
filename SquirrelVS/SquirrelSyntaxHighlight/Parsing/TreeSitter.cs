@@ -1674,10 +1674,10 @@ namespace tree_sitter
             internal static extern __IntPtr TsParserParse(__IntPtr self, __IntPtr old_tree, global::tree_sitter.TSInput.__Internal input);
 
             [SuppressUnmanagedCodeSecurity, DllImport("tree-sitter", EntryPoint = "ts_parser_parse_string", CallingConvention = __CallingConvention.Cdecl)]
-            internal static extern __IntPtr TsParserParseString(__IntPtr self, __IntPtr old_tree, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(CppSharp.Runtime.UTF8Marshaller))] string @string, uint length);
+            internal static extern __IntPtr TsParserParseString(__IntPtr self, __IntPtr old_tree, string @string, uint length);
 
             [SuppressUnmanagedCodeSecurity, DllImport("tree-sitter", EntryPoint = "ts_parser_parse_string_encoding", CallingConvention = __CallingConvention.Cdecl)]
-            internal static extern __IntPtr TsParserParseStringEncoding(__IntPtr self, __IntPtr old_tree, [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(CppSharp.Runtime.UTF8Marshaller))] string @string, uint length, global::tree_sitter.TSInputEncoding encoding);
+            internal static extern __IntPtr TsParserParseStringEncoding(__IntPtr self, __IntPtr old_tree, string @string, uint length, global::tree_sitter.TSInputEncoding encoding);
 
             [SuppressUnmanagedCodeSecurity, DllImport("tree-sitter", EntryPoint = "ts_parser_reset", CallingConvention = __CallingConvention.Cdecl)]
             internal static extern void TsParserReset(__IntPtr self);
@@ -2746,7 +2746,7 @@ namespace tree_sitter
         }
 
         /// <summary>Get the tree cursor's current node.</summary>
-        public static global::tree_sitter.TSNode TsTreeCursorCurrentNode(global::tree_sitter.TSTreeCursor _0)
+        public static global::tree_sitter.TSNode TsTreeCursorCurrentNode(ref global::tree_sitter.TSTreeCursor _0)
         {
             var __arg0 = _0 is null ? __IntPtr.Zero : _0.__Instance;
             var __ret = new global::tree_sitter.TSNode.__Internal();
@@ -2783,7 +2783,7 @@ namespace tree_sitter
         /// <para>This returns `true` if the cursor successfully moved, and returns `false`</para>
         /// <para>if there was no parent node (the cursor was already on the root node).</para>
         /// </remarks>
-        public static bool TsTreeCursorGotoParent(global::tree_sitter.TSTreeCursor _0)
+        public static bool TsTreeCursorGotoParent(ref global::tree_sitter.TSTreeCursor _0)
         {
             var __arg0 = _0 is null ? __IntPtr.Zero : _0.__Instance;
             var __ret = __Internal.TsTreeCursorGotoParent(__arg0);
@@ -2795,7 +2795,7 @@ namespace tree_sitter
         /// <para>This returns `true` if the cursor successfully moved, and returns `false`</para>
         /// <para>if there was no next sibling node.</para>
         /// </remarks>
-        public static bool TsTreeCursorGotoNextSibling(global::tree_sitter.TSTreeCursor _0)
+        public static bool TsTreeCursorGotoNextSibling(ref global::tree_sitter.TSTreeCursor _0)
         {
             var __arg0 = _0 is null ? __IntPtr.Zero : _0.__Instance;
             var __ret = __Internal.TsTreeCursorGotoNextSibling(__arg0);
@@ -2807,7 +2807,7 @@ namespace tree_sitter
         /// <para>This returns `true` if the cursor successfully moved, and returns `false`</para>
         /// <para>if there were no children.</para>
         /// </remarks>
-        public static bool TsTreeCursorGotoFirstChild(global::tree_sitter.TSTreeCursor _0)
+        public static bool TsTreeCursorGotoFirstChild(ref global::tree_sitter.TSTreeCursor _0)
         {
             var __arg0 = _0 is null ? __IntPtr.Zero : _0.__Instance;
             var __ret = __Internal.TsTreeCursorGotoFirstChild(__arg0);
