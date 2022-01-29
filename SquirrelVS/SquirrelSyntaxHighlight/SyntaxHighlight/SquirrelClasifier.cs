@@ -67,13 +67,36 @@ namespace SquirrelSyntaxHighlight
         object                      _Sender,
         TextContentChangedEventArgs _Args)
     {
+      var Buffer = (ITextBuffer)_Sender;
+
       foreach (ITextChange Change in _Args.Changes)
       {
+        var Line    = Buffer.CurrentSnapshot.GetLineFromPosition(Change.OldPosition);
+        var NewLine = Buffer.CurrentSnapshot.GetLineFromPosition(Change.NewPosition);
+        
         TSInputEdit Edit = new TSInputEdit()
         {
           StartByte  = (uint)Change.OldPosition,
           NewEndByte = (uint)Change.NewEnd,
-          OldEndByte = (uint)Change.OldEnd
+          OldEndByte = (uint)Change.OldEnd,
+
+          StartPoint = new TSPoint()
+          {
+            Row    = (uint)Line.LineNumber,
+            Column = (uint)(Change.OldPosition - Line.Start.Position)
+          },
+
+          NewEndPoint = new TSPoint
+          {
+            Row    = (uint)NewLine.LineNumber,
+            Column = (uint)(Change.NewEnd - NewLine.Start.Position)
+          },
+
+          OldEndPoint = new TSPoint
+          {
+            Row    = (uint)Line.LineNumber,
+            Column = (uint)(Change.OldEnd - Line.Start.Position)
+          }
         };
 
         api.TsTreeEdit(SyntaxTree, Edit);
