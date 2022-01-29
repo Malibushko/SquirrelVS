@@ -29,7 +29,9 @@ namespace SquirrelSyntaxHighlight
         { "try",        "Squirrel.Keyword" },
         { "catch",      "Squirrel.Keyword" },
         { "case",       "Squirrel.Keyword" },
-        { "local",      "Squirrel.Keyword" }
+        { "local",      "Squirrel.Keyword" },
+        { "function",   "Squirrel.Keyword" },
+        { "delete",     "Squirrel.Keyword" }
      };
 
     IClassificationTypeRegistryService ClassificationTypeRegistry;
@@ -102,7 +104,7 @@ namespace SquirrelSyntaxHighlight
                   )
                 )
               )
-            );;
+            );
         } catch (Exception Ex)
         {
 
@@ -123,10 +125,15 @@ namespace SquirrelSyntaxHighlight
           break;
       }
 
-      api.TsTreeCursorReset(Walker, Root);
+      int SnapEndPosition = _Snapshot.End.Position - 1;
 
-      while (api.TsTreeCursorGotoFirstChildForByte(Walker, (uint)SnapStartPosition) > 0)
-        ;
+      for (; SnapEndPosition != _Snapshot.Start.Position; --SnapEndPosition)
+      {
+        if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapEndPosition]))
+          break;
+      }
+
+      api.TsTreeCursorReset(Walker, api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition));
 
       return TryGetNodeSpans(_Snapshot, Walker, Language);
     }
