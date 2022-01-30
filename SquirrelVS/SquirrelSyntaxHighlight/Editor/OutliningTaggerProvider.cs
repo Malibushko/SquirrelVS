@@ -1,22 +1,22 @@
 ﻿using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Shell;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
-  [Export(typeof(IViewTaggerProvider))]
-  [TagType(typeof(TextMarkerTag))]
+  [Export(typeof(ITaggerProvider))]
+  [TagType(typeof(IOutliningRegionTag))]
   [ContentType("Squirrel")]
-  internal class BraceHighlightTaggerProvider : IViewTaggerProvider
+  internal class OutliningTaggerProvider : ITaggerProvider
   {
     private readonly IServiceProvider Site;
 
     [ImportingConstructor]
-    public BraceHighlightTaggerProvider(
+    public OutliningTaggerProvider(
         [Import(typeof(SVsServiceProvider))] IServiceProvider _Site
       )
     {
@@ -24,17 +24,10 @@ namespace SquirrelSyntaxHighlight.Editor
     }
 
     public ITagger<T> CreateTagger<T>(
-        ITextView   _TextView, 
         ITextBuffer _Buffer
       ) where T : ITag
     {
-      if (_TextView == null)
-        return null;
-
-      if (_TextView.TextBuffer != _Buffer)
-        return null;
-
-      return new BraceHighlightTagger(_TextView, _Buffer) as ITagger<T>;
+      return new OutliningTagger() as ITagger<T>;
     }
   }
 }

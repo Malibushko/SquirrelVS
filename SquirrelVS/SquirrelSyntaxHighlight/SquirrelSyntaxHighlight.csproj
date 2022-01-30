@@ -48,6 +48,12 @@
     <Compile Include="Editor\BraceCompletionContextProvider.cs" />
     <Compile Include="Editor\BraceHighlightTagger.cs" />
     <Compile Include="Editor\BraceHighlightTaggerProvider.cs" />
+    <Compile Include="Editor\OutliningTagger.cs" />
+    <Compile Include="Editor\OutliningTaggerProvider.cs" />
+    <Compile Include="Editor\TestCompletionCommandHandler.cs" />
+    <Compile Include="Editor\TestCompletionHandlerProvider.cs" />
+    <Compile Include="Editor\TestCompletionSource.cs" />
+    <Compile Include="Editor\TestCompletionSourceProvider.cs" />
     <Compile Include="Parsing\TreeSitter.cs" />
     <Compile Include="SyntaxHighlight\SquirrelClasifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
