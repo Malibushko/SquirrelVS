@@ -12,15 +12,17 @@ namespace SquirrelSyntaxHighlight.Editor
 {
   [Export(typeof(ICompletionSourceProvider))]
   [ContentType("Squirrel")]
-  [Name("token completion")]
-  internal class TestCompletionSourceProvider : ICompletionSourceProvider
+  [Name("Token Completion")]
+  internal class CompletionSourceProvider : ICompletionSourceProvider
   {
     [Import]
     internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
 
-    public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)
+    public ICompletionSource TryCreateCompletionSource(
+        ITextBuffer _TextBuffer
+      )
     {
-      return new TestCompletionSource(this, textBuffer);
+      return new CompletionSource(this, _TextBuffer);
     }
   }
 }

@@ -14,26 +14,33 @@ using Microsoft.VisualStudio.Utilities;
 namespace SquirrelSyntaxHighlight.Editor
 {
   [Export(typeof(IVsTextViewCreationListener))]
-  [Name("token completion handler")]
+  [Name("Token Completion Handler")]
   [ContentType("Squirrel")]
   [TextViewRole(PredefinedTextViewRoles.Editable)]
-  internal class TestCompletionHandlerProvider : IVsTextViewCreationListener
+  internal class CompletionHandlerProvider : IVsTextViewCreationListener
   {
     [Import]
     internal IVsEditorAdaptersFactoryService AdapterService = null;
+
     [Import]
     internal ICompletionBroker CompletionBroker { get; set; }
+
     [Import]
     internal SVsServiceProvider ServiceProvider { get; set; }
 
-    public void VsTextViewCreated(IVsTextView textViewAdapter)
+    public void VsTextViewCreated(IVsTextView _TextViewAdapter)
     {
-      ITextView textView = AdapterService.GetWpfTextView(textViewAdapter);
-      if (textView == null)
+      ITextView TextView = AdapterService.GetWpfTextView(_TextViewAdapter);
+
+      if (TextView == null)
         return;
 
-      Func<TestCompletionCommandHandler> createCommandHandler = delegate () { return new TestCompletionCommandHandler(textViewAdapter, textView, this); };
-      textView.Properties.GetOrCreateSingletonProperty(createCommandHandler);
+      Func<CompletionCommandHandler> CreateCommandHandler = delegate () 
+      { 
+        return new CompletionCommandHandler(_TextViewAdapter, TextView, this);
+      };
+      
+      TextView.Properties.GetOrCreateSingletonProperty(CreateCommandHandler);
     }
   }
 }

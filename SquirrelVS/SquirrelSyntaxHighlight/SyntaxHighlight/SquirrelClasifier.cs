@@ -10,7 +10,7 @@ namespace SquirrelSyntaxHighlight
 {
   public class SquirrelClasifier : IClassifier
   {
-    private static readonly Dictionary<string, string> NodeClassificator = new Dictionary<string, string>
+    public static readonly Dictionary<string, string> NodeClassificator = new Dictionary<string, string>
      {
         { "comment",    "Squirrel.Comment" },
         { "string",     "Squirrel.String"  },
