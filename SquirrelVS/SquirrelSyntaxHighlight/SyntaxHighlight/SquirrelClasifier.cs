@@ -65,7 +65,8 @@ namespace SquirrelSyntaxHighlight
 
     private void BufferChanged(
         object                      _Sender,
-        TextContentChangedEventArgs _Args)
+        TextContentChangedEventArgs _Args
+      )
     {
       var Buffer = (ITextBuffer)_Sender;
 

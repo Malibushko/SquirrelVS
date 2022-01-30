@@ -62,9 +62,8 @@ namespace SquirrelSyntaxHighlight.Editor
       if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR)
         TypeChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
       
-      if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN             || 
-          nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB                || 
-          (char.IsWhiteSpace(TypeChar) || char.IsPunctuation(TypeChar)))
+      if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || 
+          nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
       {
         if (CompletionSession != null && !CompletionSession.IsDismissed)
         {
