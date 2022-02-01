@@ -96,7 +96,7 @@ namespace SquirrelSyntaxHighlight.Editor
       {
         BraceList.TryGetValue(CurrentText, out char _CloseChar);
 
-        if (FindMatchingCloseChar(Char, CurrentText, _CloseChar, View.TextViewLines.Count, out PairSpan) == true)
+        if (FindMatchingCloseChar(Char, CurrentText, _CloseChar, View.TextSnapshot.LineCount, out PairSpan) == true)
         {
           yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(Char, 1), Tag);
           yield return new TagSpan<TextMarkerTag>(PairSpan, Tag);
@@ -108,7 +108,7 @@ namespace SquirrelSyntaxHighlight.Editor
                    where n.Value.Equals(LastText)
                    select n.Key;
 
-        if (FindMatchingOpenChar(LastChar, (char)Open.ElementAt<char>(0), LastText, View.TextViewLines.Count, out PairSpan) == true)
+        if (FindMatchingOpenChar(LastChar, (char)Open.ElementAt<char>(0), LastText, View.TextSnapshot.LineCount, out PairSpan) == true)
         {
           yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(LastChar, 1), Tag);
           yield return new TagSpan<TextMarkerTag>(PairSpan, Tag);

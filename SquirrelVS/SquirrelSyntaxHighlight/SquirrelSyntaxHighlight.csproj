@@ -44,16 +44,23 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Editor\Analysis\CodeClassRegistry.cs" />
+    <Compile Include="Editor\Analysis\CodeEnumRegistry.cs" />
+    <Compile Include="Editor\Analysis\CodeFileInfo.cs" />
+    <Compile Include="Editor\Analysis\CodeFunctionRegistry.cs" />
+    <Compile Include="Editor\Analysis\CodeGlobalRegistry.cs" />
     <Compile Include="Editor\BraceCompletionContext.cs" />
     <Compile Include="Editor\BraceCompletionContextProvider.cs" />
     <Compile Include="Editor\BraceHighlightTagger.cs" />
     <Compile Include="Editor\BraceHighlightTaggerProvider.cs" />
+    <Compile Include="Editor\Analysis\CodeDatabase.cs" />
     <Compile Include="Editor\OutliningTagger.cs" />
     <Compile Include="Editor\OutliningTaggerProvider.cs" />
     <Compile Include="Editor\CompletionCommandHandler.cs" />
     <Compile Include="Editor\CompletionHandlerProvider.cs" />
     <Compile Include="Editor\CompletionSource.cs" />
     <Compile Include="Editor\CompletionSourceProvider.cs" />
+    <Compile Include="Editor\SyntaxTreeWalker.cs" />
     <Compile Include="Parsing\TreeSitter.cs" />
     <Compile Include="SyntaxHighlight\SquirrelClasifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

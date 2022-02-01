@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\src">
+      <UniqueIdentifier>{bbd3b6f1-bc34-4830-9bce-53251b057490}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\tree_sitter">
+      <UniqueIdentifier>{b4937ef0-858a-4f5a-a489-230c25e1df8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\unicode">
+      <UniqueIdentifier>{1c0b19be-eeb1-4748-8045-f4b0a491ddcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\src\include">
+      <UniqueIdentifier>{dde21431-21c8-4ecf-8de3-90aa2dd6739a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="binding.gyp">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Cargo.toml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="grammar.js">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="src\grammar.json">
+      <Filter>Source Files\src</Filter>
+    </None>
+    <None Include="src\node-types.json">
+      <Filter>Source Files\src</Filter>
+    </None>
+    <None Include="src\unicode\ICU_SHA">
+      <Filter>Source Files\src\unicode</Filter>
+    </None>
+    <None Include="src\unicode\LICENSE">
+      <Filter>Source Files\src\unicode</Filter>
+    </None>
+    <None Include="src\unicode\README.md">
+      <Filter>Source Files\src\unicode</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\alloc.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\array.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\atomic.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\clock.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\error_costs.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\get_changed_ranges.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\host.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\language.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\length.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lexer.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\point.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\reduce_action.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\reusable_node.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stack.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\subtree.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_cursor.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode.h">
+      <Filter>Source Files\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode\ptypes.h">
+      <Filter>Source Files\src\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode\umachine.h">
+      <Filter>Source Files\src\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode\urename.h">
+      <Filter>Source Files\src\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode\utf.h">
+      <Filter>Source Files\src\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode\utf8.h">
+      <Filter>Source Files\src\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\unicode\utf16.h">
+      <Filter>Source Files\src\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\include\api.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\include\squirrel.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\include\parser.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\parser.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\alloc.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\get_changed_ranges.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\language.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lexer.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\node.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\query.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stack.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\subtree.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_cursor.c">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

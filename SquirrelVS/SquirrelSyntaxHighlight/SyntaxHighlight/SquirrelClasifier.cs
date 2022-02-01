@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.Text.Classification;
 using tree_sitter;
 using System.Linq;
 using System.Text.RegularExpressions;
+using SquirrelSyntaxHighlight.Editor;
+using SquirrelSyntaxHighlight.Editor.Analysis;
 
 namespace SquirrelSyntaxHighlight
 {
@@ -31,7 +33,8 @@ namespace SquirrelSyntaxHighlight
         { "case",       "Squirrel.Keyword" },
         { "local",      "Squirrel.Keyword" },
         { "function",   "Squirrel.Keyword" },
-        { "delete",     "Squirrel.Keyword" }
+        { "delete",     "Squirrel.Keyword" },
+        { "instanceof", "Squirrel.Keyword" }
      };
 
     IClassificationTypeRegistryService ClassificationTypeRegistry;
@@ -41,6 +44,8 @@ namespace SquirrelSyntaxHighlight
     TSLanguage                         Language;
     TSTreeCursor                       Walker;
     TSNode                             Root;
+    
+    CodeFileInfo                       SymbolRegistry;
 
     internal SquirrelClasifier(
         IClassificationTypeRegistryService _Registry,
@@ -58,6 +63,8 @@ namespace SquirrelSyntaxHighlight
         SyntaxTree = api.TsParserParseString(Parser, null, Text, (uint)Text.Length);
         Root       = api.TsTreeRootNode(SyntaxTree);
         Walker     = api.TsTreeCursorNew(Root);
+
+        SymbolRegistry = CodeDatabase.CreateRegistry(ref Walker, ref Language);
       }
 
       _Buffer.Changed += BufferChanged;
@@ -109,7 +116,7 @@ namespace SquirrelSyntaxHighlight
 
       uint      ChangesCount = 0;
       TSRange[] Changes      = api.TsTreeGetChangedRanges(SyntaxTree, EditedTree, ref ChangesCount);
-
+      
       SyntaxTree = EditedTree;
       Root       = api.TsTreeRootNode(SyntaxTree);
 
@@ -157,6 +164,9 @@ namespace SquirrelSyntaxHighlight
           break;
       }
 
+      if (SnapStartPosition == SnapEndPosition)
+        return new List<ClassificationSpan>();
+
       api.TsTreeCursorReset(Walker, api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition));
 
       return TryGetNodeSpans(_Snapshot, Walker, Language);
@@ -170,72 +180,32 @@ namespace SquirrelSyntaxHighlight
     {
       List<ClassificationSpan> Spans = new List<ClassificationSpan>();
 
-      bool ReachedRoot = false;
-      bool Retracing   = false;
-
-      while (!ReachedRoot)
+      foreach (TSNode Node in SyntaxTreeWalker.Traverse(_Cursor))
       {
-        var Span = TryGetClassificationSpan(_Snapshot, _Language, api.TsTreeCursorCurrentNode(ref _Cursor), out Retracing);
-        
+        var Span = TryGetClassificationSpan(_Snapshot, _Language, Node);
+
         if (Span != null)
           Spans.Add(Span);
-
-        if (!Retracing)
-        {
-          if (api.TsTreeCursorGotoFirstChild(ref _Cursor))
-            continue;
-
-          if (api.TsTreeCursorGotoNextSibling(ref _Cursor))
-            continue;
-        }
-
-        Retracing = true;
-
-        while (Retracing)
-        {
-          if (!api.TsTreeCursorGotoParent(ref _Cursor))
-          {
-            Retracing   = false;
-            ReachedRoot = true;
-          }
-
-          if (api.TsTreeCursorGotoNextSibling(ref _Cursor))
-            Retracing = false;
-        }
       }
-
       return Spans;
     }
 
     private ClassificationSpan TryGetClassificationSpan(
         SnapshotSpan _Snapshot,
         TSLanguage   _Language,
-        TSNode       _Node,
-        out bool     _IsFallthough
+        TSNode       _Node
       )
     {
       var StartPosition = api.TsNodeStartByte(_Node);
 
       if (StartPosition >= _Snapshot.Span.End)
-      {
-        _IsFallthough = true;
-
-        _Node.Dispose();
-
         return null;
-      }
-      else
-      {
-        _IsFallthough = false;
-      }
 
       var EndPosition   = api.TsNodeEndByte(_Node);
 
       ushort Symbol = api.TsNodeSymbol(_Node);
 
       string Name = api.TsLanguageSymbolName(_Language, Symbol);
-
-      _Node.Dispose();
 
       if (NodeClassificator.TryGetValue(Name, out string _ClassificationType))
       {
