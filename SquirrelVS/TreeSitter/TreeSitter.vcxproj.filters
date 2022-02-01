@@ -19,11 +19,8 @@
     <Filter Include="Source Files\src\tree_sitter">
       <UniqueIdentifier>{b4937ef0-858a-4f5a-a489-230c25e1df8e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\src\unicode">
+    <Filter Include="Source Files\src\tree_sitter\unicode">
       <UniqueIdentifier>{1c0b19be-eeb1-4748-8045-f4b0a491ddcb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\src\include">
-      <UniqueIdentifier>{dde21431-21c8-4ecf-8de3-90aa2dd6739a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,137 +33,146 @@
     <None Include="grammar.js">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="src\tree_sitter\grammar.json">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </None>
+    <None Include="src\tree_sitter\node-types.json">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </None>
+    <None Include="src\tree_sitter\unicode\ICU_SHA">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </None>
+    <None Include="src\tree_sitter\unicode\LICENSE">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </None>
+    <None Include="src\tree_sitter\unicode\README.md">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </None>
     <None Include="src\grammar.json">
       <Filter>Source Files\src</Filter>
     </None>
     <None Include="src\node-types.json">
       <Filter>Source Files\src</Filter>
     </None>
-    <None Include="src\unicode\ICU_SHA">
-      <Filter>Source Files\src\unicode</Filter>
-    </None>
-    <None Include="src\unicode\LICENSE">
-      <Filter>Source Files\src\unicode</Filter>
-    </None>
-    <None Include="src\unicode\README.md">
-      <Filter>Source Files\src\unicode</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\alloc.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\array.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\atomic.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\clock.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\error_costs.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\get_changed_ranges.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\host.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\language.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\length.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lexer.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\point.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\reduce_action.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\reusable_node.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\stack.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\subtree.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\tree.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\tree_cursor.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\unicode.h">
-      <Filter>Source Files\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\unicode\ptypes.h">
-      <Filter>Source Files\src\unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="src\unicode\umachine.h">
-      <Filter>Source Files\src\unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="src\unicode\urename.h">
-      <Filter>Source Files\src\unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="src\unicode\utf.h">
-      <Filter>Source Files\src\unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="src\unicode\utf8.h">
-      <Filter>Source Files\src\unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="src\unicode\utf16.h">
-      <Filter>Source Files\src\unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="src\tree_sitter\include\api.h">
+    <ClInclude Include="src\tree_sitter\api.h">
       <Filter>Source Files\src\tree_sitter</Filter>
     </ClInclude>
-    <ClInclude Include="src\tree_sitter\include\squirrel.h">
+    <ClInclude Include="src\tree_sitter\squirrel.h">
       <Filter>Source Files\src\tree_sitter</Filter>
     </ClInclude>
-    <ClInclude Include="src\tree_sitter\include\parser.h">
+    <ClInclude Include="src\tree_sitter\parser.h">
       <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\alloc.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\array.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\atomic.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\clock.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\error_costs.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\get_changed_ranges.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\host.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\language.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\length.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\lexer.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\point.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\reduce_action.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\reusable_node.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\stack.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\subtree.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\tree.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\tree_cursor.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\unicode.h">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\unicode\ptypes.h">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\unicode\umachine.h">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\unicode\urename.h">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\unicode\utf.h">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\unicode\utf8.h">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree_sitter\unicode\utf16.h">
+      <Filter>Source Files\src\tree_sitter\unicode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\tree_sitter\alloc.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\get_changed_ranges.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\language.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\lexer.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\node.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\parser_definition.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\query.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\stack.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\subtree.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\tree.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tree_sitter\tree_cursor.c">
+      <Filter>Source Files\src\tree_sitter</Filter>
+    </ClCompile>
     <ClCompile Include="src\parser.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\alloc.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\get_changed_ranges.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\language.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\lexer.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\node.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\query.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\stack.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\subtree.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tree.c">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tree_cursor.c">
       <Filter>Source Files\src</Filter>
     </ClCompile>
   </ItemGroup>

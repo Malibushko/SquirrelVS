@@ -24,51 +24,54 @@
     <None Include="grammar.js" />
     <None Include="src\grammar.json" />
     <None Include="src\node-types.json" />
-    <None Include="src\unicode\ICU_SHA" />
-    <None Include="src\unicode\LICENSE" />
-    <None Include="src\unicode\README.md" />
+    <None Include="src\tree_sitter\grammar.json" />
+    <None Include="src\tree_sitter\node-types.json" />
+    <None Include="src\tree_sitter\unicode\ICU_SHA" />
+    <None Include="src\tree_sitter\unicode\LICENSE" />
+    <None Include="src\tree_sitter\unicode\README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\alloc.h" />
-    <ClInclude Include="src\array.h" />
-    <ClInclude Include="src\atomic.h" />
-    <ClInclude Include="src\clock.h" />
-    <ClInclude Include="src\error_costs.h" />
-    <ClInclude Include="src\get_changed_ranges.h" />
-    <ClInclude Include="src\host.h" />
-    <ClInclude Include="src\language.h" />
-    <ClInclude Include="src\length.h" />
-    <ClInclude Include="src\lexer.h" />
-    <ClInclude Include="src\point.h" />
-    <ClInclude Include="src\reduce_action.h" />
-    <ClInclude Include="src\reusable_node.h" />
-    <ClInclude Include="src\stack.h" />
-    <ClInclude Include="src\subtree.h" />
-    <ClInclude Include="src\tree.h" />
-    <ClInclude Include="src\tree_cursor.h" />
-    <ClInclude Include="src\tree_sitter\include\api.h" />
-    <ClInclude Include="src\tree_sitter\include\parser.h" />
-    <ClInclude Include="src\tree_sitter\include\squirrel.h" />
-    <ClInclude Include="src\unicode.h" />
-    <ClInclude Include="src\unicode\ptypes.h" />
-    <ClInclude Include="src\unicode\umachine.h" />
-    <ClInclude Include="src\unicode\urename.h" />
-    <ClInclude Include="src\unicode\utf.h" />
-    <ClInclude Include="src\unicode\utf16.h" />
-    <ClInclude Include="src\unicode\utf8.h" />
+    <ClInclude Include="src\tree_sitter\alloc.h" />
+    <ClInclude Include="src\tree_sitter\api.h" />
+    <ClInclude Include="src\tree_sitter\array.h" />
+    <ClInclude Include="src\tree_sitter\atomic.h" />
+    <ClInclude Include="src\tree_sitter\clock.h" />
+    <ClInclude Include="src\tree_sitter\error_costs.h" />
+    <ClInclude Include="src\tree_sitter\get_changed_ranges.h" />
+    <ClInclude Include="src\tree_sitter\host.h" />
+    <ClInclude Include="src\tree_sitter\language.h" />
+    <ClInclude Include="src\tree_sitter\length.h" />
+    <ClInclude Include="src\tree_sitter\lexer.h" />
+    <ClInclude Include="src\tree_sitter\parser.h" />
+    <ClInclude Include="src\tree_sitter\point.h" />
+    <ClInclude Include="src\tree_sitter\reduce_action.h" />
+    <ClInclude Include="src\tree_sitter\reusable_node.h" />
+    <ClInclude Include="src\tree_sitter\squirrel.h" />
+    <ClInclude Include="src\tree_sitter\stack.h" />
+    <ClInclude Include="src\tree_sitter\subtree.h" />
+    <ClInclude Include="src\tree_sitter\tree.h" />
+    <ClInclude Include="src\tree_sitter\tree_cursor.h" />
+    <ClInclude Include="src\tree_sitter\unicode.h" />
+    <ClInclude Include="src\tree_sitter\unicode\ptypes.h" />
+    <ClInclude Include="src\tree_sitter\unicode\umachine.h" />
+    <ClInclude Include="src\tree_sitter\unicode\urename.h" />
+    <ClInclude Include="src\tree_sitter\unicode\utf.h" />
+    <ClInclude Include="src\tree_sitter\unicode\utf16.h" />
+    <ClInclude Include="src\tree_sitter\unicode\utf8.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\alloc.c" />
-    <ClCompile Include="src\get_changed_ranges.c" />
-    <ClCompile Include="src\language.c" />
-    <ClCompile Include="src\lexer.c" />
-    <ClCompile Include="src\node.c" />
     <ClCompile Include="src\parser.c" />
-    <ClCompile Include="src\query.c" />
-    <ClCompile Include="src\stack.c" />
-    <ClCompile Include="src\subtree.c" />
-    <ClCompile Include="src\tree.c" />
-    <ClCompile Include="src\tree_cursor.c" />
+    <ClCompile Include="src\tree_sitter\alloc.c" />
+    <ClCompile Include="src\tree_sitter\get_changed_ranges.c" />
+    <ClCompile Include="src\tree_sitter\language.c" />
+    <ClCompile Include="src\tree_sitter\lexer.c" />
+    <ClCompile Include="src\tree_sitter\node.c" />
+    <ClCompile Include="src\tree_sitter\parser_definition.c" />
+    <ClCompile Include="src\tree_sitter\query.c" />
+    <ClCompile Include="src\tree_sitter\stack.c" />
+    <ClCompile Include="src\tree_sitter\subtree.c" />
+    <ClCompile Include="src\tree_sitter\tree.c" />
+    <ClCompile Include="src\tree_sitter\tree_cursor.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -138,11 +141,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;TREESITTER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,11 +161,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;TREESITTER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -176,11 +181,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;TREESITTER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -195,11 +201,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;TREESITTER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(ProjectDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -53,8 +53,8 @@ namespace SquirrelSyntaxHighlight
       )
     {
       ClassificationTypeRegistry = _Registry;
-      Parser                     = api.TsParserNew();
-      Language                   = squirrel.TreeSitterSquirrel();
+      Parser = api.TsParserNew();
+      Language = squirrel.TreeSitterSquirrel();
 
       if (api.TsParserSetLanguage(Parser, Language))
       {
@@ -63,8 +63,6 @@ namespace SquirrelSyntaxHighlight
         SyntaxTree = api.TsParserParseString(Parser, null, Text, (uint)Text.Length);
         Root       = api.TsTreeRootNode(SyntaxTree);
         Walker     = api.TsTreeCursorNew(Root);
-
-        SymbolRegistry = CodeDatabase.CreateRegistry(ref Walker, ref Language);
       }
 
       _Buffer.Changed += BufferChanged;
