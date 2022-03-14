@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.Text.BraceCompletion;
 
-namespace SquirrelSyntaxHighlight.Editor
+namespace SquirrelSyntaxHighlight.Editor.BraceCompletion
 {
   internal class BraceCompletionContext : IBraceCompletionContext
   {

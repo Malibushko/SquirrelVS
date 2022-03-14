@@ -6,7 +6,6 @@ using tree_sitter;
 using System.Linq;
 using System.Text.RegularExpressions;
 using SquirrelSyntaxHighlight.Editor;
-using SquirrelSyntaxHighlight.Editor.Analysis;
 
 namespace SquirrelSyntaxHighlight
 {
@@ -45,7 +44,6 @@ namespace SquirrelSyntaxHighlight
     TSTreeCursor                       Walker;
     TSNode                             Root;
     
-    CodeFileInfo                       SymbolRegistry;
 
     internal SquirrelClasifier(
         IClassificationTypeRegistryService _Registry,
