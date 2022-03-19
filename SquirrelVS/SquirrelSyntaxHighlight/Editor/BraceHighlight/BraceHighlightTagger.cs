@@ -1,39 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Python.Core.Disposables;
-using Microsoft.Python.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using SquirrelSyntaxHighlight.Common;
+using SquirrelSyntaxHighlight.Editor.Common;
+using SquirrelSyntaxHighlight.Parsing;
 
 namespace SquirrelSyntaxHighlight.Editor.BraceHighlight
 {
   internal class BraceHighlightTagger : ITagger<TextMarkerTag>, IDisposable
   {
-    private readonly IServiceProvider _site;
-    private readonly ITextView _textView;
-    private readonly ITextBuffer _buffer;
-    private readonly DisposableBag _disposableBag;
-    private SnapshotPoint? _currentChar;
+    private readonly IServiceProvider Site;
+    private readonly ITextView        TextView;
+    private readonly ITextBuffer      Buffer;
+    private readonly DisposableBag    DisposableBag;
+    private SnapshotPoint?            CurrentChar;
 
-    private static TextMarkerTag _tag = new TextMarkerTag("Brace Matching (Rectangle)");
+    private static readonly TextMarkerTag Tag = new TextMarkerTag("Brace Matching (Rectangle)");
 
-    public BraceHighlightTagger(IServiceProvider site, ITextView textView, ITextBuffer buffer)
+    public BraceHighlightTagger(
+        IServiceProvider _Site, 
+        ITextView        _TextView, 
+        ITextBuffer      _Buffer
+      )
     {
-      _site = site ?? throw new ArgumentNullException(nameof(site));
-      _textView = textView ?? throw new ArgumentNullException(nameof(textView));
-      _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
+      Site     = _Site     ?? throw new ArgumentNullException(nameof(_Site));
+      TextView = _TextView ?? throw new ArgumentNullException(nameof(_TextView));
+      Buffer   = _Buffer   ?? throw new ArgumentNullException(nameof(_Buffer));
 
-      _currentChar = null;
+      CurrentChar = null;
 
-      _textView.Caret.PositionChanged += CaretPositionChanged;
-      _textView.LayoutChanged += ViewLayoutChanged;
+      TextView.Caret.PositionChanged += CaretPositionChanged;
+      TextView.LayoutChanged         += ViewLayoutChanged;
 
-      _disposableBag = new DisposableBag(GetType().Name);
-      _disposableBag.Add(() => {
-        _textView.Caret.PositionChanged -= CaretPositionChanged;
-        _textView.LayoutChanged -= ViewLayoutChanged;
+      DisposableBag = new DisposableBag(GetType().Name);
+      DisposableBag.Add(() =>
+      {
+        TextView.Caret.PositionChanged -= CaretPositionChanged;
+        TextView.LayoutChanged         -= ViewLayoutChanged;
       });
     }
 
@@ -41,84 +46,86 @@ namespace SquirrelSyntaxHighlight.Editor.BraceHighlight
 
     public void Dispose()
     {
-      _disposableBag.TryDispose();
+      DisposableBag.TryDispose();
     }
 
-    public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(
+        NormalizedSnapshotSpanCollection _Spans
+      )
     {
-      if (spans.Count == 0)
-      {
+      if (_Spans.Count == 0)
         yield break;
-      }
 
-      if (!_currentChar.HasValue || _currentChar.Value.Position > _currentChar.Value.Snapshot.Length)
-      {
+      if (!CurrentChar.HasValue || CurrentChar.Value.Position > CurrentChar.Value.Snapshot.Length)
         yield break;
-      }
 
       // Hold on to a snapshot of the current character
-      var current = _currentChar.Value;
+      SnapshotPoint CurrentPoint = CurrentChar.Value;
 
       // If the requested snapshot isn't the same as the one the brace is on, translate our spans to the expected snapshot
-      if (spans[0].Snapshot != current.Snapshot)
-      {
-        current = current.TranslateTo(spans[0].Snapshot, PointTrackingMode.Positive);
-      }
+      if (_Spans[0].Snapshot != CurrentPoint.Snapshot)
+        CurrentPoint = CurrentPoint.TranslateTo(_Spans[0].Snapshot, PointTrackingMode.Positive);
 
       // Look before current position for an opening brace
-      if (current != 0)
+      if (CurrentPoint != 0)
       {
-        var prevCharText = _textView.TextBuffer.CurrentSnapshot.GetText(current.Position - 1, 1);
-        if (prevCharText == ")" || prevCharText == "]" || prevCharText == "}")
+        var PreviousCharacterText = TextView.TextBuffer.CurrentSnapshot.GetText(CurrentPoint.Position - 1, 1);
+
+        if (PreviousCharacterText == ")" || PreviousCharacterText == "]" || PreviousCharacterText == "}")
         {
-          if (FindMatchingPair(GetBraceKind(prevCharText), current, -1, out var leftSpan, out var rightSpan))
+          if (FindMatchingPair(GetBraceKind(PreviousCharacterText), CurrentPoint, -1, out var LeftSpan, out var RightSpan))
           {
-            yield return new TagSpan<TextMarkerTag>(leftSpan, _tag);
-            yield return new TagSpan<TextMarkerTag>(rightSpan, _tag);
+            yield return new TagSpan<TextMarkerTag>(LeftSpan, Tag);
+            yield return new TagSpan<TextMarkerTag>(RightSpan, Tag);
             yield break;
           }
         }
       }
 
       // Look after current position for a closing brace
-      if (current != _textView.TextBuffer.CurrentSnapshot.Length)
+      if (CurrentPoint != TextView.TextBuffer.CurrentSnapshot.Length)
       {
-        var nextCharText = _textView.TextBuffer.CurrentSnapshot.GetText(current.Position, 1);
-        if (nextCharText == "(" || nextCharText == "[" || nextCharText == "{")
+        var NextCharText = TextView.TextBuffer.CurrentSnapshot.GetText(CurrentPoint.Position, 1);
+        
+        if (NextCharText == "(" || NextCharText == "[" || NextCharText == "{")
         {
-          if (FindMatchingPair(GetBraceKind(nextCharText), current + 1, 1, out var leftSpan, out var rightSpan))
+          if (FindMatchingPair(GetBraceKind(NextCharText), CurrentPoint + 1, 1, out var leftSpan, out var rightSpan))
           {
-            yield return new TagSpan<TextMarkerTag>(leftSpan, _tag);
-            yield return new TagSpan<TextMarkerTag>(rightSpan, _tag);
+            yield return new TagSpan<TextMarkerTag>(leftSpan, Tag);
+            yield return new TagSpan<TextMarkerTag>(rightSpan, Tag);
             yield break;
           }
         }
       }
     }
 
-    private void ViewLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+    private void ViewLayoutChanged(
+        object                         _Sender, 
+        TextViewLayoutChangedEventArgs _Args
+      )
     {
-      if (e.NewSnapshot != e.OldSnapshot)
-      {
-        UpdateAtCaretPosition(_textView.Caret.Position);
-      }
+      if (_Args.NewSnapshot != _Args.OldSnapshot)
+        UpdateAtCaretPosition(TextView.Caret.Position);
     }
 
-    private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+    private void CaretPositionChanged(
+        object                        _Sender, 
+        CaretPositionChangedEventArgs _Args
+      )
     {
-      UpdateAtCaretPosition(e.NewPosition);
+      UpdateAtCaretPosition(_Args.NewPosition);
     }
 
-    private void UpdateAtCaretPosition(CaretPosition caretPosition)
+    private void UpdateAtCaretPosition(
+        CaretPosition _CaretPosition
+      )
     {
-      _currentChar = caretPosition.Point.GetPoint(_buffer, caretPosition.Affinity);
+      CurrentChar = _CaretPosition.Point.GetPoint(Buffer, _CaretPosition.Affinity);
 
-      if (!_currentChar.HasValue)
-      {
+      if (!CurrentChar.HasValue)
         return;
-      }
 
-      TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(_buffer.CurrentSnapshot, 0, _buffer.CurrentSnapshot.Length)));
+      TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(Buffer.CurrentSnapshot, 0, Buffer.CurrentSnapshot.Length)));
     }
 
     private enum BraceKind
@@ -129,55 +136,45 @@ namespace SquirrelSyntaxHighlight.Editor.BraceHighlight
       Brace
     }
 
-    private bool FindMatchingPair(BraceKind brace, SnapshotPoint position, int direction, out SnapshotSpan leftSpan, out SnapshotSpan rightSpan)
+    private bool FindMatchingPair(
+        BraceKind        _Brace, 
+        SnapshotPoint    _Position, 
+        int              _Direction, 
+        out SnapshotSpan _LeftSpan, 
+        out SnapshotSpan _RightSpan
+      )
     {
-      leftSpan = new SnapshotSpan(position, position);
-      rightSpan = leftSpan;
+      _LeftSpan  = new SnapshotSpan(_Position, _Position);
+      _RightSpan = _LeftSpan;
 
-      var buffer = SquirrelTextBufferInfo.ForBuffer(_site, position.Snapshot.TextBuffer);
-      if (buffer == null)
-      {
+      var Buffer = SquirrelTextBufferInfo.ForBuffer(Site, _Position.Snapshot.TextBuffer);
+      
+      if (Buffer == null)
         return false;
-      }
 
-      if (!(buffer.GetTokenAtPoint(position)?.Trigger ?? TokenTriggers.None).HasFlag(TokenTriggers.MatchBraces))
-      {
-        return false;
-      }
+      var Snapshot = _Position.Snapshot;
+      int Depth    = 0;
 
-      var snapshot = position.Snapshot;
-      int depth = 0;
-      foreach (var token in (direction > 0 ? buffer.GetTokensForwardFromPoint(position) : buffer.GetTokensInReverseFromPoint(position - 1)))
+      for (int i = _Position.Position - 1; i != (_Direction > 0 ? _Position.Snapshot.Length : 0); i += (_Direction > 0 ? 1 : -1))
       {
-        if (!token.Trigger.HasFlag(TokenTriggers.MatchBraces))
-        {
+        var Kind = GetBraceKind(_Position.Snapshot[i]);
+        
+        if (Kind == BraceKind.None)
           continue;
-        }
 
-        var tokenSpan = token.ToSnapshotSpan(snapshot);
-        var txt = tokenSpan.GetText();
-        var kind = GetBraceKind(txt);
-        if (kind == BraceKind.None)
+        if (Kind == _Brace)
         {
-          return false;
-        }
-
-        if (kind == brace)
-        {
-          if (txt.IsCloseGrouping())
-          {
-            depth -= direction;
-          }
+          if (_Position.Snapshot[i].IsCloseGrouping())
+            Depth -= _Direction;
           else
-          {
-            depth += direction;
-          }
+            Depth += _Direction;
         }
 
-        if (depth == 0)
+        if (Depth == 0)
         {
-          leftSpan = tokenSpan;
-          rightSpan = new SnapshotSpan(snapshot, position - 1, 1);
+          _LeftSpan  = new SnapshotSpan(Snapshot, i, 1);
+          _RightSpan = new SnapshotSpan(Snapshot, _Position - 1, 1);
+
           return true;
         }
       }
@@ -185,22 +182,33 @@ namespace SquirrelSyntaxHighlight.Editor.BraceHighlight
       return false;
     }
 
-    private static BraceKind GetBraceKind(string brace)
+    private static BraceKind GetBraceKind(
+        string _Brace
+      )
     {
-      if (string.IsNullOrEmpty(brace))
-      {
+      if (string.IsNullOrEmpty(_Brace))
         return BraceKind.None;
-      }
 
-      switch (brace[0])
+      return GetBraceKind(_Brace[0]);
+    }
+
+    private static BraceKind GetBraceKind(
+        char _Brace
+      )
+    {
+      switch (_Brace)
       {
         case '[':
-        case ']': return BraceKind.Bracket;
+        case ']':
+          return BraceKind.Bracket;
         case '(':
-        case ')': return BraceKind.Paren;
+        case ')':
+          return BraceKind.Paren;
         case '{':
-        case '}': return BraceKind.Bracket;
-        default: return BraceKind.None;
+        case '}':
+          return BraceKind.Bracket;
+        default:
+          return BraceKind.None;
       }
     }
   }

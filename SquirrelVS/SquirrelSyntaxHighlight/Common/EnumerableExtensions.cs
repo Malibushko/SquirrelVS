@@ -20,7 +20,7 @@ using System.Linq;
 
 namespace SquirrelSyntaxHighlight.Infrastructure {
     static class EnumerableExtensions {
-        public static IEnumerable<T> MaybeEnumerate<T>(this IEnumerable<T> source) {
+        public static IEnumerable<T> TryEnumerate<T>(this IEnumerable<T> source) {
             return source ?? Enumerable.Empty<T>();
         }
 

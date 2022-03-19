@@ -1,12 +1,12 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using SquirrelSyntaxHighlight.Parsing;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.Python.Parsing;
 
 namespace SquirrelSyntaxHighlight.Editor.BraceCompletion
 {
@@ -23,35 +23,44 @@ namespace SquirrelSyntaxHighlight.Editor.BraceCompletion
     [Import(typeof(SVsServiceProvider))]
     internal IServiceProvider Site = null;
 
-    public bool TryCreateContext(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionContext context)
+    public bool TryCreateContext(
+        ITextView                   _TextView,
+        SnapshotPoint               _OpeningPoint,
+        char                        _OpeningBrace,
+        char                        _ClosingBrace,
+        out IBraceCompletionContext _Context
+      )
     {
-      var bi = SquirrelTextBufferInfo.ForBuffer(Site, openingPoint.Snapshot.TextBuffer);
-      if (IsValidBraceCompletionContext(bi, openingPoint, openingBrace))
+      var BufferInfo = SquirrelTextBufferInfo.ForBuffer(Site, _OpeningPoint.Snapshot.TextBuffer);
+      
+      if (IsValidBraceCompletionContext(BufferInfo, _OpeningPoint, _OpeningBrace))
       {
-        context = new BraceCompletionContext();
+        _Context = new BraceCompletionContext();
+        
         return true;
       }
       else
       {
-        context = null;
+        _Context = null;
+
         return false;
       }
     }
 
-    private static bool IsValidBraceCompletionContext(SquirrelTextBufferInfo buffer, SnapshotPoint openingPoint, char openingBrace)
+    private static bool IsValidBraceCompletionContext(
+        SquirrelTextBufferInfo _Buffer, 
+        SnapshotPoint          _OpeningPoint, 
+        char                   _OpeningBrace
+      )
     {
-      if (buffer == null)
-      {
+      if (_Buffer == null)
         return false;
-      }
 
-      Debug.Assert(openingPoint.Position >= 0, "SnapshotPoint.Position should always be zero or positive.");
-      if (openingPoint.Position < 0)
-      {
+      Debug.Assert(_OpeningPoint.Position >= 0, "SnapshotPoint.Position should always be zero or positive.");
+      if (_OpeningPoint.Position < 0)
         return false;
-      }
 
-      switch (openingBrace)
+      switch (_OpeningBrace)
       {
         case '(':
         case '[':
@@ -65,14 +74,8 @@ namespace SquirrelSyntaxHighlight.Editor.BraceCompletion
         case '\'':
         {
           // Not valid in comment / strings, so user can easily type triple-quotes
-          var category = buffer.GetTokenAtPoint(openingPoint)?.Category ?? TokenCategory.None;
-          return !(
-              category == TokenCategory.Comment ||
-              category == TokenCategory.LineComment ||
-              category == TokenCategory.DocComment ||
-              category == TokenCategory.StringLiteral ||
-              category == TokenCategory.IncompleteMultiLineStringLiteral
-          );
+          var Category = _Buffer.GetTokenAtPoint(_OpeningPoint)?.Category ?? TokenCategory.None;
+          return !(Category == TokenCategory.Comment || Category == TokenCategory.StringLiteral);
         }
 
         default:

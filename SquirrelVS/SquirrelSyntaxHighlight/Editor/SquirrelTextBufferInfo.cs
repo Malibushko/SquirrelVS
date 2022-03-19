@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.Python.Parsing;
 using SquirrelSyntaxHighlight.Infrastructure;
+using SquirrelSyntaxHighlight.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -363,7 +363,7 @@ namespace SquirrelSyntaxHighlight.Editor
         {
           var LineTokenization = CacheSnapshot.GetLineTokenization(_Span.Snapshot.GetLineFromLineNumber(Line), TokenizerLazy);
 
-          foreach (var Token in LineTokenization.Tokens.MaybeEnumerate())
+          foreach (var Token in LineTokenization.Tokens.TryEnumerate())
           {
             if (Line == FirstLine && Token.Column + Token.Length < StartColumn)
               continue;
@@ -380,7 +380,7 @@ namespace SquirrelSyntaxHighlight.Editor
     #region Token Cache Management
 
     private Lazy<Tokenizer> GetTokenizerLazy()
-        => new Lazy<Tokenizer>(() => new Tokenizer(PythonLanguageVersion.V37, options: TokenizerOptions.Verbatim | TokenizerOptions.VerbatimCommentsAndLineJoins));
+        => new Lazy<Tokenizer>(() => new Tokenizer(_Options: TokenizerOptions.Verbatim | TokenizerOptions.VerbatimCommentsAndLineJoins));
 
     private void ClearTokenCache() => TokensCache.Clear();
 

@@ -13,7 +13,7 @@ namespace SquirrelSyntaxHighlight.Editor.BraceHighlight
   [ContentType(SquirrelConstants.SquirrelContentType)]
   public class BraceHighlightTaggerProvider : IViewTaggerProvider
   {
-    [Import]
+    [Import(typeof(SVsServiceProvider))]
     private readonly IServiceProvider _ServiceProvider;
 
     public ITagger<T> CreateTagger<T>(

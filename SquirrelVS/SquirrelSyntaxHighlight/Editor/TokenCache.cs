@@ -19,10 +19,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.Python.Core.Text;
-using Microsoft.Python.Parsing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using SquirrelSyntaxHighlight.Parsing;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
@@ -361,12 +360,8 @@ namespace SquirrelSyntaxHighlight.Editor
 
           while (++Start <= LineNumber)
           {
-            var State = LineTokenization.State;
-
             if (!TryGetTokenization(Start, out LineTokenization))
-            {
-              Map[Start] = LineTokenization = _LazyTokenizer.Value.TokenizeLine(_Line.Snapshot.GetLineFromLineNumber(Start), State);
-            }
+              Map[Start] = LineTokenization = _LazyTokenizer.Value.TokenizeLine(_Line.Snapshot.GetLineFromLineNumber(Start));
           }
           return LineTokenization;
         }
@@ -414,15 +409,11 @@ namespace SquirrelSyntaxHighlight.Editor
         {
           var Line = _Span.Snapshot.GetLineFromLineNumber(LineNumber);
 
-          var StateBefore = LineTokenization.State;
+          Map[LineNumber] = LineTokenization = _LazyTokenizer.Value.TokenizeLine(Line);
           
-          Map[LineNumber] = LineTokenization = _LazyTokenizer.Value.TokenizeLine(Line, StateBefore);
-          
-          var StateAfter = LineTokenization.State;
-
           // stop if we visited all affected lines and the current line has no tokenization state
           // or its previous state is the same as the new state.
-          if (LineNumber > LastLine && (StateBefore == null || StateBefore.Equals(StateAfter)))
+          if (LineNumber > LastLine)
             break;
         }
       }

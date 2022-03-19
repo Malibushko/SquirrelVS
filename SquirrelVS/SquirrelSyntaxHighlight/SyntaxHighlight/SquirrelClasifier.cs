@@ -197,7 +197,7 @@ namespace SquirrelSyntaxHighlight
       if (StartPosition >= _Snapshot.Span.End)
         return null;
 
-      var EndPosition   = api.TsNodeEndByte(_Node);
+      var EndPosition = api.TsNodeEndByte(_Node);
 
       ushort Symbol = api.TsNodeSymbol(_Node);
 
@@ -208,10 +208,9 @@ namespace SquirrelSyntaxHighlight
         return new ClassificationSpan(
                       new SnapshotSpan(
                         _Snapshot.Snapshot,
-                        new Span((int)StartPosition, (int)(EndPosition - StartPosition)
-                       )
-                      ),
-                      ClassificationTypeRegistry.GetClassificationType(_ClassificationType));
+                        new Span((int)StartPosition, (int)(EndPosition - StartPosition))
+                     ),
+                     ClassificationTypeRegistry.GetClassificationType(_ClassificationType));
       }
 
       return null;

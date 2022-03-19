@@ -13,29 +13,34 @@
 //
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-
-using Microsoft.Python.Core.Text;
-using Microsoft.Python.Parsing;
+using SquirrelSyntaxHighlight.Parsing;
 using Microsoft.VisualStudio.Text;
 
-namespace SquirrelSyntaxHighlight.Editor {
-    internal static class TokenizerExtensions {
-        public static LineTokenization TokenizeLine(this Tokenizer tokenizer, ITextSnapshotLine line, object state) {
-            tokenizer.Initialize(
-                state,
-                new SnapshotSpanSourceCodeReader(line.ExtentIncludingLineBreak),
-                new SourceLocation(line.Start.Position, line.LineNumber + 1, 1)
-            );
+namespace SquirrelSyntaxHighlight.Editor
+{
+  internal static class TokenizerExtensions
+  {
+    public static LineTokenization TokenizeLine(
+        this Tokenizer    _Tokenizer,
+        ITextSnapshotLine _Line
+      )
+    {
+      _Tokenizer.Init(
+          new SnapshotSpanSourceCodeReader(_Line.ExtentIncludingLineBreak)
+        );
 
-            try {
-                return new LineTokenization(
-                    tokenizer.ReadTokens(line.LengthIncludingLineBreak),
-                    tokenizer.CurrentState,
-                    line
-                );
-            } finally {
-                tokenizer.Uninitialize();
-            }
-        }
+      try
+      {
+        return new LineTokenization(
+            _Tokenizer.ReadTokens(_Line.LengthIncludingLineBreak),
+            null,
+            _Line
+          );
+      }
+      finally
+      {
+        _Tokenizer.Shutdown();
+      }
     }
+  }
 }
