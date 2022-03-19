@@ -69,6 +69,7 @@
     <Compile Include="Editor\SquirrelTextBufferInfo.cs" />
     <Compile Include="Editor\SyntaxTreeWalker.cs" />
     <Compile Include="Editor\TokenCache.cs" />
+    <Compile Include="Editor\Typing\ReturnKeyCommandHandler.cs" />
     <Compile Include="Infrastructure\Commands\AsyncCommandRangeToOleMenuCommandShim.cs" />
     <Compile Include="Infrastructure\Commands\CommandAsyncToOleMenuCommandShim.cs" />
     <Compile Include="Infrastructure\Commands\CommandAsyncToOleMenuCommandShimFactory.cs" />
