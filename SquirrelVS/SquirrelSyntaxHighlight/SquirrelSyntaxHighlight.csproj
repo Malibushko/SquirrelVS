@@ -45,6 +45,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Common\DisposableBag.cs" />
+    <Compile Include="Common\EditorExtensions.cs" />
     <Compile Include="Common\EnumerableExtensions.cs" />
     <Compile Include="Common\ExceptionExtensions.cs" />
     <Compile Include="Common\Extensions.cs" />
@@ -59,6 +60,9 @@
     <Compile Include="Editor\CompletionHandlerProvider.cs" />
     <Compile Include="Editor\CompletionSource.cs" />
     <Compile Include="Editor\CompletionSourceProvider.cs" />
+    <Compile Include="Editor\Indent\AutoIndent.cs" />
+    <Compile Include="Editor\Indent\SmartIndent.cs" />
+    <Compile Include="Editor\Indent\SmartIndentProvider.cs" />
     <Compile Include="Editor\ISnapshotTextReader.cs" />
     <Compile Include="Editor\ISquirrelTextBufferInfoEventSink.cs" />
     <Compile Include="Editor\SnapshotSpanSourceCodeReader.cs" />

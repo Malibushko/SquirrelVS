@@ -9,17 +9,17 @@ namespace SquirrelSyntaxHighlight.Common
   static class Extensions
   {
     internal static bool IsOpenGrouping(
-        this char _String
+        this char _Char
       )
     {
-      return _String ==  '{' || _String == '[' || _String == '(' || _String == '<';
+      return _Char ==  '{' || _Char == '[' || _Char == '(' || _Char == '<';
     }
 
     internal static bool IsCloseGrouping(
-        this char _String
+        this char _Char
       )
     {
-      return _String == '}' || _String == ']' || _String == ')' || _String == '>';
+      return _Char == '}' || _Char == ']' || _Char == ')' || _Char == '>';
     }
   }
 }
