@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets  xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>function</Title>
+			<Shortcut>function</Shortcut>
+			<Description>Code snippet for constructor</Description>
+			<Author>Yehor Tsyba</Author>
+			<SnippetTypes>
+				<SnippetType>Expansion</SnippetType>
+			</SnippetTypes>
+		</Header>
+		<Snippet>
+      <Declarations>
+        <Literal>
+          <ID>name</ID>
+          <ToolTip>Function name</ToolTip>
+          <Default>sample</Default>
+        </Literal>
+        <Literal>
+          <ID>params</ID>
+          <ToolTip>Parameters</ToolTip>
+          <Default>input</Default>
+        </Literal>
+      </Declarations>
+			<Code Language="Squirrel"><![CDATA[function $name$($params$)
+{
+  $selected$ $end$
+}]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

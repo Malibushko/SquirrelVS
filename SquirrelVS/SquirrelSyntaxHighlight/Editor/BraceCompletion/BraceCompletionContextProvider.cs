@@ -67,6 +67,7 @@ namespace SquirrelSyntaxHighlight.Editor.BraceCompletion
         case '{':
         case '"':
         case '\'':
+        case '<':
         {
           // Valid anywhere, including comments / strings
           return true;

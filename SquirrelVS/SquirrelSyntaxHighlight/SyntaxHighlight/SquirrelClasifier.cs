@@ -38,7 +38,9 @@ namespace SquirrelSyntaxHighlight
         { "instanceof", "Squirrel.Keyword" },
         { "typeof",     "Squirrel.Keyword" },
         { "extends",    "Squirrel.Keyword" },
-        { "constructor", "Squirrel.Keyword" }
+        { "constructor", "Squirrel.Keyword" },
+        { "while",      "Squirrel.Keyword" },
+        { "enum",       "Squirrel.Keyword" }
      };
 
     IClassificationTypeRegistryService ClassificationTypeRegistry;

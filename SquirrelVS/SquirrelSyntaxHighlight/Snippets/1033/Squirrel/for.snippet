@@ -5,7 +5,7 @@
       <Title>for</Title>
       <Shortcut>for</Shortcut>
       <Description>Code snippet for 'for' loop</Description>
-      <Author>Microsoft Corporation</Author>
+      <Author>Yehor Tsyba</Author>
       <SnippetTypes>
         <SnippetType>Expansion</SnippetType>
         <SnippetType>SurroundsWith</SnippetType>
@@ -13,11 +13,6 @@
     </Header>
     <Snippet>
       <Declarations>
-        <Literal>
-          <ID>type</ID>
-          <Default>size_t</Default>
-          <ToolTip>Control variable type</ToolTip>
-        </Literal>
         <Literal>
           <ID>index</ID>
           <Default>i</Default>
@@ -29,11 +24,11 @@
           <ToolTip>Max length</ToolTip>
         </Literal>
       </Declarations>
-      <Code Language="cpp">
-        <![CDATA[for ($type$ $index$ = 0; $index$ < $max$; $index$++)
-		{
-			$selected$ $end$
-		}]]>
+      <Code Language="Squirrel">
+        <![CDATA[for (local $index$ = 0; $index$ < $max$; $index$++)
+{
+  
+}]]>
       </Code>
     </Snippet>
   </CodeSnippet>

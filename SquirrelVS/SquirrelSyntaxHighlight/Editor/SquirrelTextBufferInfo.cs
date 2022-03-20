@@ -323,15 +323,22 @@ namespace SquirrelSyntaxHighlight.Editor
 
       for (uint i = 0; i < ChangesCount; i++)
       {
-        ChangedSpans.Add(
-            new SnapshotSpan(
-              _Args.After,
-              new Span(
-                (int)Changes[i].StartByte,
-                (int)Changes[i].EndByte - (int)Changes[i].StartByte
+        try
+        {
+          ChangedSpans.Add(
+              new SnapshotSpan(
+                _Args.After,
+                new Span(
+                    (int)Changes[i].StartByte,
+                    Math.Max((int)Changes[i].EndByte - (int)Changes[i].StartByte, 1)
+                  )
                 )
-              )
-          );
+            );
+        }
+        catch(Exception _Ex)
+        {
+
+        }
       }
 
       InvokeSinks(new SquirrelTreeChanged(SquirrelTextBufferInfoEvents.ParseTreeChanged, ChangedSpans));
