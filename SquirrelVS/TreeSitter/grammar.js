@@ -620,7 +620,12 @@ module.exports = grammar({
     
     method_definition: $ => seq(
       optional('static'),
-      field('name', choice('constructor', $.namespaced_identifier)),
+        choice(
+            seq('function',
+                field('name', $.namespaced_identifier)
+              ),
+            'constructor'
+          ),
       field('parameters', $.formal_parameters),
       field('body', $.statement_block)
     ),

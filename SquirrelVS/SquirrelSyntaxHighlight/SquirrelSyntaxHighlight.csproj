@@ -44,6 +44,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Common\Attributes\ProvideCodeExpansionsAttribute.cs" />
     <Compile Include="Common\DisposableBag.cs" />
     <Compile Include="Common\EditorExtensions.cs" />
     <Compile Include="Common\EnumerableExtensions.cs" />
@@ -51,11 +52,14 @@
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\TaskExtensions.cs" />
-    <Compile Include="Common\TokenizerExtensions.cs" />
     <Compile Include="Editor\BraceCompletion\BraceCompletionContext.cs" />
     <Compile Include="Editor\BraceCompletion\BraceCompletionContextProvider.cs" />
     <Compile Include="Editor\BraceHighlight\BraceHighlightTagger.cs" />
     <Compile Include="Editor\BraceHighlight\BraceHighlightTaggerProvider.cs" />
+    <Compile Include="Editor\CodeSnippets\ExpansionClient.cs" />
+    <Compile Include="Editor\CodeSnippets\InsertSnippetCommandHandler.cs" />
+    <Compile Include="Editor\CodeSnippets\SnippetManager.cs" />
+    <Compile Include="Editor\CodeSnippets\SnippetUtilities.cs" />
     <Compile Include="Editor\CompletionCommandHandler.cs" />
     <Compile Include="Editor\CompletionHandlerProvider.cs" />
     <Compile Include="Editor\CompletionSource.cs" />
@@ -70,7 +74,6 @@
     <Compile Include="Editor\SnapshotSpanSourceCodeReader.cs" />
     <Compile Include="Editor\SquirrelTextBufferInfo.cs" />
     <Compile Include="Infrastructure\Syntax\SyntaxTreeWalker.cs" />
-    <Compile Include="Editor\TokenCache.cs" />
     <Compile Include="Editor\Typing\ReturnKeyCommandHandler.cs" />
     <Compile Include="Infrastructure\Commands\AsyncCommandRangeToOleMenuCommandShim.cs" />
     <Compile Include="Infrastructure\Commands\CommandAsyncToOleMenuCommandShim.cs" />
@@ -107,6 +110,9 @@
       <HintPath>..\..\Shared\CppSharp.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.MSXML, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -116,6 +122,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="Tvl.VisualStudio.Antlr">
       <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Antlr.dll</HintPath>
     </Reference>
@@ -126,6 +133,11 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.10.1055" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Snippets\1033\Squirrel\for.snippet">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <VSIXSubPath>Snippets\1033\Squirrel</VSIXSubPath>
+    </Content>
     <None Include="Themes\High Contrast.vstheme" />
     <None Include="Themes\Blue.vstheme" />
     <None Include="Themes\Contrast.vstheme" />
@@ -133,6 +145,10 @@
     <None Include="Themes\Light.vstheme" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Snippets\1033\SnippetsIndex.xml">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Themes\make_theme_pkgdef.py" />
     <Content Include="Themes\Microsoft.SquirrelVS.theme.v15.0.pkgdef">
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -147,6 +163,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

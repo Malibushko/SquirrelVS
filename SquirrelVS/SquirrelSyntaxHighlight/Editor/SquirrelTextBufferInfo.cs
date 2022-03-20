@@ -343,6 +343,16 @@ namespace SquirrelSyntaxHighlight.Editor
         api.TsTreeDelete(Tree.Value);
     }
 
+    public TSNode GetNodeAt(
+        Span _Span
+      )
+    {
+      TSNode Root       = api.TsTreeRootNode(Tree.Value);
+      TSNode Descendant = api.TsNodeDescendantForByteRange(Root, (uint)_Span.Start, (uint)_Span.End);
+      
+      return Descendant;
+    }
+
     public IEnumerable<TSNode> GetNodeWithSymbols(
         SortedSet<string> _Symbols,
         Span              _Span

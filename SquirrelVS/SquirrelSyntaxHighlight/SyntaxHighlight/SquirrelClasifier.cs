@@ -35,7 +35,10 @@ namespace SquirrelSyntaxHighlight
         { "local",      "Squirrel.Keyword" },
         { "function",   "Squirrel.Keyword" },
         { "delete",     "Squirrel.Keyword" },
-        { "instanceof", "Squirrel.Keyword" }
+        { "instanceof", "Squirrel.Keyword" },
+        { "typeof",     "Squirrel.Keyword" },
+        { "extends",    "Squirrel.Keyword" },
+        { "constructor", "Squirrel.Keyword" }
      };
 
     IClassificationTypeRegistryService ClassificationTypeRegistry;
@@ -146,12 +149,26 @@ namespace SquirrelSyntaxHighlight
         SnapshotSpan _Snapshot
       )
     {
-      var Snapshot = _Snapshot.Trim();
+      int SnapStartPosition = _Snapshot.Start.Position;
 
-      if (Snapshot.Span.Length <= 1)
+      for (; SnapStartPosition < _Snapshot.End.Position; ++SnapStartPosition)
+      {
+        if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapStartPosition]))
+          break;
+      }
+
+      int SnapEndPosition = _Snapshot.End.Position - 1;
+
+      for (; SnapEndPosition != _Snapshot.Start.Position; --SnapEndPosition)
+      {
+        if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapEndPosition]))
+          break;
+      }
+
+      if (SnapStartPosition == SnapEndPosition)
         return new List<ClassificationSpan>();
 
-      api.TsTreeCursorReset(Walker, api.TsNodeDescendantForByteRange(Root, (uint)Snapshot.Span.Start, (uint)Snapshot.Span.End));
+      api.TsTreeCursorReset(Walker, api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition));
 
       return TryGetNodeSpans(_Snapshot, Walker, Language);
     }

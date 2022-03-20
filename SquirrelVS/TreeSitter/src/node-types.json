@@ -1274,12 +1274,8 @@
       },
       "name": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
-          {
-            "type": "constructor",
-            "named": false
-          },
           {
             "type": "namespaced_identifier",
             "named": true

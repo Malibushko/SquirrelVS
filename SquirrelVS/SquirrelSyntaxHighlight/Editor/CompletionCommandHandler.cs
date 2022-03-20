@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.OLE.Interop;
+using SquirrelSyntaxHighlight.Editor.CodeSnippets;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
@@ -17,6 +18,7 @@ namespace SquirrelSyntaxHighlight.Editor
   {
     private IOleCommandTarget         NextCommandHandler;
     private ITextView                 TextView;
+    private IVsTextView               TextViewAdapter;
 
     private CompletionHandlerProvider CompletionProvider;
     private ICompletionSession        CompletionSession;
@@ -28,6 +30,7 @@ namespace SquirrelSyntaxHighlight.Editor
       )
     {
       TextView           = _TextView;
+      TextViewAdapter    = _TextViewAdapter;
       CompletionProvider = _Provider;
 
       _TextViewAdapter.AddCommandFilter(this, out NextCommandHandler);
@@ -41,6 +44,19 @@ namespace SquirrelSyntaxHighlight.Editor
       )
     {
       ThreadHelper.ThrowIfNotOnUIThread();
+      
+      if (!VsShellUtilities.IsInAutomationFunction(CompletionProvider.ServiceProvider))
+      {
+        if (pguidCmdGroup == VSConstants.VSStd2K && cCmds > 0)
+        {
+          // make the Insert Snippet command appear on the context menu 
+          if ((uint)prgCmds[0].cmdID == (uint)VSConstants.VSStd2KCmdID.INSERTSNIPPET)
+          {
+            prgCmds[0].cmdf = (int)Constants.MSOCMDF_ENABLED | (int)Constants.MSOCMDF_SUPPORTED;
+            return VSConstants.S_OK;
+          }
+        }
+      }
 
       return NextCommandHandler.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
     }
@@ -61,7 +77,7 @@ namespace SquirrelSyntaxHighlight.Editor
       
       if (pguidCmdGroup == VSConstants.VSStd2K && nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR)
         TypeChar = (char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn);
-      
+
       if (nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN || 
           nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB)
       {

@@ -26,7 +26,7 @@ namespace SquirrelSyntaxHighlight.Editor
       SourceProvider = _SourceProvider;
       TextBuffer     = _TextBuffer;
       CompletionList = new List<Completion>();
-
+      
       foreach (var Token in SquirrelClasifier.NodeClassificator)
         CompletionList.Add(new Completion(Token.Key, Token.Key, Token.Key, null, null));
     }

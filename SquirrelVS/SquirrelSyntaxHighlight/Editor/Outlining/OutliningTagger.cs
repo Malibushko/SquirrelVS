@@ -71,7 +71,7 @@ namespace SquirrelSyntaxHighlight.Editor.Outlining
           yield return new TagSpan<IOutliningRegionTag>(
                  new SnapshotSpan(Span.Snapshot, Start, End - Start),
                  new OutliningRegionTag(false, false, "...", HoverText));
-        } 
+        }
       }
     }
     

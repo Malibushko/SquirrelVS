@@ -12,6 +12,8 @@ using System.Diagnostics;
 using Task = System.Threading.Tasks.Task;
 using System.Text;
 using System.Runtime.ExceptionServices;
+using SquirrelSyntaxHighlight.Editor.CodeSnippets;
+using SquirrelSyntaxHighlight.Common.Attributes;
 
 namespace SquirrelVS
 {
@@ -34,10 +36,7 @@ namespace SquirrelVS
   /// </remarks>
   [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
   [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
-  /*
-  [ProvideLanguageService(typeof(SquirrelSyntaxHighlight.SquirrelLanguageInfo), "Squirrel", 106, RequestStockColors = true, ShowSmartIndent = true, ShowCompletion = true, DefaultToInsertSpaces = true, HideAdvancedMembersByDefault = true, EnableAdvancedMembersOption = true, ShowDropDownOptions = true)]
-  [ProvideLanguageExtension(typeof(SquirrelSyntaxHighlight.SquirrelLanguageInfo), ".nut")]
-  */
+  [ProvideCodeExpansions(SnippetUtilities.LanguageServiceGuidString, false, 106, "Squirrel", @"Snippets\%LCID%\SnippetsIndex.xml", @"Snippets\%LCID%\Squirrel\")]
   [Guid(SquirrelVSPackage.PackageGuidString)]
   public sealed class SquirrelVSPackage : AsyncPackage
   {

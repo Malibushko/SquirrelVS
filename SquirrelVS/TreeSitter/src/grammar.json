@@ -3627,21 +3627,30 @@
           ]
         },
         {
-          "type": "FIELD",
-          "name": "name",
-          "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "STRING",
-                "value": "constructor"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "namespaced_identifier"
-              }
-            ]
-          }
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "function"
+                },
+                {
+                  "type": "FIELD",
+                  "name": "name",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "namespaced_identifier"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "STRING",
+              "value": "constructor"
+            }
+          ]
         },
         {
           "type": "FIELD",

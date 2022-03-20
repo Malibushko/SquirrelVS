@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<SnippetCollection>
+  <Language Lang="Squirrel" Guid="{AED70C38-87A8-4AA0-9EC6-C3B7CAB44CA3}">
+    <SnippetDir>
+      <OnOff>on</OnOff>
+      <Installed>true</Installed>
+      <Locale>1033</Locale>
+      <DirPath>Snippets\%LCID%\Squirrel\</DirPath>
+      <LocalizedName>Squirrel</LocalizedName>
+    </SnippetDir>
+  </Language>
+</SnippetCollection>
