@@ -6,6 +6,8 @@ using tree_sitter;
 using System.Linq;
 using System.Text.RegularExpressions;
 using SquirrelSyntaxHighlight.Editor;
+using SquirrelSyntaxHighlight.Common;
+using SquirrelSyntaxHighlight.Infrastructure.Syntax;
 
 namespace SquirrelSyntaxHighlight
 {
@@ -144,26 +146,12 @@ namespace SquirrelSyntaxHighlight
         SnapshotSpan _Snapshot
       )
     {
-      int SnapStartPosition = _Snapshot.Start.Position;
+      var Snapshot = _Snapshot.Trim();
 
-      for (; SnapStartPosition < _Snapshot.End.Position; ++SnapStartPosition)
-      {
-        if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapStartPosition]))
-          break;
-      }
-
-      int SnapEndPosition = _Snapshot.End.Position - 1;
-
-      for (; SnapEndPosition != _Snapshot.Start.Position; --SnapEndPosition)
-      {
-        if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapEndPosition]))
-          break;
-      }
-
-      if (SnapStartPosition == SnapEndPosition)
+      if (Snapshot.Span.Length <= 1)
         return new List<ClassificationSpan>();
 
-      api.TsTreeCursorReset(Walker, api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition));
+      api.TsTreeCursorReset(Walker, api.TsNodeDescendantForByteRange(Root, (uint)Snapshot.Span.Start, (uint)Snapshot.Span.End));
 
       return TryGetNodeSpans(_Snapshot, Walker, Language);
     }

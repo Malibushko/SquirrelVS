@@ -16,6 +16,8 @@
 
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
 namespace SquirrelSyntaxHighlight.Editor {
     /// <summary>
@@ -45,6 +47,7 @@ namespace SquirrelSyntaxHighlight.Editor {
         NewTextBufferInfo,
         TextContentChangedOnBackgroundThread,
         AnalyzerExpired,
+        ParseTreeChanged,
     }
 
     internal class SquirrelTextBufferInfoEventArgs : EventArgs {
@@ -81,4 +84,17 @@ namespace SquirrelSyntaxHighlight.Editor {
 
         public SquirrelTextBufferInfo NewTextBufferInfo { get; }
     }
+
+  internal class SquirrelTreeChanged : SquirrelTextBufferInfoEventArgs
+  {
+    public SquirrelTreeChanged(
+        SquirrelTextBufferInfoEvents _EventType,
+        List<SnapshotSpan>           _Spans
+      ) : base(_EventType)
+    {
+      ChangedSpans = _Spans;
+    }
+
+    public List<SnapshotSpan> ChangedSpans { get; }
+  }
 }

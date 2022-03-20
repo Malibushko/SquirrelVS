@@ -65,9 +65,11 @@
     <Compile Include="Editor\Indent\SmartIndentProvider.cs" />
     <Compile Include="Editor\ISnapshotTextReader.cs" />
     <Compile Include="Editor\ISquirrelTextBufferInfoEventSink.cs" />
+    <Compile Include="Editor\Outlining\OutliningTagger.cs" />
+    <Compile Include="Editor\Outlining\OutliningTaggerProvider.cs" />
     <Compile Include="Editor\SnapshotSpanSourceCodeReader.cs" />
     <Compile Include="Editor\SquirrelTextBufferInfo.cs" />
-    <Compile Include="Editor\SyntaxTreeWalker.cs" />
+    <Compile Include="Infrastructure\Syntax\SyntaxTreeWalker.cs" />
     <Compile Include="Editor\TokenCache.cs" />
     <Compile Include="Editor\Typing\ReturnKeyCommandHandler.cs" />
     <Compile Include="Infrastructure\Commands\AsyncCommandRangeToOleMenuCommandShim.cs" />
@@ -116,27 +118,6 @@
     <Reference Include="System.Xml" />
     <Reference Include="Tvl.VisualStudio.Antlr">
       <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Antlr.dll</HintPath>
-    </Reference>
-    <Reference Include="Tvl.VisualStudio.Language">
-      <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Language.dll</HintPath>
-    </Reference>
-    <Reference Include="Tvl.VisualStudio.Language.Implementation">
-      <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Language.Implementation.dll</HintPath>
-    </Reference>
-    <Reference Include="Tvl.VisualStudio.Language.Interfaces">
-      <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Language.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Tvl.VisualStudio.Shell">
-      <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Shell.dll</HintPath>
-    </Reference>
-    <Reference Include="Tvl.VisualStudio.Shell.Implementation">
-      <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Shell.Implementation.dll</HintPath>
-    </Reference>
-    <Reference Include="Tvl.VisualStudio.Text">
-      <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Text.dll</HintPath>
-    </Reference>
-    <Reference Include="Tvl.VisualStudio.Text.Implementation">
-      <HintPath>..\..\Shared\Tvl\Tvl.VisualStudio.Text.Implementation.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>

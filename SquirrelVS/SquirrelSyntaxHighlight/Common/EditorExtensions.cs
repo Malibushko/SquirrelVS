@@ -39,5 +39,35 @@ namespace SquirrelSyntaxHighlight.Common
 
       return null;
     }
+
+    public static SnapshotSpan Trim(
+        this SnapshotSpan _Snapshot
+      )
+    {
+      try
+      {
+        int SnapStartPosition = _Snapshot.Start.Position;
+
+        for (; SnapStartPosition < _Snapshot.End.Position; ++SnapStartPosition)
+        {
+          if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapStartPosition]))
+            break;
+        }
+
+        int SnapEndPosition = _Snapshot.End.Position - 1;
+
+        for (; SnapEndPosition != _Snapshot.Start.Position; --SnapEndPosition)
+        {
+          if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapEndPosition]))
+            break;
+        }
+
+        return new SnapshotSpan(_Snapshot.Snapshot, new Span(SnapStartPosition, SnapEndPosition - SnapStartPosition));
+      }
+      catch (Exception)
+      {
+        return _Snapshot;
+      }
+    }
   }
 }

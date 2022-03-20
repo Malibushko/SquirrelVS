@@ -65,17 +65,11 @@ namespace SquirrelSyntaxHighlight.Editor.BraceCompletion
         case '(':
         case '[':
         case '{':
-        {
-          // Valid anywhere, including comments / strings
-          return true;
-        }
-
         case '"':
         case '\'':
         {
-          // Not valid in comment / strings, so user can easily type triple-quotes
-          var Category = _Buffer.GetTokenAtPoint(_OpeningPoint)?.Category ?? TokenCategory.None;
-          return !(Category == TokenCategory.Comment || Category == TokenCategory.StringLiteral);
+          // Valid anywhere, including comments / strings
+          return true;
         }
 
         default:

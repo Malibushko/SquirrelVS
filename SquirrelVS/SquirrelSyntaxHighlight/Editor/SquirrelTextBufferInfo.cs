@@ -5,9 +5,11 @@ using System.Diagnostics;
 using System.Linq;
 using SquirrelSyntaxHighlight.Infrastructure;
 using SquirrelSyntaxHighlight.Parsing;
+using SquirrelSyntaxHighlight.Infrastructure.Syntax;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using tree_sitter;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
@@ -74,7 +76,8 @@ namespace SquirrelSyntaxHighlight.Editor
     }
 
     private readonly ConcurrentDictionary<object, ISquirrelTextBufferInfoEventSink> EventSinks;
-    private readonly TokenCache                                                   TokensCache;
+    private Lazy<TSTree>                                                   Tree;
+    private readonly TSParser                                                       Parser;
 
     private readonly bool HasChangedOnBackground;
     private bool          ReplaceRequested;
@@ -87,8 +90,13 @@ namespace SquirrelSyntaxHighlight.Editor
       Site        = _Site;
       Buffer      = _Buffer;
       EventSinks  = new ConcurrentDictionary<object, ISquirrelTextBufferInfoEventSink>();
-      TokensCache = new TokenCache();
-      
+      Parser      = api.TsParserNew();
+
+      if (!api.TsParserSetLanguage(Parser, squirrel.TreeSitterSquirrel()))
+        throw new Exception("failed to initialize parser");
+
+      Tree = new Lazy<TSTree>(() => api.TsParserParseString(Parser, null, _Buffer.CurrentSnapshot.GetText(), (uint)_Buffer.CurrentSnapshot.Length));
+
       if (Buffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument Document))
       {
         this.Document                  = Document;
@@ -142,7 +150,7 @@ namespace SquirrelSyntaxHighlight.Editor
       )
     {
       if (!HasChangedOnBackground)
-        UpdateTokenCache(_Args);
+        UpdateTree(_Args);
       
       InvokeSinks(new SquirrelTextBufferInfoNestedEventArgs(SquirrelTextBufferInfoEvents.TextContentChanged, _Args));
       
@@ -163,7 +171,7 @@ namespace SquirrelSyntaxHighlight.Editor
         ContentTypeChangedEventArgs _Args
       )
     {
-      ClearTokenCache();
+      ClearTree();
 
       InvokeSinks(new SquirrelTextBufferInfoNestedEventArgs(SquirrelTextBufferInfoEvents.ContentTypeChanged, _Args));
     }
@@ -179,7 +187,7 @@ namespace SquirrelSyntaxHighlight.Editor
         return;
       }
 
-      UpdateTokenCache(_Args);
+      UpdateTree(_Args);
       
       InvokeSinks(new SquirrelTextBufferInfoNestedEventArgs(SquirrelTextBufferInfoEvents.TextContentChangedOnBackgroundThread, _Args));
     }
@@ -258,152 +266,103 @@ namespace SquirrelSyntaxHighlight.Editor
 
     #endregion
 
-    /// <summary>
-    /// Returns the first token containing or adjacent to the specified point.
-    /// </summary>
-    public TrackingTokenInfo? GetTokenAtPoint(
-        SnapshotPoint _Point
-      )
-    {
-      return GetTrackingTokens(new SnapshotSpan(_Point, 0))
-            .Cast<TrackingTokenInfo?>()
-            .FirstOrDefault();
-    }
+    #region Tree Management
 
-    /// <summary>
-    /// Returns tokens for the specified line.
-    /// </summary>
-    public IEnumerable<TrackingTokenInfo> GetTokens(
-        ITextSnapshotLine _Line
-      )
-    {
-      using (var CacheSnapshot = TokensCache.GetSnapshot())
-      {
-        var LineTokenization = CacheSnapshot.GetLineTokenization(_Line, GetTokenizerLazy());
-        var LineNumber       = _Line.LineNumber;
-        var LineSpan         = _Line.Snapshot.CreateTrackingSpan(_Line.ExtentIncludingLineBreak, SpanTrackingMode.EdgeNegative);
-
-        return LineTokenization.Tokens.Select(t => new TrackingTokenInfo(t, LineNumber, LineSpan));
-      }
-    }
-
-    public IEnumerable<TrackingTokenInfo> GetTokens(
-        SnapshotSpan _Span
-      )
-    {
-      return GetTrackingTokens(_Span);
-    }
-
-    /// <summary>
-    /// Iterates forwards through tokens starting from the token at or
-    /// adjacent to the specified point.
-    /// </summary>
-    public IEnumerable<TrackingTokenInfo> GetTokensForwardFromPoint(
-        SnapshotPoint _Point
-      )
-    {
-      var Line = _Point.GetContainingLine();
-
-      foreach (var Token in GetTrackingTokens(new SnapshotSpan(_Point, Line.End)))
-        yield return Token;
-
-      while (Line.LineNumber < Line.Snapshot.LineCount - 1)
-      {
-        Line = Line.Snapshot.GetLineFromLineNumber(Line.LineNumber + 1);
-        
-        // Use line.Extent because GetLineTokens endpoints are inclusive - we
-        // will get the line break token because it is adjacent, but no
-        // other repetitions.
-        foreach (var Token in GetTrackingTokens(Line.Extent))
-          yield return Token;
-      }
-    }
-
-    /// <summary>
-    /// Iterates backwards through tokens starting from the token at or
-    /// adjacent to the specified point.
-    /// </summary>
-    public IEnumerable<TrackingTokenInfo> GetTokensInReverseFromPoint(
-        SnapshotPoint _Point
-      )
-    {
-      var Line = _Point.GetContainingLine();
-
-      foreach (var Token in GetTrackingTokens(new SnapshotSpan(Line.Start, _Point)).Reverse())
-        yield return Token;
-
-      while (Line.LineNumber > 0)
-      {
-        Line = Line.Snapshot.GetLineFromLineNumber(Line.LineNumber - 1);
-        
-        // Use line.Extent because GetLineTokens endpoints are inclusive - we
-        // will get the line break token because it is adjacent, but no
-        // other repetitions.
-        foreach (var Token in GetTrackingTokens(Line.Extent).Reverse())
-          yield return Token;
-      }
-    }
-
-    internal IEnumerable<TrackingTokenInfo> GetTrackingTokens(
-        SnapshotSpan _Span
-      )
-    {
-      int FirstLine = _Span.Start.GetContainingLine().LineNumber;
-      int LastLine  = _Span.End.GetContainingLine().LineNumber;
-
-      int StartColumn = _Span.Start - _Span.Start.GetContainingLine().Start;
-      int EndColumn   = _Span.End - _Span.End.GetContainingLine().Start;
-
-      // We need current state of the cache since it can change from a background thread
-      using (var CacheSnapshot = TokensCache.GetSnapshot())
-      {
-        var TokenizerLazy = GetTokenizerLazy();
-
-        for (int Line = FirstLine; Line <= LastLine; ++Line)
-        {
-          var LineTokenization = CacheSnapshot.GetLineTokenization(_Span.Snapshot.GetLineFromLineNumber(Line), TokenizerLazy);
-
-          foreach (var Token in LineTokenization.Tokens.TryEnumerate())
-          {
-            if (Line == FirstLine && Token.Column + Token.Length < StartColumn)
-              continue;
-            
-            if (Line == LastLine && Token.Column > EndColumn)
-              continue;
-            
-            yield return new TrackingTokenInfo(Token, Line, LineTokenization.Line);
-          }
-        }
-      }
-    }
-
-    #region Token Cache Management
-
-    private Lazy<Tokenizer> GetTokenizerLazy()
-        => new Lazy<Tokenizer>(() => new Tokenizer(_Options: TokenizerOptions.Verbatim | TokenizerOptions.VerbatimCommentsAndLineJoins));
-
-    private void ClearTokenCache() => TokensCache.Clear();
-
-    private void UpdateTokenCache(
+    void UpdateTree(
         TextContentChangedEventArgs _Args
       )
     {
-      // NOTE: Runs on background thread
-      var Snapshot = _Args.After;
-
-      if (Snapshot.TextBuffer != Buffer)
-      {
-        Debug.Fail("Mismatched buffer");
+      if (!Tree.IsValueCreated)
         return;
+
+      foreach (ITextChange Change in _Args.Changes)
+      {
+        var Line    = Buffer.CurrentSnapshot.GetLineFromPosition(Change.OldPosition);
+        var NewLine = Buffer.CurrentSnapshot.GetLineFromPosition(Change.NewPosition);
+
+        TSInputEdit Edit = new TSInputEdit()
+        {
+          StartByte  = (uint)Change.OldPosition,
+          NewEndByte = (uint)Change.NewEnd,
+          OldEndByte = (uint)Change.OldEnd,
+
+          StartPoint = new TSPoint()
+          {
+            Row = (uint)Line.LineNumber,
+            Column = (uint)(Change.OldPosition - Line.Start.Position)
+          },
+
+          NewEndPoint = new TSPoint
+          {
+            Row = (uint)NewLine.LineNumber,
+            Column = (uint)(Change.NewEnd - NewLine.Start.Position)
+          },
+
+          OldEndPoint = new TSPoint
+          {
+            Row = (uint)Line.LineNumber,
+            Column = (uint)(Change.OldEnd - Line.Start.Position)
+          }
+        };
+
+        api.TsTreeEdit(Tree.Value, Edit);
       }
 
-//      if (Snapshot.IsReplBufferWithCommand())
-//        return;
+      var Text = _Args.After.GetText();
 
-      // Prevent later updates overwriting our tokenization
-      TokensCache.Update(_Args, GetTokenizerLazy());
+      var EditedTree = api.TsParserParseString(Parser, Tree.Value, Text, (uint)Text.Length);
+
+      uint ChangesCount = 0;
+      TSRange[] Changes = api.TsTreeGetChangedRanges(Tree.Value, EditedTree, ref ChangesCount);
+
+      Tree = new Lazy<TSTree>(() => EditedTree);
+      
+      var Root = api.TsTreeRootNode(Tree.Value);
+
+      List<SnapshotSpan> ChangedSpans = new List<SnapshotSpan>();
+
+      for (uint i = 0; i < ChangesCount; i++)
+      {
+        ChangedSpans.Add(
+            new SnapshotSpan(
+              _Args.After,
+              new Span(
+                (int)Changes[i].StartByte,
+                (int)Changes[i].EndByte - (int)Changes[i].StartByte
+                )
+              )
+          );
+      }
+
+      InvokeSinks(new SquirrelTreeChanged(SquirrelTextBufferInfoEvents.ParseTreeChanged, ChangedSpans));
     }
 
+    void ClearTree()
+    {
+      if (Tree.IsValueCreated)
+        api.TsTreeDelete(Tree.Value);
+    }
+
+    public IEnumerable<TSNode> GetNodeWithSymbols(
+        SortedSet<string> _Symbols,
+        Span              _Span
+      )
+    {
+      TSNode       Root       = api.TsTreeRootNode(Tree.Value);
+      TSNode       Descendant = api.TsNodeDescendantForByteRange(Root, (uint)_Span.Start, (uint)_Span.End);
+      TSTreeCursor Walker     = api.TsTreeCursorNew(Descendant);
+      TSLanguage   Language   = api.TsParserLanguage(Parser);
+
+      foreach (TSNode Node in SyntaxTreeWalker.Traverse(Walker))
+      {
+        ushort Symbol = api.TsNodeSymbol(Node);
+
+        string Name = api.TsLanguageSymbolName(Language, Symbol);
+
+        if (_Symbols.Contains(Name))
+          yield return Node;
+      }
+    }
     #endregion
   }
 }

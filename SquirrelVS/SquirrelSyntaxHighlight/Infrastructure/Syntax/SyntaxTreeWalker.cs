@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using tree_sitter;
 
 
-namespace SquirrelSyntaxHighlight.Editor
+namespace SquirrelSyntaxHighlight.Infrastructure.Syntax
 {
   internal class SyntaxTreeWalker
   {

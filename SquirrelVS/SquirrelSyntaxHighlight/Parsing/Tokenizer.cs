@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using SquirrelSyntaxHighlight.Infrastructure;
+using SquirrelSyntaxHighlight.Infrastructure.Syntax;
 using SquirrelSyntaxHighlight.Editor;
 using Microsoft.VisualStudio.Text;
 using tree_sitter;
