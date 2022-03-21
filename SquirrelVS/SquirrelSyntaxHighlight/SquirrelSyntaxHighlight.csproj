@@ -145,36 +145,47 @@
     </Content>
     <Content Include="Snippets\1033\Squirrel\class.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\constructor.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\do.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\else.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\enum.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\function.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\if.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\local.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\switch.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\try.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\1033\Squirrel\while.snippet">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="Themes\High Contrast.vstheme" />
     <None Include="Themes\Blue.vstheme" />
