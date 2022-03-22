@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using tree_sitter;
-using System.Linq;
-using System.Text.RegularExpressions;
 using SquirrelSyntaxHighlight.Editor;
-using SquirrelSyntaxHighlight.Common;
+using Microsoft.VisualStudio.Shell;
+using tree_sitter;
 using SquirrelSyntaxHighlight.Infrastructure.Syntax;
+
+using Task = System.Threading.Tasks.Task;
 
 namespace SquirrelSyntaxHighlight
 {
-  public class SquirrelClasifier : IClassifier
+  public class SquirrelClasifier : IClassifier, ISquirrelTextBufferInfoEventSink
   {
+    [Import(typeof(SVsServiceProvider))]
+    internal IServiceProvider Site = null;
+
+    private readonly object Key = new object();
+
     public static readonly Dictionary<string, string> NodeClassificator = new Dictionary<string, string>
      {
         { "comment",    "Squirrel.Comment" },
@@ -40,17 +47,44 @@ namespace SquirrelSyntaxHighlight
         { "extends",    "Squirrel.Keyword" },
         { "constructor", "Squirrel.Keyword" },
         { "while",      "Squirrel.Keyword" },
-        { "enum",       "Squirrel.Keyword" }
+        { "enum",       "Squirrel.Keyword" },
+        { "throw",      "Squirrel.Keyword" }
      };
 
-    IClassificationTypeRegistryService ClassificationTypeRegistry;
+    public static SortedSet<string> ColoredNodes = new SortedSet<string>
+    {
+       "comment",
+       "string",
+       "if",
+       "switch",
+       "else",
+       "for",
+       "foreach",
+       "return",
+       "null",
+       "const",
+       "break",
+       "static",
+       "var",
+       "class",
+       "try",
+       "catch",
+       "case",
+       "local",
+       "function",
+       "delete",
+       "instanceof",
+       "typeof",
+       "extends",
+       "constructor",
+       "while",
+       "enum",
+       "throw"
+    };
 
-    TSParser                           Parser;
-    TSTree                             SyntaxTree;
-    TSLanguage                         Language;
-    TSTreeCursor                       Walker;
-    TSNode                             Root;
-    
+    IClassificationTypeRegistryService ClassificationTypeRegistry;    
+    ITextBuffer                        Buffer;
+    SquirrelTextBufferInfo             BufferInfo;
 
     internal SquirrelClasifier(
         IClassificationTypeRegistryService _Registry,
@@ -58,92 +92,10 @@ namespace SquirrelSyntaxHighlight
       )
     {
       ClassificationTypeRegistry = _Registry;
-      Parser = api.TsParserNew();
-      Language = squirrel.TreeSitterSquirrel();
+      Buffer                     = _Buffer;
+      BufferInfo                 = SquirrelTextBufferInfo.ForBuffer(Site, _Buffer);
 
-      if (api.TsParserSetLanguage(Parser, Language))
-      {
-        var Text = _Buffer.CurrentSnapshot.GetText();
-
-        SyntaxTree = api.TsParserParseString(Parser, null, Text, (uint)Text.Length);
-        Root       = api.TsTreeRootNode(SyntaxTree);
-        Walker     = api.TsTreeCursorNew(Root);
-      }
-
-      _Buffer.Changed += BufferChanged;
-    }
-
-    private void BufferChanged(
-        object                      _Sender,
-        TextContentChangedEventArgs _Args
-      )
-    {
-      var Buffer = (ITextBuffer)_Sender;
-
-      foreach (ITextChange Change in _Args.Changes)
-      {
-        var Line    = Buffer.CurrentSnapshot.GetLineFromPosition(Change.OldPosition);
-        var NewLine = Buffer.CurrentSnapshot.GetLineFromPosition(Change.NewPosition);
-        
-        TSInputEdit Edit = new TSInputEdit()
-        {
-          StartByte  = (uint)Change.OldPosition,
-          NewEndByte = (uint)Change.NewEnd,
-          OldEndByte = (uint)Change.OldEnd,
-
-          StartPoint = new TSPoint()
-          {
-            Row    = (uint)Line.LineNumber,
-            Column = (uint)(Change.OldPosition - Line.Start.Position)
-          },
-
-          NewEndPoint = new TSPoint
-          {
-            Row    = (uint)NewLine.LineNumber,
-            Column = (uint)(Change.NewEnd - NewLine.Start.Position)
-          },
-
-          OldEndPoint = new TSPoint
-          {
-            Row    = (uint)Line.LineNumber,
-            Column = (uint)(Change.OldEnd - Line.Start.Position)
-          }
-        };
-
-        api.TsTreeEdit(SyntaxTree, Edit);
-      }
-      
-      var Text = _Args.After.GetText();
-
-      var EditedTree = api.TsParserParseString(Parser, SyntaxTree, Text, (uint)Text.Length);
-
-      uint      ChangesCount = 0;
-      TSRange[] Changes      = api.TsTreeGetChangedRanges(SyntaxTree, EditedTree, ref ChangesCount);
-      
-      SyntaxTree = EditedTree;
-      Root       = api.TsTreeRootNode(SyntaxTree);
-
-      for (uint i = 0; i < ChangesCount; i++)
-      {
-        try
-        {
-          ClassificationChanged.Invoke(
-            this,
-            new ClassificationChangedEventArgs(
-              new SnapshotSpan(
-                _Args.After,
-                new Span(
-                  (int)Changes[i].StartByte,
-                  (int)Changes[i].EndByte - (int)Changes[i].StartByte
-                  )
-                )
-              )
-            );
-        } catch (Exception Ex)
-        {
-
-        }
-      }
+      BufferInfo.AddSink(Key, this);
     }
 
     #region Public Methods
@@ -170,59 +122,55 @@ namespace SquirrelSyntaxHighlight
       if (SnapStartPosition == SnapEndPosition)
         return new List<ClassificationSpan>();
 
-      api.TsTreeCursorReset(Walker, api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition));
-
-      return TryGetNodeSpans(_Snapshot, Walker, Language);
+      return TryGetNodeSpans(_Snapshot);
     }
 
     private List<ClassificationSpan> TryGetNodeSpans(
-        SnapshotSpan _Snapshot,
-        TSTreeCursor _Cursor,
-        TSLanguage   _Language
+        SnapshotSpan _Snapshot
       )
     {
       List<ClassificationSpan> Spans = new List<ClassificationSpan>();
 
-      foreach (TSNode Node in SyntaxTreeWalker.Traverse(_Cursor))
+      foreach (Tuple<TSNode, string> Node in BufferInfo.GetNodeWithSymbols(ColoredNodes, _Snapshot.Span))
       {
-        var Span = TryGetClassificationSpan(_Snapshot, _Language, Node);
+        int Start  = (int)api.TsNodeStartByte(Node.Item1);
+        int Length = (int)api.TsNodeEndByte(Node.Item1) - Start;
 
-        if (Span != null)
-          Spans.Add(Span);
+        Spans.Add(new ClassificationSpan(
+                     new SnapshotSpan(
+                        _Snapshot.Snapshot,
+                        new Span(Start, Length)
+                     ),
+                     ClassificationTypeRegistry.GetClassificationType(NodeClassificator[Node.Item2])
+                 )
+          );
       }
+
       return Spans;
     }
 
-    private ClassificationSpan TryGetClassificationSpan(
-        SnapshotSpan _Snapshot,
-        TSLanguage   _Language,
-        TSNode       _Node
+    public Task SquirrelTextBufferEventAsync(
+        SquirrelTextBufferInfo          _Sender, 
+        SquirrelTextBufferInfoEventArgs _Args
       )
     {
-      var StartPosition = api.TsNodeStartByte(_Node);
-
-      if (StartPosition >= _Snapshot.Span.End)
-        return null;
-
-      var EndPosition = api.TsNodeEndByte(_Node);
-
-      ushort Symbol = api.TsNodeSymbol(_Node);
-
-      string Name = api.TsLanguageSymbolName(_Language, Symbol);
-
-      if (NodeClassificator.TryGetValue(Name, out string _ClassificationType))
+      return Task.Run( () =>
       {
-        return new ClassificationSpan(
-                      new SnapshotSpan(
-                        _Snapshot.Snapshot,
-                        new Span((int)StartPosition, (int)(EndPosition - StartPosition))
-                     ),
-                     ClassificationTypeRegistry.GetClassificationType(_ClassificationType));
-      }
+        switch (_Args.Event)
+        {
+          case SquirrelTextBufferInfoEvents.ParseTreeChanged:
+          {
+            var Args = _Args as SquirrelTreeChangedArgs;
 
-      return null;
+            foreach (var Span in Args.ChangedSpans)
+              ClassificationChanged(this, new ClassificationChangedEventArgs(new SnapshotSpan(Buffer.CurrentSnapshot, Span)));
+
+            break;
+          }
+        }
+      });
     }
-    
+
     #endregion
 
     #region Public Events

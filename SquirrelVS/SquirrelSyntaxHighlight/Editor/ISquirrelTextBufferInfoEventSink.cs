@@ -28,14 +28,14 @@ namespace SquirrelSyntaxHighlight.Editor {
     /// IntelliSense features that require using another base class.
     /// Implement no-op handlers by returning <see cref="Task.CompletedTask"/>.
     /// </remarks>
-    internal interface ISquirrelTextBufferInfoEventSink {
+    public interface ISquirrelTextBufferInfoEventSink {
         Task SquirrelTextBufferEventAsync(
             SquirrelTextBufferInfo          _Sender, 
             SquirrelTextBufferInfoEventArgs _Args
           );
     }
 
-    internal enum SquirrelTextBufferInfoEvents {
+    public enum SquirrelTextBufferInfoEvents {
         None = 0,
         NewAnalysisEntry,
         NewParseTree,
@@ -50,7 +50,7 @@ namespace SquirrelSyntaxHighlight.Editor {
         ParseTreeChanged,
     }
 
-    internal class SquirrelTextBufferInfoEventArgs : EventArgs {
+    public class SquirrelTextBufferInfoEventArgs : EventArgs {
         public SquirrelTextBufferInfoEventArgs(
             SquirrelTextBufferInfoEvents _EventType
           ) 
@@ -85,9 +85,9 @@ namespace SquirrelSyntaxHighlight.Editor {
         public SquirrelTextBufferInfo NewTextBufferInfo { get; }
     }
 
-  internal class SquirrelTreeChanged : SquirrelTextBufferInfoEventArgs
+  internal class SquirrelTreeChangedArgs : SquirrelTextBufferInfoEventArgs
   {
-    public SquirrelTreeChanged(
+    public SquirrelTreeChangedArgs(
         SquirrelTextBufferInfoEvents _EventType,
         List<SnapshotSpan>           _Spans
       ) : base(_EventType)

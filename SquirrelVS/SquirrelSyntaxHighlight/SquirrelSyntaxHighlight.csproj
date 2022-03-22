@@ -52,6 +52,7 @@
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\StringExtensions.cs" />
     <Compile Include="Common\TaskExtensions.cs" />
+    <Compile Include="EditorFeatures\GoToDefinition\GoToDefinitionCommandHandler.cs" />
     <Compile Include="Editor\BraceCompletion\BraceCompletionContext.cs" />
     <Compile Include="Editor\BraceCompletion\BraceCompletionContextProvider.cs" />
     <Compile Include="Editor\BraceHighlight\BraceHighlightTagger.cs" />
@@ -64,6 +65,8 @@
     <Compile Include="Editor\CompletionHandlerProvider.cs" />
     <Compile Include="Editor\CompletionSource.cs" />
     <Compile Include="Editor\CompletionSourceProvider.cs" />
+    <Compile Include="Editor\Errors\DiagnosticsSquiggleTagger.cs" />
+    <Compile Include="Editor\Errors\DiagnosticsSquiggleTaggerProvider.cs" />
     <Compile Include="Editor\Indent\AutoIndent.cs" />
     <Compile Include="Editor\Indent\SmartIndent.cs" />
     <Compile Include="Editor\Indent\SmartIndentProvider.cs" />
@@ -212,7 +215,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="EditorFeatures\FindUsages\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

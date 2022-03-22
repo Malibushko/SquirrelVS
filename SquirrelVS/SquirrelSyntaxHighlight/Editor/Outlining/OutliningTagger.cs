@@ -59,14 +59,14 @@ namespace SquirrelSyntaxHighlight.Editor.Outlining
 
       foreach (var Span in _Spans)
       {
-        foreach (TSNode Node in BufferInfo.GetNodeWithSymbols(ExpandableNodeTypes, Span))
+        foreach (Tuple<TSNode, string> Node in BufferInfo.GetNodeWithSymbols(ExpandableNodeTypes, Span))
         {
-          int Start = (int)api.TsNodeStartByte(Node);
-          int End   = (int)api.TsNodeEndByte(Node);
+          int Start = (int)api.TsNodeStartByte(Node.Item1);
+          int End   = (int)api.TsNodeEndByte(Node.Item1);
 
-          TSNode Parent = api.TsNodeParent(Node);
+          TSNode Parent = api.TsNodeParent(Node.Item1);
 
-          string HoverText = Parent == null ? GetNodeText(Node) : GetNodeText(Parent);
+          string HoverText = Parent == null ? GetNodeText(Node.Item1) : GetNodeText(Parent);
           
           yield return new TagSpan<IOutliningRegionTag>(
                  new SnapshotSpan(Span.Snapshot, Start, End - Start),

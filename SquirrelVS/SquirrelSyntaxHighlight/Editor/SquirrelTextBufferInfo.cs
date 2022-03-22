@@ -14,7 +14,7 @@ using tree_sitter;
 namespace SquirrelSyntaxHighlight.Editor
 {
 
-  internal sealed class SquirrelTextBufferInfo
+  public sealed class SquirrelTextBufferInfo
   {
     private static readonly object SquirrelTextBufferInfoKey = new { Id = "SquirrelTextBufferInfo" };
 
@@ -341,7 +341,7 @@ namespace SquirrelSyntaxHighlight.Editor
         }
       }
 
-      InvokeSinks(new SquirrelTreeChanged(SquirrelTextBufferInfoEvents.ParseTreeChanged, ChangedSpans));
+      InvokeSinks(new SquirrelTreeChangedArgs(SquirrelTextBufferInfoEvents.ParseTreeChanged, ChangedSpans));
     }
 
     void ClearTree()
@@ -360,7 +360,7 @@ namespace SquirrelSyntaxHighlight.Editor
       return Descendant;
     }
 
-    public IEnumerable<TSNode> GetNodeWithSymbols(
+    public IEnumerable<Tuple<TSNode, string>> GetNodeWithSymbols(
         SortedSet<string> _Symbols,
         Span              _Span
       )
@@ -377,7 +377,7 @@ namespace SquirrelSyntaxHighlight.Editor
         string Name = api.TsLanguageSymbolName(Language, Symbol);
 
         if (_Symbols.Contains(Name))
-          yield return Node;
+          yield return new Tuple<TSNode, string>(Node, Name);
       }
     }
     #endregion
