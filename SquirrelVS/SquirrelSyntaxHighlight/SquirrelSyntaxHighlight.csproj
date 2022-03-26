@@ -102,6 +102,9 @@
     <Compile Include="Parsing\TokenKind.cs" />
     <Compile Include="Parsing\TokenTriggers.cs" />
     <Compile Include="Parsing\TreeSitter.cs" />
+    <Compile Include="Queries\QueryPredicate.cs" />
+    <Compile Include="Queries\SyntaxTreeQueries.cs" />
+    <Compile Include="Queries\SyntaxTreeQuery.cs" />
     <Compile Include="SquirrelConstants.cs" />
     <Compile Include="SyntaxHighlight\SquirrelClasifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -190,6 +193,21 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Queries\Queries\highlights-params.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Queries\Queries\highlights.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Queries\Queries\injections.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Queries\Queries\locals.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Queries\Queries\tags.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Themes\High Contrast.vstheme" />
     <None Include="Themes\Blue.vstheme" />
     <None Include="Themes\Contrast.vstheme" />
@@ -203,16 +221,16 @@
     </Content>
     <Content Include="Themes\make_theme_pkgdef.py" />
     <Content Include="Themes\Microsoft.SquirrelVS.theme.v15.0.pkgdef">
-      <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Themes\Microsoft.SquirrelVS.theme.v16.0.pkgdef">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Themes\Microsoft.SquirrelVS.theme.v17.0.pkgdef">
-      <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>
   <ItemGroup>

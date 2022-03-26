@@ -63,7 +63,7 @@ function Entity::MoveTo(newx,newy,newz)
 	y = newy;
 	z = newz;
 }
- 
+
 class Player extends Entity {
 	constructor(entityname)
 	{

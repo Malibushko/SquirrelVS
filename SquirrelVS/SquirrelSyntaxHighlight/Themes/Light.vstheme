@@ -1,22 +1,43 @@
 <Themes>
   <Theme Name="Light" GUID="{de3dbbcd-f642-433c-8353-8f1df4370aba}">
     <Category Name="Text Editor" GUID="{75A05685-00A8-4DED-BAE5-E7A50BFA929A}">
-      <Color Name="Squirrel.Keyword">
+      <Color Name="Squirrel.keyword">
         <Foreground Type="CT_RAW" Source="FFFF001f" />
       </Color>
-      <Color Name="Squirrel.Comment">
+      <Color Name="Squirrel.comment">
         <Foreground Type="CT_RAW" Source="FF318011" />
       </Color>
-      <Color Name="Squirrel.String">
+      <Color Name="Squirrel.string">
         <Foreground Type="CT_RAW" Source="FF1522B5" />
       </Color>
-      <Color Name="Squirrel.Global">
+      <Color Name="Squirrel.constant">
         <Foreground Type="CT_RAW" Source="FF70BAFA" />
       </Color>
-      <Color Name="Squirrel.LoopVariable">
+      <Color Name="Squirrel.constant.builtin">
+        <Foreground Type="CT_RAW" Source="FF70BAFA" />
+      </Color>
+      <Color Name="Squirrel.number">
         <Foreground Type="CT_RAW" Source="FF000000" />
       </Color>
-      <Color Name="Squirrel.FunctionVariable">
+      <Color Name="Squirrel.punctuation.delimiter">
+        <Foreground Type="CT_RAW" Source="FF000000" />
+      </Color>
+      <Color Name="Squirrel.class">
+        <Foreground Type="CT_RAW" Source="FFceab49" />
+      </Color>
+      <Color Name="Squirrel.function">
+        <Foreground Type="CT_RAW" Source="FF4d77ac" />
+      </Color>
+      <Color Name="Squirrel.function.method">
+        <Foreground Type="CT_RAW" Source="FF4d77ac" />
+      </Color>
+      <Color Name="Squirrel.function.builtin">
+        <Foreground Type="CT_RAW" Source="FF70BAFA" />
+      </Color>
+      <Color Name="Squirrel.variable.builtin">
+        <Foreground Type="CT_RAW" Source="FF70BAFA" />
+      </Color>
+      <Color Name="Squirrel.operator">
         <Foreground Type="CT_RAW" Source="FF000000" />
       </Color>
     </Category>

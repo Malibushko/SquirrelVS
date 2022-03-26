@@ -754,16 +754,17 @@
   {
     "type": "class_heritage",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "deref_expression",
-          "named": true
-        }
-      ]
+    "fields": {
+      "parent": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "deref_expression",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {

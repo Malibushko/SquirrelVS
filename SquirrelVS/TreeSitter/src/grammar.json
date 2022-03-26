@@ -3498,8 +3498,12 @@
           "value": "extends"
         },
         {
-          "type": "SYMBOL",
-          "name": "deref_expression"
+          "type": "FIELD",
+          "name": "parent",
+          "content": {
+            "type": "SYMBOL",
+            "name": "deref_expression"
+          }
         }
       ]
     },

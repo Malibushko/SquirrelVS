@@ -1,23 +1,44 @@
 <Themes>
   <Theme Name="Dark" GUID="{1ded0138-47ce-435e-84ef-9ec1f439b749}">
     <Category Name="Text Editor" GUID="{75A05685-00A8-4DED-BAE5-E7A50BFA929A}">
-      <Color Name="Squirrel.Keyword">
+      <Color Name="Squirrel.keyword">
         <Foreground Type="CT_RAW" Source="FFD69C56" />
       </Color>
-      <Color Name="Squirrel.Comment">
+      <Color Name="Squirrel.comment">
         <Foreground Type="CT_RAW" Source="FF4AA657" />
       </Color>
-      <Color Name="Squirrel.String">
+      <Color Name="Squirrel.string">
         <Foreground Type="CT_RAW" Source="FF4476C9" />
       </Color>
-      <Color Name="Squirrel.Global">
+      <Color Name="Squirrel.constant">
         <Foreground Type="CT_RAW" Source="FF67BBD5" />
       </Color>
-      <Color Name="Squirrel.LoopVariable">
-        <Foreground Type="CT_RAW" Source="FFDCDCDC" />
+      <Color Name="Squirrel.constant.builtin">
+        <Foreground Type="CT_RAW" Source="FF67BBD5" />
       </Color>
-      <Color Name="Squirrel.FunctionVariable">
-        <Foreground Type="CT_RAW" Source="FFDCDCDC" />
+      <Color Name="Squirrel.number">
+        <Foreground Type="CT_RAW" Source="FF92c1a5" />
+      </Color>
+      <Color Name="Squirrel.punctuation.delimiter">
+        <Foreground Type="CT_RAW" Source="FF000000" />
+      </Color>
+      <Color Name="Squirrel.class">
+        <Foreground Type="CT_RAW" Source="FFafc84b" />
+      </Color>
+      <Color Name="Squirrel.function">
+        <Foreground Type="CT_RAW" Source="FF89bbc6" />
+      </Color>
+      <Color Name="Squirrel.function.method">
+        <Foreground Type="CT_RAW" Source="FF89bbc6" />
+      </Color>
+      <Color Name="Squirrel.function.builtin">
+        <Foreground Type="CT_RAW" Source="FF96dbdb" />
+      </Color>
+      <Color Name="Squirrel.variable.builtin">
+        <Foreground Type="CT_RAW" Source="FF96dbdb" />
+      </Color>
+      <Color Name="Squirrel.operator">
+        <Foreground Type="CT_RAW" Source="FFd0d7c8" />
       </Color>
     </Category>
   </Theme>

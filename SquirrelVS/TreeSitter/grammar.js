@@ -595,7 +595,7 @@ module.exports = grammar({
       optional($.semicolon)
     ))),
 
-    class_heritage: $ => seq('extends', $.deref_expression),
+    class_heritage: $ => seq('extends', field('parent', $.deref_expression)),
 
     class_body: $ => seq(
       '{',

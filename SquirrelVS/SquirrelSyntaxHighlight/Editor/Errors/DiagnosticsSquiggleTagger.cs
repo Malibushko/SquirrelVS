@@ -60,7 +60,7 @@ namespace SquirrelSyntaxHighlight.Editor.Errors
         if (SnapStartPosition == SnapEndPosition)
           continue;
 
-        TSNode Root = Info.GetNodeAt(new Span(SnapStartPosition, SnapEndPosition));
+        TSNode       Root   = Info.GetNodeAt(new Span(SnapStartPosition, SnapEndPosition - SnapStartPosition));
         TSTreeCursor Walker = api.TsTreeCursorNew(Root);
 
         foreach (TSNode Node in SyntaxTreeWalker.Traverse(Walker))

@@ -6,6 +6,7 @@ using System.Linq;
 using SquirrelSyntaxHighlight.Infrastructure;
 using SquirrelSyntaxHighlight.Parsing;
 using SquirrelSyntaxHighlight.Infrastructure.Syntax;
+using SquirrelSyntaxHighlight.Queries;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -17,6 +18,8 @@ namespace SquirrelSyntaxHighlight.Editor
   public sealed class SquirrelTextBufferInfo
   {
     private static readonly object SquirrelTextBufferInfoKey = new { Id = "SquirrelTextBufferInfo" };
+
+    private Dictionary<string, SyntaxTreeQuery> QueryCache = new Dictionary<string, SyntaxTreeQuery>();
 
     public static SquirrelTextBufferInfo ForBuffer(
         IServiceProvider _Site, 
@@ -348,6 +351,20 @@ namespace SquirrelSyntaxHighlight.Editor
     {
       if (Tree.IsValueCreated)
         api.TsTreeDelete(Tree.Value);
+    }
+    public IEnumerable<Tuple<string, Span>> ExecuteQuery(
+        TSNode _Root,
+        string _Query
+      )
+    {
+      if (!QueryCache.ContainsKey(_Query))
+        QueryCache.Add(_Query, SyntaxTreeQuery.FromString(api.TsParserLanguage(Parser), _Query));
+
+      var Query = QueryCache[_Query];
+      
+      Query?.Reset();
+      
+      return Query?.Execute(Buffer, _Root) ?? Enumerable.Empty<Tuple<string, Span>>();
     }
 
     public TSNode GetNodeAt(

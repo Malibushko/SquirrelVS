@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace SquirrelSyntaxHighlight.Editor.Outlining
 {
-  [Export(typeof(ITaggerProvider))]
+  //[Export(typeof(ITaggerProvider))]
   [TagType(typeof(IOutliningRegionTag))]
   [ContentType(SquirrelConstants.SquirrelContentType)]
   internal sealed class OutliningTaggerProvider : ITaggerProvider

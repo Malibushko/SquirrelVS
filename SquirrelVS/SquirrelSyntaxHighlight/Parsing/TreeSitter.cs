@@ -1517,6 +1517,16 @@ namespace tree_sitter
                 return __result0;
             }
         }
+
+      public global::tree_sitter.TSQueryCapture this[int _Index]
+      {
+        get
+        {
+          var __result0 = global::tree_sitter.TSQueryCapture.__GetOrCreateInstance(((__Internal*)__Instance)->captures + (sizeof(global::tree_sitter.TSQueryCapture.__Internal) * _Index), false);
+          return __result0;
+      }
+      }
+        
     }
 
     public unsafe partial class TSQueryPredicateStep : IDisposable
@@ -2930,14 +2940,18 @@ namespace tree_sitter
         /// <para>that represent the end of an individual predicate. If a pattern has two</para>
         /// <para>predicates, then there will be two steps with this `type` in the array.</para>
         /// </remarks>
-        public static global::tree_sitter.TSQueryPredicateStep TsQueryPredicatesForPattern(global::tree_sitter.TSQuery self, uint pattern_index, ref uint length)
+        public static global::tree_sitter.TSQueryPredicateStep[] TsQueryPredicatesForPattern(global::tree_sitter.TSQuery self, uint pattern_index, ref uint length)
         {
             var __arg0 = self is null ? __IntPtr.Zero : self.__Instance;
             fixed (uint* __length2 = &length)
             {
                 var __arg2 = __length2;
                 var __ret = __Internal.TsQueryPredicatesForPattern(__arg0, pattern_index, __arg2);
-                var __result0 = global::tree_sitter.TSQueryPredicateStep.__GetOrCreateInstance(__ret, false);
+                var __result0 = new TSQueryPredicateStep[*__arg2];
+                
+                for (int i = 0; i < *__arg2; i++)
+                  __result0[i] = global::tree_sitter.TSQueryPredicateStep.__GetOrCreateInstance(__ret + i * sizeof(TSQueryPredicateStep.__Internal), false);
+
                 return __result0;
             }
         }

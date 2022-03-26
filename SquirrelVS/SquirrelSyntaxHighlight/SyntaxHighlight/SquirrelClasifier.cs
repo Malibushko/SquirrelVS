@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ using SquirrelSyntaxHighlight.Editor;
 using Microsoft.VisualStudio.Shell;
 using tree_sitter;
 using SquirrelSyntaxHighlight.Infrastructure.Syntax;
-
+using SquirrelSyntaxHighlight.Queries;
 using Task = System.Threading.Tasks.Task;
 
 namespace SquirrelSyntaxHighlight
@@ -51,35 +52,9 @@ namespace SquirrelSyntaxHighlight
         { "throw",      "Squirrel.Keyword" }
      };
 
-    public static SortedSet<string> ColoredNodes = new SortedSet<string>
+    private static Dictionary<string, string> QueryCache = new Dictionary<string, string>
     {
-       "comment",
-       "string",
-       "if",
-       "switch",
-       "else",
-       "for",
-       "foreach",
-       "return",
-       "null",
-       "const",
-       "break",
-       "static",
-       "var",
-       "class",
-       "try",
-       "catch",
-       "case",
-       "local",
-       "function",
-       "delete",
-       "instanceof",
-       "typeof",
-       "extends",
-       "constructor",
-       "while",
-       "enum",
-       "throw"
+      // Empty
     };
 
     IClassificationTypeRegistryService ClassificationTypeRegistry;    
@@ -94,6 +69,9 @@ namespace SquirrelSyntaxHighlight
       ClassificationTypeRegistry = _Registry;
       Buffer                     = _Buffer;
       BufferInfo                 = SquirrelTextBufferInfo.ForBuffer(Site, _Buffer);
+
+      if (!QueryCache.ContainsKey(SyntaxTreeQueries.HIGHLIGHTS_QUERY))
+        QueryCache.Add(SyntaxTreeQueries.HIGHLIGHTS_QUERY, File.ReadAllText(SyntaxTreeQueries.HIGHLIGHTS_QUERY));
 
       BufferInfo.AddSink(Key, this);
     }
@@ -111,9 +89,9 @@ namespace SquirrelSyntaxHighlight
           break;
       }
 
-      int SnapEndPosition = _Snapshot.End.Position - 1;
+      int SnapEndPosition = _Snapshot.End.Position;
 
-      for (; SnapEndPosition != _Snapshot.Start.Position; --SnapEndPosition)
+      for (; SnapEndPosition > SnapStartPosition && SnapEndPosition < _Snapshot.Snapshot.Length; --SnapEndPosition)
       {
         if (!char.IsWhiteSpace(_Snapshot.Snapshot[SnapEndPosition]))
           break;
@@ -122,7 +100,7 @@ namespace SquirrelSyntaxHighlight
       if (SnapStartPosition == SnapEndPosition)
         return new List<ClassificationSpan>();
 
-      return TryGetNodeSpans(_Snapshot);
+      return TryGetNodeSpans(new SnapshotSpan(_Snapshot.Snapshot, new Span(SnapStartPosition, SnapEndPosition - SnapStartPosition)));
     }
 
     private List<ClassificationSpan> TryGetNodeSpans(
@@ -130,18 +108,22 @@ namespace SquirrelSyntaxHighlight
       )
     {
       List<ClassificationSpan> Spans = new List<ClassificationSpan>();
-
-      foreach (Tuple<TSNode, string> Node in BufferInfo.GetNodeWithSymbols(ColoredNodes, _Snapshot.Span))
+      
+      var Root = BufferInfo.GetNodeAt(_Snapshot.Span);
+      
+      foreach (Tuple<string, Span> CaptureSpan in  BufferInfo.ExecuteQuery(Root, QueryCache[SyntaxTreeQueries.HIGHLIGHTS_QUERY]))
       {
-        int Start  = (int)api.TsNodeStartByte(Node.Item1);
-        int Length = (int)api.TsNodeEndByte(Node.Item1) - Start;
+        var Type = ClassificationTypeRegistry.GetClassificationType($"Squirrel.{CaptureSpan.Item1}");
+
+        if (Type == null)
+          continue;
 
         Spans.Add(new ClassificationSpan(
                      new SnapshotSpan(
                         _Snapshot.Snapshot,
-                        new Span(Start, Length)
+                        CaptureSpan.Item2
                      ),
-                     ClassificationTypeRegistry.GetClassificationType(NodeClassificator[Node.Item2])
+                     Type
                  )
           );
       }
