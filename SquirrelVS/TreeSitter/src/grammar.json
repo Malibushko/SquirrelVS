@@ -3651,8 +3651,12 @@
               ]
             },
             {
-              "type": "STRING",
-              "value": "constructor"
+              "type": "FIELD",
+              "name": "constructor",
+              "content": {
+                "type": "STRING",
+                "value": "constructor"
+              }
             }
           ]
         },

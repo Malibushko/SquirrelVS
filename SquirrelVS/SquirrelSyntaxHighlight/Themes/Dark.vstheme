@@ -11,7 +11,7 @@
         <Foreground Type="CT_RAW" Source="FF4476C9" />
       </Color>
       <Color Name="Squirrel.constant">
-        <Foreground Type="CT_RAW" Source="FF67BBD5" />
+        <Foreground Type="CT_RAW" Source="FFD69C56" />
       </Color>
       <Color Name="Squirrel.constant.builtin">
         <Foreground Type="CT_RAW" Source="FF67BBD5" />
@@ -20,7 +20,7 @@
         <Foreground Type="CT_RAW" Source="FF92c1a5" />
       </Color>
       <Color Name="Squirrel.punctuation.delimiter">
-        <Foreground Type="CT_RAW" Source="FF000000" />
+        <Foreground Type="CT_RAW" Source="FF99afb5" />
       </Color>
       <Color Name="Squirrel.class">
         <Foreground Type="CT_RAW" Source="FFafc84b" />

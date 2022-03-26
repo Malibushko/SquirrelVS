@@ -21,37 +21,6 @@ namespace SquirrelSyntaxHighlight
 
     private readonly object Key = new object();
 
-    public static readonly Dictionary<string, string> NodeClassificator = new Dictionary<string, string>
-     {
-        { "comment",    "Squirrel.Comment" },
-        { "string",     "Squirrel.String"  },
-        { "if",         "Squirrel.Keyword" },
-        { "switch",     "Squirrel.Keyword" },
-        { "else",       "Squirrel.Keyword" },
-        { "for",        "Squirrel.Keyword" },
-        { "foreach",    "Squirrel.Keyword" },
-        { "return",     "Squirrel.Keyword" },
-        { "null",       "Squirrel.Keyword" },
-        { "const",      "Squirrel.Keyword" },
-        { "break",      "Squirrel.Keyword" },
-        { "static",     "Squirrel.Keyword" },
-        { "var",        "Squirrel.Keyword" },
-        { "class",      "Squirrel.Keyword" },
-        { "try",        "Squirrel.Keyword" },
-        { "catch",      "Squirrel.Keyword" },
-        { "case",       "Squirrel.Keyword" },
-        { "local",      "Squirrel.Keyword" },
-        { "function",   "Squirrel.Keyword" },
-        { "delete",     "Squirrel.Keyword" },
-        { "instanceof", "Squirrel.Keyword" },
-        { "typeof",     "Squirrel.Keyword" },
-        { "extends",    "Squirrel.Keyword" },
-        { "constructor", "Squirrel.Keyword" },
-        { "while",      "Squirrel.Keyword" },
-        { "enum",       "Squirrel.Keyword" },
-        { "throw",      "Squirrel.Keyword" }
-     };
-
     private static Dictionary<string, string> QueryCache = new Dictionary<string, string>
     {
       // Empty

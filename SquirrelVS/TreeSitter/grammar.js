@@ -624,7 +624,7 @@ module.exports = grammar({
             seq('function',
                 field('name', $.namespaced_identifier)
               ),
-            'constructor'
+            field('constructor', 'constructor')
           ),
       field('parameters', $.formal_parameters),
       field('body', $.statement_block)

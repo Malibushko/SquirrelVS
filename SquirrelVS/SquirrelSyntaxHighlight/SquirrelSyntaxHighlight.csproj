@@ -61,10 +61,11 @@
     <Compile Include="Editor\CodeSnippets\InsertSnippetCommandHandler.cs" />
     <Compile Include="Editor\CodeSnippets\SnippetManager.cs" />
     <Compile Include="Editor\CodeSnippets\SnippetUtilities.cs" />
-    <Compile Include="Editor\CompletionCommandHandler.cs" />
-    <Compile Include="Editor\CompletionHandlerProvider.cs" />
-    <Compile Include="Editor\CompletionSource.cs" />
-    <Compile Include="Editor\CompletionSourceProvider.cs" />
+    <Compile Include="Editor\Completion\CompletionCommandHandler.cs" />
+    <Compile Include="Editor\Completion\CompletionFunctions.cs" />
+    <Compile Include="Editor\Completion\CompletionHandlerProvider.cs" />
+    <Compile Include="Editor\Completion\CompletionSource.cs" />
+    <Compile Include="Editor\Completion\CompletionSourceProvider.cs" />
     <Compile Include="Editor\Errors\DiagnosticsSquiggleTagger.cs" />
     <Compile Include="Editor\Errors\DiagnosticsSquiggleTaggerProvider.cs" />
     <Compile Include="Editor\Indent\AutoIndent.cs" />

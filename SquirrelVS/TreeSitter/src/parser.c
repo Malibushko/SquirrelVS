@@ -12,7 +12,7 @@
 #define ALIAS_COUNT 1
 #define TOKEN_COUNT 94
 #define EXTERNAL_TOKEN_COUNT 0
-#define FIELD_COUNT 30
+#define FIELD_COUNT 31
 #define MAX_ALIAS_SEQUENCE_LENGTH 9
 #define PRODUCTION_ID_COUNT 47
 
@@ -1235,30 +1235,31 @@ enum {
   field_body = 4,
   field_condition = 5,
   field_consequence = 6,
-  field_expression = 7,
-  field_function = 8,
-  field_handler = 9,
-  field_id = 10,
-  field_identifier = 11,
-  field_increment = 12,
-  field_index = 13,
-  field_index_id = 14,
-  field_initializer = 15,
-  field_iterable = 16,
-  field_left = 17,
-  field_member = 18,
-  field_name = 19,
-  field_object = 20,
-  field_operator = 21,
-  field_parameter = 22,
-  field_parameters = 23,
-  field_parent = 24,
-  field_parent_expression = 25,
-  field_property = 26,
-  field_right = 27,
-  field_root = 28,
-  field_value = 29,
-  field_value_id = 30,
+  field_constructor = 7,
+  field_expression = 8,
+  field_function = 9,
+  field_handler = 10,
+  field_id = 11,
+  field_identifier = 12,
+  field_increment = 13,
+  field_index = 14,
+  field_index_id = 15,
+  field_initializer = 16,
+  field_iterable = 17,
+  field_left = 18,
+  field_member = 19,
+  field_name = 20,
+  field_object = 21,
+  field_operator = 22,
+  field_parameter = 23,
+  field_parameters = 24,
+  field_parent = 25,
+  field_parent_expression = 26,
+  field_property = 27,
+  field_right = 28,
+  field_root = 29,
+  field_value = 30,
+  field_value_id = 31,
 };
 
 static const char * const ts_field_names[] = {
@@ -1269,6 +1270,7 @@ static const char * const ts_field_names[] = {
   [field_body] = "body",
   [field_condition] = "condition",
   [field_consequence] = "consequence",
+  [field_constructor] = "constructor",
   [field_expression] = "expression",
   [field_function] = "function",
   [field_handler] = "handler",
@@ -1331,17 +1333,17 @@ static const TSFieldMapSlice ts_field_map_slices[PRODUCTION_ID_COUNT] = {
   [33] = {.index = 55, .length = 2},
   [34] = {.index = 57, .length = 2},
   [35] = {.index = 59, .length = 2},
-  [36] = {.index = 61, .length = 2},
-  [37] = {.index = 63, .length = 3},
-  [38] = {.index = 66, .length = 3},
-  [39] = {.index = 69, .length = 3},
-  [40] = {.index = 72, .length = 2},
-  [41] = {.index = 74, .length = 2},
-  [42] = {.index = 76, .length = 4},
-  [43] = {.index = 80, .length = 3},
-  [44] = {.index = 83, .length = 2},
-  [45] = {.index = 85, .length = 3},
-  [46] = {.index = 88, .length = 4},
+  [36] = {.index = 61, .length = 3},
+  [37] = {.index = 64, .length = 3},
+  [38] = {.index = 67, .length = 3},
+  [39] = {.index = 70, .length = 3},
+  [40] = {.index = 73, .length = 3},
+  [41] = {.index = 76, .length = 2},
+  [42] = {.index = 78, .length = 4},
+  [43] = {.index = 82, .length = 3},
+  [44] = {.index = 85, .length = 2},
+  [45] = {.index = 87, .length = 3},
+  [46] = {.index = 90, .length = 4},
 };
 
 static const TSFieldMapEntry ts_field_map_entries[] = {
@@ -1443,42 +1445,44 @@ static const TSFieldMapEntry ts_field_map_entries[] = {
     {field_initializer, 3},
   [61] =
     {field_body, 2},
+    {field_constructor, 0},
     {field_parameters, 1},
-  [63] =
+  [64] =
     {field_alternative, 4},
     {field_condition, 0},
     {field_consequence, 2},
-  [66] =
+  [67] =
     {field_body, 5},
     {field_condition, 3},
     {field_initializer, 2},
-  [69] =
+  [70] =
     {field_body, 3},
     {field_name, 1},
     {field_parameters, 2},
-  [72] =
+  [73] =
     {field_body, 3},
+    {field_constructor, 1},
     {field_parameters, 2},
-  [74] =
+  [76] =
     {field_body, 3},
     {field_value, 1},
-  [76] =
+  [78] =
     {field_body, 6},
     {field_condition, 3},
     {field_increment, 4},
     {field_initializer, 2},
-  [80] =
+  [82] =
     {field_body, 6},
     {field_index_id, 2},
     {field_iterable, 4},
-  [83] =
+  [85] =
     {field_body, 4},
     {field_parameter, 2},
-  [85] =
+  [87] =
     {field_body, 4},
     {field_name, 2},
     {field_parameters, 3},
-  [88] =
+  [90] =
     {field_body, 8},
     {field_index_id, 2},
     {field_iterable, 6},

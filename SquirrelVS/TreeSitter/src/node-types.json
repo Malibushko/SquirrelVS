@@ -1273,6 +1273,16 @@
           }
         ]
       },
+      "constructor": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "constructor",
+            "named": false
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": false,

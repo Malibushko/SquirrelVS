@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using SquirrelSyntaxHighlight.Editor.CompletionConsts;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
@@ -27,8 +28,17 @@ namespace SquirrelSyntaxHighlight.Editor
       TextBuffer     = _TextBuffer;
       CompletionList = new List<Completion>();
       
-      foreach (var Token in SquirrelClasifier.NodeClassificator)
-        CompletionList.Add(new Completion(Token.Key, Token.Key, Token.Key, null, null));
+      foreach (var KeyValue in CompletionFunctions.Keywords)
+        CompletionList.Add(new Completion(KeyValue.Key, KeyValue.Key, KeyValue.Value, null, null));
+      
+      foreach (var KeyValue in CompletionFunctions.BuiltinFunction)
+        CompletionList.Add(new Completion(KeyValue.Key, KeyValue.Key, KeyValue.Value, null, null));
+
+      foreach (var Token in CompletionFunctions.BuiltinDelegates)
+        CompletionList.Add(new Completion(Token, Token, Token, null, null));
+
+      foreach (var KeyValue in CompletionFunctions.BuiltinVariables)
+        CompletionList.Add(new Completion(KeyValue.Key, KeyValue.Key, KeyValue.Value, null, null));
     }
 
     void ICompletionSource.AugmentCompletionSession(
