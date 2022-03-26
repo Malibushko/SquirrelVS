@@ -1,4 +1,4 @@
-Visual Studio Extention to support Squirrel Language in Visual Studio
+[Squirrel Language](http://squirrel-lang.org/) support for Visual Studio is developed and managed here.
 
 ![](./Images/typing.gif)
 
