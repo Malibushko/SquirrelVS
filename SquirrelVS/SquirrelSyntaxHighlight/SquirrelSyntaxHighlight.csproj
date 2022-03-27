@@ -103,6 +103,9 @@
     <Compile Include="Parsing\TokenKind.cs" />
     <Compile Include="Parsing\TokenTriggers.cs" />
     <Compile Include="Parsing\TreeSitter.cs" />
+    <Content Include="Queries\Queries\blocks.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Queries\QueryPredicate.cs" />
     <Compile Include="Queries\SyntaxTreeQueries.cs" />
     <Compile Include="Queries\SyntaxTreeQuery.cs" />

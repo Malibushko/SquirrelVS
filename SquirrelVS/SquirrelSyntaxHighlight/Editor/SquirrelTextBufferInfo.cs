@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.IO;
 using SquirrelSyntaxHighlight.Infrastructure;
 using SquirrelSyntaxHighlight.Parsing;
 using SquirrelSyntaxHighlight.Infrastructure.Syntax;
@@ -19,8 +20,8 @@ namespace SquirrelSyntaxHighlight.Editor
   {
     private static readonly object SquirrelTextBufferInfoKey = new { Id = "SquirrelTextBufferInfo" };
 
-    private Dictionary<string, SyntaxTreeQuery> QueryCache = new Dictionary<string, SyntaxTreeQuery>();
-
+    private Dictionary<string, SyntaxTreeQuery> QueryCache     = new Dictionary<string, SyntaxTreeQuery>();
+    
     public static SquirrelTextBufferInfo ForBuffer(
         IServiceProvider _Site, 
         ITextBuffer      _Buffer
@@ -352,6 +353,28 @@ namespace SquirrelSyntaxHighlight.Editor
       if (Tree.IsValueCreated)
         api.TsTreeDelete(Tree.Value);
     }
+
+    public IEnumerable<Tuple<string, Span>> ExecuteQueryFromFile(
+        TSNode _Root,
+        string _FilePath
+      )
+    {
+      if (_Root == null)
+        return Enumerable.Empty<Tuple<string, Span>>();
+
+      if (!QueryCache.TryGetValue(_FilePath, out SyntaxTreeQuery _Value))
+      {
+        if (File.Exists(_FilePath))
+          QueryCache[_FilePath] = SyntaxTreeQuery.FromFile(api.TsParserLanguage(Parser), _FilePath);
+      }
+
+      var Query = QueryCache[_FilePath];
+
+      Query?.Reset();
+
+      return Query?.Execute(Buffer, _Root) ?? Enumerable.Empty<Tuple<string, Span>>();
+    }
+
     public IEnumerable<Tuple<string, Span>> ExecuteQuery(
         TSNode _Root,
         string _Query
@@ -371,8 +394,27 @@ namespace SquirrelSyntaxHighlight.Editor
         Span _Span
       )
     {
+      int SnapStartPosition = _Span.Start;
+
+      for (; SnapStartPosition < _Span.End; ++SnapStartPosition)
+      {
+        if (!char.IsWhiteSpace(Buffer.CurrentSnapshot[SnapStartPosition]))
+          break;
+      }
+
+      int SnapEndPosition = _Span.End;
+
+      for (; SnapEndPosition > SnapStartPosition && SnapEndPosition < Buffer.CurrentSnapshot.Length; --SnapEndPosition)
+      {
+        if (!char.IsWhiteSpace(Buffer.CurrentSnapshot[SnapEndPosition]))
+          break;
+      }
+
+      if (SnapStartPosition == SnapEndPosition)
+        return null;
+
       TSNode Root       = api.TsTreeRootNode(Tree.Value);
-      TSNode Descendant = api.TsNodeDescendantForByteRange(Root, (uint)_Span.Start, (uint)_Span.End);
+      TSNode Descendant = api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition);
       
       return Descendant;
     }

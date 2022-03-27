@@ -41,26 +41,11 @@ namespace SquirrelSyntaxHighlight.Editor.Errors
 
       foreach (var Span in _Spans)
       {
-        int SnapStartPosition = Span.Start.Position;
+        TSNode Root = Info.GetNodeAt(Span);
 
-        for (; SnapStartPosition < Span.End.Position; ++SnapStartPosition)
-        {
-          if (!char.IsWhiteSpace(Span.Snapshot[SnapStartPosition]))
-            break;
-        }
-
-        int SnapEndPosition = Span.End.Position;
-
-        for (; SnapEndPosition < Span.Start.Position; --SnapEndPosition)
-        {
-          if (!char.IsWhiteSpace(Span.Snapshot[SnapEndPosition]))
-            break;
-        }
-
-        if (SnapStartPosition == SnapEndPosition)
+        if (Root == null)
           continue;
 
-        TSNode       Root   = Info.GetNodeAt(new Span(SnapStartPosition, SnapEndPosition - SnapStartPosition));
         TSTreeCursor Walker = api.TsTreeCursorNew(Root);
 
         foreach (TSNode Node in SyntaxTreeWalker.Traverse(Walker))

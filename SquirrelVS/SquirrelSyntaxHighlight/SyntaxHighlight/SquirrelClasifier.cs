@@ -21,11 +21,6 @@ namespace SquirrelSyntaxHighlight
 
     private readonly object Key = new object();
 
-    private static Dictionary<string, string> QueryCache = new Dictionary<string, string>
-    {
-      // Empty
-    };
-
     IClassificationTypeRegistryService ClassificationTypeRegistry;    
     ITextBuffer                        Buffer;
     SquirrelTextBufferInfo             BufferInfo;
@@ -38,9 +33,6 @@ namespace SquirrelSyntaxHighlight
       ClassificationTypeRegistry = _Registry;
       Buffer                     = _Buffer;
       BufferInfo                 = SquirrelTextBufferInfo.ForBuffer(Site, _Buffer);
-
-      if (!QueryCache.ContainsKey(SyntaxTreeQueries.HIGHLIGHTS_QUERY))
-        QueryCache.Add(SyntaxTreeQueries.HIGHLIGHTS_QUERY, File.ReadAllText(SyntaxTreeQueries.HIGHLIGHTS_QUERY));
 
       BufferInfo.AddSink(Key, this);
     }
@@ -80,7 +72,7 @@ namespace SquirrelSyntaxHighlight
       
       var Root = BufferInfo.GetNodeAt(_Snapshot.Span);
       
-      foreach (Tuple<string, Span> CaptureSpan in  BufferInfo.ExecuteQuery(Root, QueryCache[SyntaxTreeQueries.HIGHLIGHTS_QUERY]))
+      foreach (Tuple<string, Span> CaptureSpan in BufferInfo.ExecuteQueryFromFile(Root, SyntaxTreeQueries.HIGHLIGHTS_QUERY))
       {
         var Type = ClassificationTypeRegistry.GetClassificationType($"Squirrel.{CaptureSpan.Item1}");
 

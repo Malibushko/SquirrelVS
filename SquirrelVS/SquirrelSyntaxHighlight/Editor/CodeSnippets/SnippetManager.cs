@@ -143,6 +143,9 @@ namespace SquirrelSyntaxHighlight.Editor.CodeSnippets
 
       var Node = BufferInfo.GetNodeAt(CaretSpan);
 
+      if (Node == null)
+        return false;
+
       var Start = api.TsNodeStartByte(Node);
       var End   = api.TsNodeEndByte(Node);
       

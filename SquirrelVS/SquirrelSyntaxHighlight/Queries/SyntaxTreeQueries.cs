@@ -14,5 +14,6 @@ namespace SquirrelSyntaxHighlight.Queries
     public static readonly string HIGHLIGHTS_QUERY  = QUERIES_ROOT + "/highlights.scm";
     public static readonly string TAGS_QUERY        = QUERIES_ROOT + "/tags.scm";
     public static readonly string INJECTIONS_QUERY  = QUERIES_ROOT + "/injections.scm";
+    public static readonly string BLOCKS_QUERY      = QUERIES_ROOT + "/blocks.scm";
   }
 }
