@@ -75,6 +75,12 @@
     <Compile Include="Editor\ISquirrelTextBufferInfoEventSink.cs" />
     <Compile Include="Editor\Outlining\OutliningTagger.cs" />
     <Compile Include="Editor\Outlining\OutliningTaggerProvider.cs" />
+    <Compile Include="Editor\SignatureHelp\Signature.cs" />
+    <Compile Include="Editor\SignatureHelp\SignatureHelpCommandHandler.cs" />
+    <Compile Include="Editor\SignatureHelp\SignatureHelpCommandProvider.cs" />
+    <Compile Include="Editor\SignatureHelp\SignatureHelpSource.cs" />
+    <Compile Include="Editor\SignatureHelp\SignatureHelpSourceProvider.cs" />
+    <Compile Include="Editor\SignatureHelp\SignatureParameter.cs" />
     <Compile Include="Editor\SnapshotSpanSourceCodeReader.cs" />
     <Compile Include="Editor\SquirrelTextBufferInfo.cs" />
     <Compile Include="Infrastructure\Syntax\SyntaxTreeWalker.cs" />
