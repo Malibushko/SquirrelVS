@@ -54,8 +54,12 @@ namespace SquirrelSyntaxHighlight.Editor.Outlining
       {
         foreach (Tuple<string, Span> Node in BufferInfo.ExecuteQueryFromFile(BufferInfo.GetNodeAt(Span), SyntaxTreeQueries.BLOCKS_QUERY))
         {
-          //string HoverText = Parent == null ? GetNodeText(Node.Item1) : GetNodeText(Parent);
-          
+          int StartLine = TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(Node.Item2.Start);
+          int EndLine   = TextBuffer.CurrentSnapshot.GetLineNumberFromPosition(Node.Item2.End);
+
+          if (StartLine == EndLine)
+            continue;
+
           yield return new TagSpan<IOutliningRegionTag>(
                  new SnapshotSpan(Span.Snapshot, Node.Item2),
                  new OutliningRegionTag(false, false, "...", "TODO: add description to hovered blocks"));
