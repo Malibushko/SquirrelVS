@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
+using SquirrelSyntaxHighlight.Editor.CodeDatabase;
 
 namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
 {
@@ -22,17 +23,21 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
     ISignatureHelpBroker    Broker;
     ISignatureHelpSession   Session;
     ITextStructureNavigator Navigator;
+    CodeDatabaseService     CodeDatabaseService;
 
     internal SignatureHelpCommandHandler(
         IVsTextView             _TextViewAdapter, 
         ITextView               _TextView, 
         ITextStructureNavigator _Navigator, 
-        ISignatureHelpBroker    _Broker
+        ISignatureHelpBroker    _Broker,
+        CodeDatabaseService     _CodeDatabaseService
       )
     {
       TextView  = _TextView;
       Broker    = _Broker;
       Navigator = _Navigator;
+      
+      CodeDatabaseService = _CodeDatabaseService;
 
       //add this to the filter chain
       _TextViewAdapter.AddCommandFilter(this, out NextCommandHandler);
@@ -59,7 +64,7 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
           TextExtent    Extent = Navigator.GetExtentOfWord(Point);
           string        Word   = Extent.Span.GetText();
 
-          if (Word.Equals("add"))
+          if (CodeDatabaseService.HasFunctionInfo(Word))
             Session = Broker.TriggerSignatureHelp(TextView);
         }
         else if (TypedChar.Equals(')') && Session != null)

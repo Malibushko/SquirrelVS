@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using SquirrelSyntaxHighlight.Editor.CodeDatabase;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
@@ -18,11 +19,14 @@ namespace SquirrelSyntaxHighlight.Editor
     [Import]
     internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
 
+    [Import(typeof(ICodeDatabaseService))]
+    internal CodeDatabaseService CodeDatabaseService;
+
     public ICompletionSource TryCreateCompletionSource(
         ITextBuffer _TextBuffer
       )
     {
-      return new CompletionSource(this, _TextBuffer);
+      return new CompletionSource(this, _TextBuffer, CodeDatabaseService);
     }
   }
 }

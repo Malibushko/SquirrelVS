@@ -57,6 +57,8 @@
     <Compile Include="Editor\BraceCompletion\BraceCompletionContextProvider.cs" />
     <Compile Include="Editor\BraceHighlight\BraceHighlightTagger.cs" />
     <Compile Include="Editor\BraceHighlight\BraceHighlightTaggerProvider.cs" />
+    <Compile Include="Editor\CodeDatabase\CodeDatabaseConstants.cs" />
+    <Compile Include="Editor\CodeDatabase\ICodeDatabaseService.cs" />
     <Compile Include="Editor\CodeSnippets\ExpansionClient.cs" />
     <Compile Include="Editor\CodeSnippets\InsertSnippetCommandHandler.cs" />
     <Compile Include="Editor\CodeSnippets\SnippetManager.cs" />
@@ -79,6 +81,8 @@
     <Compile Include="Editor\QuickInfo\QuickInfoControllerProvider.cs" />
     <Compile Include="Editor\QuickInfo\QuickInfoSource.cs" />
     <Compile Include="Editor\QuickInfo\QuickInfoSourceProvider.cs" />
+    <Compile Include="Editor\CodeDatabase\CodeDatabaseService.cs" />
+    <Compile Include="Editor\CodeDatabase\CodeDataItem.cs" />
     <Compile Include="Editor\SignatureHelp\Signature.cs" />
     <Compile Include="Editor\SignatureHelp\SignatureHelpCommandHandler.cs" />
     <Compile Include="Editor\SignatureHelp\SignatureHelpCommandProvider.cs" />
@@ -119,6 +123,9 @@
     <Compile Include="Queries\QueryPredicate.cs" />
     <Compile Include="Queries\SyntaxTreeQueries.cs" />
     <Compile Include="Queries\SyntaxTreeQuery.cs" />
+    <Content Include="Resources\BuiltinVariables.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="SquirrelConstants.cs" />
     <Compile Include="SyntaxHighlight\SquirrelClasifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -139,6 +146,8 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL" />
+    <Reference Include="System.Text.Json, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -220,6 +229,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Queries\Queries\tags.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\BuiltinFunctions.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Themes\High Contrast.vstheme" />

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SquirrelSyntaxHighlight.Editor.CodeDatabase;
 
 namespace SquirrelSyntaxHighlight.Editor.QuickInfo
 {
@@ -16,20 +17,25 @@ namespace SquirrelSyntaxHighlight.Editor.QuickInfo
     private QuickInfoSourceProvider    Provider;
     private ITextBuffer                SubjectBuffer;
     private Dictionary<string, string> Dictionary;
+    private CodeDatabaseService        CodeDatabase;
 
     public QuickInfoSource(
         QuickInfoSourceProvider _Provider, 
-        ITextBuffer             _SubjectBuffer
+        ITextBuffer             _SubjectBuffer,
+        CodeDatabaseService     _CodeDatabase
       )
     {
       Provider      = _Provider;
       SubjectBuffer = _SubjectBuffer;
+      CodeDatabase  = _CodeDatabase;
 
       Dictionary = new Dictionary<string, string>();
-      Dictionary.Add("add", "int add(int firstInt, int secondInt)\nAdds one integer to another.");
-      Dictionary.Add("subtract", "int subtract(int firstInt, int secondInt)\nSubtracts one integer from another.");
-      Dictionary.Add("multiply", "int multiply(int firstInt, int secondInt)\nMultiplies one integer by another.");
-      Dictionary.Add("divide", "int divide(int firstInt, int secondInt)\nDivides one integer by another.");
+
+      foreach (var Function in CodeDatabase.GetBuiltinFunctionsInfo())
+        Dictionary.Add(Function.Name, Function.ToString() + "\n" + Function.Documentation);
+
+      foreach (var Variable in CodeDatabase.GetBuiltinVariables())
+        Dictionary.Add(Variable.Name, Variable.ToString() + "\n" + Variable.Documentation);
     }
 
     public void AugmentQuickInfoSession(

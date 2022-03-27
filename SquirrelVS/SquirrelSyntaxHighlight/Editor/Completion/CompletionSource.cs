@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Media;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using SquirrelSyntaxHighlight.Editor.CompletionConsts;
+using SquirrelSyntaxHighlight.Editor.CodeDatabase;
+using Microsoft.VisualStudio.Imaging;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
@@ -16,29 +19,30 @@ namespace SquirrelSyntaxHighlight.Editor
     private CompletionSourceProvider SourceProvider;
     private ITextBuffer              TextBuffer;
     private List<Completion>         CompletionList;
+    private CodeDatabaseService      CodeDatabaseService;
 
     private bool                     IsDisposed;
 
     public CompletionSource(
-        CompletionSourceProvider _SourceProvider, 
-        ITextBuffer              _TextBuffer
+        CompletionSourceProvider _SourceProvider,
+        ITextBuffer              _TextBuffer,
+        CodeDatabaseService      _CodeDatabaseService
       )
     {
-      SourceProvider = _SourceProvider;
-      TextBuffer     = _TextBuffer;
+      SourceProvider      = _SourceProvider;
+      TextBuffer          = _TextBuffer;
+      CodeDatabaseService = _CodeDatabaseService;
+
       CompletionList = new List<Completion>();
       
       foreach (var KeyValue in CompletionFunctions.Keywords)
         CompletionList.Add(new Completion(KeyValue.Key, KeyValue.Key, KeyValue.Value, null, null));
       
-      foreach (var KeyValue in CompletionFunctions.BuiltinFunction)
-        CompletionList.Add(new Completion(KeyValue.Key, KeyValue.Key, KeyValue.Value, null, null));
+      foreach(var FunctionInfo in _CodeDatabaseService.GetBuiltinFunctionsInfo())
+        CompletionList.Add(new Completion(FunctionInfo.Name, FunctionInfo.Name, FunctionInfo.Documentation, null, "AddThread"));
 
-      foreach (var Token in CompletionFunctions.BuiltinDelegates)
-        CompletionList.Add(new Completion(Token, Token, Token, null, null));
-
-      foreach (var KeyValue in CompletionFunctions.BuiltinVariables)
-        CompletionList.Add(new Completion(KeyValue.Key, KeyValue.Key, KeyValue.Value, null, null));
+      foreach (var VariableInfo in _CodeDatabaseService.GetBuiltinVariables())
+        CompletionList.Add(new Completion(VariableInfo.Name, VariableInfo.Name, VariableInfo.Documentation, null, "AddThread"));
     }
 
     void ICompletionSource.AugmentCompletionSession(

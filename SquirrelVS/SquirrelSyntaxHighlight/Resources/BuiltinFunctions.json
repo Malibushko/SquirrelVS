@@ -1,0 +1,17 @@
+﻿[
+  {
+    "Name": "dofile",
+    "Parameters": [
+      {
+        "Name": "path",
+        "Documentation": "path of file"
+      },
+      {
+        "Name": "raiseerror",
+        "Documentation": "should compiler emit error while parsing the file",
+        "Optional": true
+      }
+    ],
+    "Documentation": "Compiles a squirrel script or loads a precompiled one and executes it. returns the value returned by the script or null if no value is returned. if the optional parameter 'raiseerror' is true, the compiler error handler is invoked in case of a syntax error. If raiseerror is omitted or set to false, the compiler error handler is not ivoked. When squirrel is compiled in unicode mode the function can handle different character ecodings, UTF8 with and without prefix and UCS-2 prefixed(both big endian an little endian). If the source stream is not prefixed UTF8 ecoding is used as default."
+  }
+]

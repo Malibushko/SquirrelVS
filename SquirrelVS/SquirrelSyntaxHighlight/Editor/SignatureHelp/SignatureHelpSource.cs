@@ -12,17 +12,22 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
+using SquirrelSyntaxHighlight.Editor.CodeDatabase;
 
 namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
 {
   internal class SignatureHelpSource : ISignatureHelpSource
   {
-    private ITextBuffer TextBuffer;
+    private ITextBuffer         TextBuffer;
+    private CodeDatabaseService Database;
+
     public SignatureHelpSource(
-        ITextBuffer _TextBuffer
+        ITextBuffer         _TextBuffer,
+        CodeDatabaseService _CodeDatabaseService
       )
     {
       this.TextBuffer = _TextBuffer;
+      this.Database   = _CodeDatabaseService;
     }
 
     public void AugmentSignatureHelpSession(
@@ -34,21 +39,22 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
 
       int Position = _Session.GetTriggerPoint(TextBuffer).GetPosition(Snapshot);
 
-      ITrackingSpan applicableToSpan = Snapshot.CreateTrackingSpan(
+      ITrackingSpan ApplicableToSpan = Snapshot.CreateTrackingSpan(
           new Span(Position, 0), 
           SpanTrackingMode.EdgeInclusive,
           0
         );
-
-      _Signatures.Add(CreateSignature(TextBuffer, "add(int firstInt, int secondInt)", "Documentation for adding integers.", applicableToSpan));
-      _Signatures.Add(CreateSignature(TextBuffer, "add(double firstDouble, double secondDouble)", "Documentation for adding doubles.", applicableToSpan));
+      
+      foreach(var Function in Database.GetBuiltinFunctionsInfo())
+        _Signatures.Add(CreateSignature(TextBuffer, Function.ToString(), Function.Parameters, Function.Documentation, ApplicableToSpan));
     }
 
     private Signature CreateSignature(
-        ITextBuffer   _TextBuffer, 
-        string        _MethodSignature, 
-        string        _MethodDocumentation, 
-        ITrackingSpan _Span
+        ITextBuffer             _TextBuffer, 
+        string                  _MethodSignature,
+        List<ParameterDataItem> _Parameters,
+        string                  _MethodDocumentation, 
+        ITrackingSpan           _Span
       )
     {
       Signature Signature = new Signature(_TextBuffer, _MethodSignature, _MethodDocumentation, null);
@@ -77,7 +83,7 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
           
           LocusSearchStart = LocusStart + Parameter.Length;
           
-          ParameterList.Add(new SignatureParameter("Documentation for the parameter.", Locus, Parameter, Signature));
+          ParameterList.Add(new SignatureParameter(_Parameters[i - 1].Documentation, Locus, Parameter, Signature));
         }
       }
 

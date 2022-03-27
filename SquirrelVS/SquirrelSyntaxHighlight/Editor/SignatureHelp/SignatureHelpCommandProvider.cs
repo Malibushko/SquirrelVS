@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.TextManager.Interop;
+using SquirrelSyntaxHighlight.Editor.CodeDatabase;
 
 namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
 {
@@ -27,6 +28,9 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
     [Import]
     internal ISignatureHelpBroker                   SignatureHelpBroker;
 
+    [Import(typeof(ICodeDatabaseService))]
+    internal CodeDatabaseService                    CodeDatabaseService;
+
     public void VsTextViewCreated(
         IVsTextView _TextViewAdapter
       )
@@ -40,7 +44,8 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
            () => new SignatureHelpCommandHandler(_TextViewAdapter,
               TextView,
               NavigatorService.GetTextStructureNavigator(TextView.TextBuffer),
-              SignatureHelpBroker));
+              SignatureHelpBroker,
+              CodeDatabaseService));
     }
   }
 }
