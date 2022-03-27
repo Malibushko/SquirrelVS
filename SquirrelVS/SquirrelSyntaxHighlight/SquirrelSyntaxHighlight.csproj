@@ -75,6 +75,10 @@
     <Compile Include="Editor\ISquirrelTextBufferInfoEventSink.cs" />
     <Compile Include="Editor\Outlining\OutliningTagger.cs" />
     <Compile Include="Editor\Outlining\OutliningTaggerProvider.cs" />
+    <Compile Include="Editor\QuickInfo\QuickInfoController.cs" />
+    <Compile Include="Editor\QuickInfo\QuickInfoControllerProvider.cs" />
+    <Compile Include="Editor\QuickInfo\QuickInfoSource.cs" />
+    <Compile Include="Editor\QuickInfo\QuickInfoSourceProvider.cs" />
     <Compile Include="Editor\SignatureHelp\Signature.cs" />
     <Compile Include="Editor\SignatureHelp\SignatureHelpCommandHandler.cs" />
     <Compile Include="Editor\SignatureHelp\SignatureHelpCommandProvider.cs" />

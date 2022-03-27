@@ -43,14 +43,14 @@ namespace SquirrelSyntaxHighlight.Editor.Errors
       {
         TSNode Root = Info.GetNodeAt(Span);
 
-        if (Root == null)
+        if (Root == null || !api.TsNodeHasError(Root))
           continue;
 
         TSTreeCursor Walker = api.TsTreeCursorNew(Root);
 
         foreach (TSNode Node in SyntaxTreeWalker.Traverse(Walker))
         {
-          if (api.TsNodeHasError(Node) && api.TsNodeType(Node) == "ERROR")
+          if (api.TsNodeType(Node) == "ERROR")
           {
             int Start = (int)api.TsNodeStartByte(Node);
             int End   = (int)api.TsNodeEndByte(Node);
