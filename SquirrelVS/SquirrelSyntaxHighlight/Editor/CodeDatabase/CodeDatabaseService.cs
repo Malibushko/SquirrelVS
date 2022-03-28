@@ -27,6 +27,18 @@ namespace SquirrelSyntaxHighlight.Editor.CodeDatabase
       return m_Items.FindAll(Item => Item.IsBuiltIn && Item is VariableDataItem).Cast<VariableDataItem>();
     }
 
+    public string GetItemDocumentation(
+        string ItemName
+      )
+    {
+      var Item = m_Items.First(i => i.Name == ItemName); ;
+
+      if (Item == null)
+        return string.Empty;
+
+      return $"{Item}\n{Item.Documentation}";
+    }
+
     public bool HasFunctionInfo(
         string _FunctionName
       )

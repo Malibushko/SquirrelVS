@@ -8,6 +8,15 @@ namespace SquirrelSyntaxHighlight.Editor.CodeDatabase
 {
   public class CodeDataItem
   {
+    public string Name
+    {
+      get; set;
+    }
+
+    public string Documentation
+    {
+      get; set;
+    }
     public bool IsBuiltIn { get; set; }
   }
 
@@ -23,17 +32,7 @@ namespace SquirrelSyntaxHighlight.Editor.CodeDatabase
   }
 
   public class FunctionDataItem : CodeDataItem
-  {
-    public string Name
-    {
-      get; set;
-    }
-    
-    public string Documentation
-    {
-      get; set;
-    }
-   
+  {   
     public List<ParameterDataItem> Parameters
     {
       get; set;
@@ -52,9 +51,6 @@ namespace SquirrelSyntaxHighlight.Editor.CodeDatabase
 
   public class VariableDataItem : CodeDataItem
   {
-    public string Name { get; set; }
-    public string Documentation { get; set; }
-
     public override string ToString()
     {
       return Name;

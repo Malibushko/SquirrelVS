@@ -8,13 +8,15 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using SquirrelSyntaxHighlight.Editor.CodeDatabase;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace SquirrelSyntaxHighlight.Editor
 {
-  [Export(typeof(ICompletionSourceProvider))]
+  [Export(typeof(IAsyncCompletionSourceProvider))]
   [ContentType("Squirrel")]
   [Name("Token Completion")]
-  internal class CompletionSourceProvider : ICompletionSourceProvider
+  internal class CompletionSourceProvider : IAsyncCompletionSourceProvider
   {
     [Import]
     internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
@@ -22,11 +24,11 @@ namespace SquirrelSyntaxHighlight.Editor
     [Import(typeof(ICodeDatabaseService))]
     internal CodeDatabaseService CodeDatabaseService;
 
-    public ICompletionSource TryCreateCompletionSource(
-        ITextBuffer _TextBuffer
+    public IAsyncCompletionSource GetOrCreate(
+        ITextView _TextView
       )
     {
-      return new CompletionSource(this, _TextBuffer, CodeDatabaseService);
+      return new CompletionSource(this, NavigatorService, _TextView, CodeDatabaseService);
     }
   }
 }

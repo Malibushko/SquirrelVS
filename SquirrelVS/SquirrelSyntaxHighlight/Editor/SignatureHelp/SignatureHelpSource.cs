@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
@@ -44,21 +45,45 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
           SpanTrackingMode.EdgeInclusive,
           0
         );
-      
-      foreach(var Function in Database.GetBuiltinFunctionsInfo())
-        _Signatures.Add(CreateSignature(TextBuffer, Function.ToString(), Function.Parameters, Function.Documentation, ApplicableToSpan));
+
+      string FunctionName = TryGetFunctionName(Snapshot, Position);
+
+      foreach (var Function in Database.GetBuiltinFunctionsInfo())
+      {
+        if (Function.Name.Contains(FunctionName) || FunctionName.Contains(Function.Name))
+          _Signatures.Add(CreateSignature(TextBuffer, Function.Name, Function.ToString(), Function.Parameters, Function.Documentation, ApplicableToSpan));
+      }
+    }
+
+    private string TryGetFunctionName(
+        ITextSnapshot _Snapshot,
+        int           _TriggerPosition
+      )
+    {
+      string FunctionName = string.Empty;
+
+      for (int i = _TriggerPosition - 1; i >= 0; i--)
+      {
+        if (char.IsWhiteSpace(_Snapshot[i]) || char.IsPunctuation(_Snapshot[i]))
+          break;
+
+        FunctionName += _Snapshot[i];
+      }
+
+      return new string(FunctionName.Reverse().ToArray());
     }
 
     private Signature CreateSignature(
         ITextBuffer             _TextBuffer, 
+        string                  _MethodName,
         string                  _MethodSignature,
         List<ParameterDataItem> _Parameters,
         string                  _MethodDocumentation, 
         ITrackingSpan           _Span
       )
     {
-      Signature Signature = new Signature(_TextBuffer, _MethodSignature, _MethodDocumentation, null);
-
+      Signature Signature = new Signature(_TextBuffer, _MethodSignature, _MethodName, _MethodDocumentation, null);
+      
       _TextBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(Signature.OnSubjectBufferChanged);
 
       //find the parameters in the method signature (expect methodname(one, two)
@@ -99,15 +124,6 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
         ISignatureHelpSession _Session
       )
     {
-      if (_Session.Signatures.Count > 0)
-      {
-        ITrackingSpan ApplicableToSpan = _Session.Signatures[0].ApplicableToSpan;
-        string        Text             = ApplicableToSpan.GetText(ApplicableToSpan.TextBuffer.CurrentSnapshot);
-
-        if (Text.Trim().Equals("add"))  //get only "add" 
-          return _Session.Signatures[0];
-      }
-
       return null;
     }
 

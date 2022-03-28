@@ -1,18 +1,42 @@
 ﻿[
-    {
-      "Name": "_version_",
-      "Documentation": "string values describing the version of VM and compiler."
-    },
-    {
-      "Name": "_charsize_",
-      "Documentation": "size in bytes of the internal VM rapresentation for characters(1 for ASCII builds 2 for UNICODE builds)."
-    },
-    {
-      "Name": "_intsize_",
-      "Documentation": "size in bytes of the internal VM rapresentation for integers(4 for 32bits builds 8 for 64bits builds)."
-    },
-    {
-      "Name": "_floatsize_",
-      "Documentation": "size in bytes of the internal VM rapresentation for floats(4 for single precision builds 8 for double precision builds)."
-    }
+  {
+    "Name": "_version_",
+    "Documentation": "string values describing the version of VM and compiler."
+  },
+  {
+    "Name": "_charsize_",
+    "Documentation": "size in bytes of the internal VM rapresentation for characters(1 for ASCII builds 2 for UNICODE builds)."
+  },
+  {
+    "Name": "_intsize_",
+    "Documentation": "size in bytes of the internal VM rapresentation for integers(4 for 32bits builds 8 for 64bits builds)."
+  },
+  {
+    "Name": "_floatsize_",
+    "Documentation": "size in bytes of the internal VM rapresentation for floats(4 for single precision builds 8 for double precision builds)."
+  },
+  {
+    "Name": "stderr",
+    "Documentation": "File object bound on the os standard error stream."
+  },
+  {
+    "Name": "stdin",
+    "Documentation": "File object bound on the os standard input stream."
+  },
+  {
+    "Name": "stdout",
+    "Documentation": "File object bound on the os standard output stream."
+  },
+  {
+    "Name": "PI",
+    "Documentation": "The numeric constant pi (3.141592) is the ratio of the circumference of a circle to its diameter,"
+  },
+  {
+    "Name": "RAND_MAX",
+    "Documentation": "The maximum value that can be returned by the rand() function"
+  },
+  {
+    "Name": "PI",
+    "Documentation": "The numeric constant pi (3.141592) is the ratio of the circumference of a circle to its diameter,"
+  }
 ]

@@ -13,5 +13,987 @@
       }
     ],
     "Documentation": "Compiles a squirrel script or loads a precompiled one and executes it. returns the value returned by the script or null if no value is returned. if the optional parameter 'raiseerror' is true, the compiler error handler is invoked in case of a syntax error. If raiseerror is omitted or set to false, the compiler error handler is not ivoked. When squirrel is compiled in unicode mode the function can handle different character ecodings, UTF8 with and without prefix and UCS-2 prefixed(both big endian an little endian). If the source stream is not prefixed UTF8 ecoding is used as default."
+  },
+  {
+    "Name": "loadfile",
+    "Parameters": [
+      {
+        "Name": "path",
+        "Documentation": "path of file"
+      },
+      {
+        "Name": "raiseerror",
+        "Documentation": "should compiler emit error while parsing the file",
+        "Optional": true
+      }
+    ],
+    "Documentation": "Compiles a squirrel script or loads a precompiled one an returns it as as function. if the optional parameter 'raiseerror' is true, the compiler error handler is invoked in case of a syntax error. If raiseerror is omitted or set to false, the compiler error handler is not ivoked. When squirrel is compiled in unicode mode the function can handle different character ecodings, UTF8 with and without prefix and UCS-2 prefixed(both big endian an little endian). If the source stream is not prefixed UTF8 ecoding is used as default"
+  },
+  {
+    "Name": "writeclosuretofile",
+    "Parameters": [
+      {
+        "Name": "destpath",
+        "Documentation": "destination path"
+      },
+      {
+        "Name": "closure",
+        "Documentation": "closure to serialize"
+      }
+    ],
+    "Documentation": "serializes a closure to a bytecode file (destpath). The serialized file can be loaded using loadfile() and dofile()."
+  },
+  {
+    "Name": "eos",
+    "Parameters": [],
+    "Documentation": "returns a non null value if the read/write pointer is at the end of the stream."
+  },
+  {
+    "Name": "flush",
+    "Parameters": [],
+    "Documentation": "flushes the stream.return a value != null if succeded, otherwise returns null."
+  },
+  {
+    "Name": "len",
+    "Parameters": [],
+    "Documentation": "returns the lenght of the stream"
+  },
+  {
+    "Name": "readblob",
+    "Parameters": [
+      {
+        "Name": "size",
+        "Documentation": "number of bytes to read"
+      }
+    ],
+    "Documentation": "read n bytes from the stream and retuns them as blob."
+  },
+  {
+    "Name": "readn",
+    "Parameters": [
+      {
+        "Name": "type",
+        "Documentation": "one of the values ('i', 's', 'w', 'c', 'b', 'f', 'd')"
+      }
+    ],
+    "Documentation": "reads a number from the stream according to the type parameter. type can have the following values:\n\t'i' 32bits number returns an integer\n\t's' 16bits signed integer returns an integer\n\t'w' 16bits unsigned integer returns an integer\n\t'c' 8bits signed integer returns an integer\n\t'b' 8bits unsigned integer returns an integer\n\t'f' 32bits float returns an float\n\t'd' 64bits float returns an float"
+  },
+  {
+    "Name": "seek",
+    "Parameters": [
+      {
+        "Name": "seek",
+        "Documentation": "caret pointer"
+      },
+      {
+        "Name": "origin",
+        "Documentation": "Origin from where to seek the caret. Can be ('b' - beginning, 'c' - current location, 'e' - end of the stream)"
+      }
+    ],
+    "Documentation": "Moves the read/write pointer to a specified location. offset indicates the number of bytes from origin. origin can be 'b' beginning of the stream,'c' current location or 'e' end of the stream. If origin is omitted the parameter is defaulted as 'b'(beginning of the stream)."
+  },
+  {
+    "Name": "tell",
+    "Parameters": [],
+    "Documentation": "returns read/write pointer absolute position"
+  },
+  {
+    "Name": "writeblob",
+    "Parameters": [
+      {
+        "Name": "blob",
+        "Documentation": "blob to write"
+      }
+    ],
+    "Documentation": "writes a blob in the stream"
+  },
+  {
+    "Name": "writen",
+    "Parameters": [
+      {
+        "Name": "n",
+        "Documentation": "number to write"
+      },
+      {
+        "Name": "type",
+        "Documentation": "Type parameter.\n Can have the following values:\n\t'l' processor dependent, 32bits on 32bits processors, 64bits on 64bits processors returns an integer\n\t'i' 32bits number\n\t's' 16bits signed integer\n\t'w' 16bits unsigned integer\n\t'c' 8bits signed integer\n\t'b' 8bits unsigned integer\n\t'f' 32bits float\n\t'd' 64bits float"
+      }
+    ],
+    "Documentation": "writes a number in the stream formatted according to the type parameter. type can have the following values:\n\t'l' processor dependent, 32bits on 32bits processors, 64bits on 64bits processors returns an integer\n\t'i' 32bits number\n\t's' 16bits signed integer\n\t'w' 16bits unsigned integer\n\t'c' 8bits signed integer\n\t'b' 8bits unsigned integer\n\t'f' 32bits float\n\t'd' 64bits float"
+  },
+  {
+    "Name": "blob",
+    "Parameters": [
+      {
+        "Name": "size",
+        "Documentation": "size of the blob in bytes"
+      }
+    ],
+    "Documentation": "returns a new instance of a blob class of the specified size in bytes"
+  },
+  {
+    "Name": "castf2i",
+    "Parameters": [
+      {
+        "Name": "f",
+        "Documentation": "float to cast"
+      }
+    ],
+    "Documentation": "casts a float to a int"
+  },
+  {
+    "Name": "casti2f",
+    "Parameters": [
+      {
+        "Name": "n",
+        "Documentation": "number to cast"
+      }
+    ],
+    "Documentation": "casts a int to a float"
+  },
+  {
+    "Name": "swap2",
+    "Parameters": [
+      {
+        "Name": "n",
+        "Documentation": "number to cast"
+      }
+    ],
+    "Documentation": "swap the byte order of a number (like it would be a 16bits integer"
+  },
+  {
+    "Name": "swap4",
+    "Parameters": [
+      {
+        "Name": "n",
+        "Documentation": "number to swap"
+      }
+    ],
+    "Documentation": "swap the byte order of an integer"
+  },
+  {
+    "Name": "swapfloat",
+    "Parameters": [
+      {
+        "Name": "f",
+        "Documentation": "float to swap"
+      }
+    ],
+    "Documentation": "swaps the byteorder of a float"
+  },
+  {
+    "Name": "resize",
+    "Parameters": [
+      {
+        "Name": "size",
+        "Documentation": "new blob size"
+      }
+    ],
+    "Documentation": "resizes the blob to the specified size"
+  },
+  {
+    "Name": "abs",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the absolute value of x as integer"
+  },
+  {
+    "Name": "acos",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the arccosine of x"
+  },
+  {
+    "Name": "asin",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the arcsine of x"
+  },
+  {
+    "Name": "atan",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the arctangent of x"
+  },
+  {
+    "Name": "atan2",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "denominator"
+      },
+      {
+        "Name": "y",
+        "Documentation": "numerator"
+      }
+    ],
+    "Documentation": "returns the arctangent of y/x"
+  },
+  {
+    "Name": "ceil",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns a float value representing the smallest integer that is greater than or equal to x"
+  },
+  {
+    "Name": "cos",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the cosine of x"
+  },
+  {
+    "Name": "exp",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the exponential value of the float parameter x"
+  },
+  {
+    "Name": "fabs",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the absolute value of x as float"
+  },
+  {
+    "Name": "floor",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns a float value representing the largest integer that is less than or equal to x"
+  },
+  {
+    "Name": "log",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the natural logarithm of x"
+  },
+  {
+    "Name": "pow",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      },
+      {
+        "Name": "y",
+        "Documentation": "power to raise in"
+      }
+    ],
+    "Documentation": "returns the logarithm base-10 of x"
+  },
+  {
+    "Name": "rand",
+    "Parameters": [],
+    "Documentation": "returns a pseudorandom integer in the range 0 to RAND_MAX"
+  },
+  {
+    "Name": "sin",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns a float value representing the largest integer that is less than or equal to x"
+  },
+  {
+    "Name": "sqrt",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "returns the square root of x"
+  },
+  {
+    "Name": "srand",
+    "Parameters": [
+      {
+        "Name": "seed",
+        "Documentation": "starting seed for generator"
+      }
+    ],
+    "Documentation": "sets the starting point for generating a series of pseudorandom integers"
+  },
+  {
+    "Name": "tan",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "value"
+      }
+    ],
+    "Documentation": "The numeric constant pi (3.141592) is the ratio of the circumference of a circle to its diameter"
+  },
+  {
+    "Name": "srand",
+    "Parameters": [
+      {
+        "Name": "seed",
+        "Documentation": "starting seed for generator"
+      }
+    ],
+    "Documentation": "sets the starting point for generating a series of pseudorandom integers"
+  },
+  {
+    "Name": "clock",
+    "Parameters": [],
+    "Documentation": "returns a float representing the number of seconds elapsed since the start of the process"
+  },
+  {
+    "Name": "date",
+    "Parameters": [
+      {
+        "Name": "time",
+        "Documentation": "time to use. If omiterd the current time is used",
+        "Optional": true
+      },
+      {
+        "Name": "format",
+        "Documentation": "can be 'l' local time or 'u' UTC time. If omited is defaulted as 'l' (local time)",
+        "Optional": true
+      }
+    ],
+    "Documentation": "returns a table containing a date/time splitted in the slots:\n\tsec Seconds after minute (0 - 59). \n\tmin Minutes after hour (0 - 59). \n\thour Hours since midnight (0 - 23).\n\tday Day of month (1 - 31).\n\tmonth Month (0 - 11; January = 0).\n\tyear Year (current year).\n\twday Day of week (0 - 6; Sunday = 0).\n\tyday Day of year (0 - 365; January 1 = 0)."
+  },
+  {
+    "Name": "getenv",
+    "Parameters": [
+      {
+        "Name": "varaname",
+        "Documentation": "environment variable name"
+      }
+    ],
+    "Documentation": "Returns a string containing the value of the environment variable varname"
+  },
+  {
+    "Name": "remove",
+    "Parameters": [
+      {
+        "Name": "path",
+        "Documentation": "path of the file"
+      }
+    ],
+    "Documentation": "Deletes the file specified by path"
+  },
+  {
+    "Name": "getenv",
+    "Parameters": [
+      {
+        "Name": "varaname",
+        "Documentation": "environment variable name"
+      }
+    ],
+    "Documentation": "Returns a string containing the value of the environment variable varname"
+  },
+  {
+    "Name": "rename",
+    "Parameters": [
+      {
+        "Name": "oldname",
+        "Documentation": "old name of the file or directory"
+      },
+      {
+        "Name": "newname",
+        "Documentation": "new name of the file or directory"
+      }
+    ],
+    "Documentation": "Renames the file or directory specified by oldname to the name given by newname"
+  },
+  {
+    "Name": "system",
+    "Parameters": [
+      {
+        "Name": "cmd",
+        "Documentation": "command to execute"
+      }
+    ],
+    "Documentation": "returns the number of seconds elapsed since midnight 00:00:00, January 1, 1970. The result of this function can be formatted through the function date"
+  },
+  {
+    "Name": "format",
+    "VariableArguments": true,
+    "Parameters": [
+      {
+        "Name": "formatstr",
+        "Documentation": "format string"
+      },
+      {
+        "Name": "...",
+        "Documentation": "parameters"
+      }
+    ],
+    "Documentation": "Returns a string formatted according formatstr and the optional parameters following it. The format string follows the same rules as the printf family of standard C functions( the '*' is not supported)."
+  },
+  {
+    "Name": "lstrip",
+    "Parameters": [
+      {
+        "Name": "str",
+        "Documentation": "String to strip"
+      }
+    ],
+    "Documentation": "Strips white-space-only characters that might appear at the beginning of the given string and returns the new stripped string."
+  },
+  {
+    "Name": "regexp",
+    "Parameters": [
+      {
+        "Name": "cmd",
+        "Documentation": "command to execute"
+      }
+    ],
+    "Documentation": "compiles a regular expression pattern and returns it as a new regexp class instance. See full documentation on http://squirrel-lang.org/doc/sqstdlib2.pdf"
+  },
+  {
+    "Name": "rstrip",
+    "Parameters": [
+      {
+        "Name": "str",
+        "Documentation": "String to strip"
+      }
+    ],
+    "Documentation": "Strips white-space-only characters that might appear at the end of the given string and returns the new stripped string."
+  },
+  {
+    "Name": "strip",
+    "Parameters": [
+      {
+        "Name": "str",
+        "Documentation": "String to strip"
+      }
+    ],
+    "Documentation": "Strips white-space-only characters that might appear at the beginning or end of the given string and returns the new stripped string."
+  },
+  {
+    "Name": "capture",
+    "Parameters": [
+      {
+        "Name": "str",
+        "Documentation": "String to strip"
+      }
+    ],
+    "Documentation": "The regexp object rapresent a precompiled regular experssion pattern. The object is created trough the function regexp(). returns an array of tables containing two indexs('begin' and 'end') of the first match of the regular expression in the string str. An array entry is created for each captured sub expressions. If no match occurs returns null. The search starts from the index start of the string, if start is omitted the search starts from the beginning of the string. The first element of the returned array(index 0) always contains the complete match."
+  },
+  {
+    "Name": "match",
+    "Parameters": [
+      {
+        "Name": "str",
+        "Documentation": "String to match"
+      }
+    ],
+    "Documentation": "Returns a true if the regular expression matches the string str, otherwise returns false"
+  },
+  {
+    "Name": "search",
+    "Parameters": [
+      {
+        "Name": "str",
+        "Documentation": "String to match"
+      },
+      {
+        "Name": "start",
+        "Documentation": "Start index to search",
+        "Optional": true
+      }
+    ],
+    "Documentation": "returns a table containing two indexs('begin' and 'end') of the first match of the regular expression in the string str, otherwise if no match occurs returns null. The search starts from the index start of the string, if start is omitted the search starts from the beginning of the string"
+  },
+  {
+    "Name": "array",
+    "Parameters": [
+      {
+        "Name": "size",
+        "Documentation": "Size of the array"
+      },
+      {
+        "Name": "fill",
+        "Documentation": "Value to initialize all elements of the array",
+        "Optional": true
+      }
+    ],
+    "Documentation": "Create and returns array of a specified size.if the optional parameter fill is specified its value will be used to fill the new array's slots. If the fill paramter is omitted null is used instead."
+  },
+  {
+    "Name": "seterrorhandler",
+    "Parameters": [
+      {
+        "Name": "func",
+        "Documentation": "Handler function"
+      }
+    ],
+    "Documentation": "Sets the runtime error handler"
+  },
+  {
+    "Name": "setdebughook",
+    "Parameters": [
+      {
+        "Name": "hook_func",
+        "Documentation": "Debug Hook function"
+      }
+    ],
+    "Documentation": "Sets the debug hook"
+  },
+  {
+    "Name": "enabledebuginfo",
+    "Parameters": [
+      {
+        "Name": "enable",
+        "Documentation": "Enable or disable the debug line information. Enable != null enables.\n\tEnable == null disables."
+      }
+    ],
+    "Documentation": "Enable/Disable the debug line information generation at compile time. enable != null enables . enable == null disables."
+  },
+  {
+    "Name": "getroottable",
+    "Parameters": [],
+    "Documentation": "returns the root table of the VM."
+  },
+  {
+    "Name": "setroottable",
+    "Parameters": [
+      {
+        "Name": "table",
+        "Documentation": "Table to set"
+      }
+    ],
+    "Documentation": "sets the root table of the VM.."
+  },
+  {
+    "Name": "getconsttable",
+    "Parameters": [],
+    "Documentation": "returns the const table of the VM."
+  },
+  {
+    "Name": "setconsttable",
+    "Parameters": [
+      {
+        "Name": "table",
+        "Documentation": "Table to set"
+      }
+    ],
+    "Documentation": "sets the const table of the VM."
+  },
+  {
+    "Name": "assert",
+    "Parameters": [
+      {
+        "Name": "exp",
+        "Documentation": "Expression to check"
+      }
+    ],
+    "Documentation": "throws an exception if exp is null"
+  },
+  {
+    "Name": "print",
+    "Parameters": [
+      {
+        "Name": "x",
+        "Documentation": "Value to print"
+      }
+    ],
+    "Documentation": "prints x in the standard output."
+  },
+  {
+    "Name": "compilestring",
+    "Parameters": [
+      {
+        "Name": "string",
+        "Documentation": "String containing Squirrel code"
+      },
+      {
+        "Name": "buffername",
+        "Documentation": "Name of the returning buffer",
+        "Optional": true
+      }
+    ],
+    "Documentation": "Compiles a string containing a squirrel script into a function and returns it"
+  },
+  {
+    "Name": "collectgarbage",
+    "Parameters": [],
+    "Documentation": "calls the garbage collector and returns the number of reference cycles found(and deleted)."
+  },
+  {
+    "Name": "type",
+    "Parameters": [
+      {
+        "Name": "obj",
+        "Documentation": "Object"
+      }
+    ],
+    "Documentation": "return the 'raw' type of an object without invoking the metatmethod '_typeof'."
+  },
+  {
+    "Name": "getstackinfos",
+    "Parameters": [
+      {
+        "Name": "string",
+        "Documentation": "String containing Squirrel code"
+      }
+    ],
+    "Documentation": "Returns the stack informations of a given call stack level. Returns a formatted table."
+  },
+  {
+    "Name": "newthread",
+    "Parameters": [
+      {
+        "Name": "threadfunc",
+        "Documentation": "Thread routine"
+      }
+    ],
+    "Documentation": "Creates a new cooperative thread object(coroutine) and returns it"
+  },
+  {
+    "Name": "tofloat",
+    "Parameters": [],
+    "Documentation": "convert to float and returns it"
+  },
+  {
+    "Name": "tostring",
+    "Parameters": [],
+    "Documentation": "converts to string and returns it"
+  },
+  {
+    "Name": "tointeger",
+    "Parameters": [],
+    "Documentation": "converts to integer and returns it"
+  },
+
+  {
+    "Name": "tochar",
+    "Parameters": [],
+    "Documentation": "returns a string containing a single character rapresented by the value."
+  },
+
+  {
+    "Name": "weakref",
+    "Parameters": [],
+    "Documentation": "returns weak reference to object (dummy for primitive types)"
+  },
+
+  {
+    "Name": "newthread",
+    "Parameters": [],
+    "Documentation": "Creates a new cooperative thread object(coroutine) and returns it"
+  },
+  {
+    "Name": "newthread",
+    "Parameters": [],
+    "Documentation": "Creates a new cooperative thread object(coroutine) and returns it"
+  },
+  {
+    "Name": "newthread",
+    "Parameters": [],
+    "Documentation": "Creates a new cooperative thread object(coroutine) and returns it"
+  },
+  {
+    "Name": "slice",
+    "Parameters": [
+      {
+        "Name": "start",
+        "Documentation": "Start index"
+      },
+      {
+        "Name": "end",
+        "Documentation": "End index",
+        "Optional": true
+      }
+    ],
+    "Documentation": "Returns a section of the string as new string. Copies from start to the end (not included). If start is negative the index is calculated as length + start, if end is negative the index is calculated as length + start. If end is omitted end is equal to the string length."
+  },
+  {
+    "Name": "find",
+    "Parameters": [
+      {
+        "Name": "substr",
+        "Documentation": "Substring to find"
+      },
+      {
+        "Name": "startIndex",
+        "Documentation": "Start index",
+        "Optional": true
+      }
+    ],
+    "Documentation": "search a sub string(substr) starting from the index startidx and returns the index of its first occurrence. If startidx is omitted the search operation starts from the beginning of the string. The function returns null if substr is not found."
+  },
+  {
+    "Name": "tolower",
+    "Parameters": [],
+    "Documentation": "Returns a lowercase copy of the string"
+  },
+  {
+    "Name": "toupper",
+    "Parameters": [],
+    "Documentation": "Returns a uppercase copy of the string"
+  },
+  {
+    "Name": "append",
+    "Parameters": [
+      {
+        "Name": "val",
+        "Documentation": "Value"
+      }
+    ],
+    "Documentation": "Appends the value ‘val’ at the end of the array"
+  },
+  {
+    "Name": "push",
+    "Parameters": [
+      {
+        "Name": "val",
+        "Documentation": "Value"
+      }
+    ],
+    "Documentation": "Appends the value ‘val’ at the end of the array"
+  },
+  {
+    "Name": "extend",
+    "Parameters": [
+      {
+        "Name": "array",
+        "Documentation": "Source array"
+      }
+    ],
+    "Documentation": "Extends the array by appending all the items in the given array"
+  },
+  {
+    "Name": "pop",
+    "Parameters": [],
+    "Documentation": "Removes a value from the back of the array and returns it."
+  },
+  {
+    "Name": "top",
+    "Parameters": [],
+    "Documentation": "Returns the value of the array with the higher index"
+  },
+  {
+    "Name": "insert",
+    "Parameters": [
+      {
+        "Name": "idx",
+        "Documentation": "Destination index"
+      },
+      {
+        "Name": "val",
+        "Documentation": "Value to insert"
+      }
+    ],
+    "Documentation": "Inserts the value ‘val’ at the position ‘idx’ in the array"
+  },
+  {
+    "Name": "remove",
+    "Parameters": [
+      {
+        "Name": "idx",
+        "Documentation": "Index of the value"
+      }
+    ],
+    "Documentation": "Removes the value at the position ‘idx’ in the array"
+  },
+  {
+    "Name": "resize",
+    "Parameters": [
+      {
+        "Name": "size",
+        "Documentation": "new array size"
+      },
+      {
+        "Name": "fill",
+        "Documentation": "Value to fill new elements with",
+        "Optional": true
+      }
+    ],
+    "Documentation": "Resizes the array, if the optional parameter fill is specified its value will be used to fill the new array's slots(if the size specified is bigger than the previous size) . If the fill paramter is omitted null is used instead."
+  },
+  {
+    "Name": "sort",
+    "Parameters": [
+      {
+        "Name": "compare_func",
+        "Documentation": "Function that will be used to compare values"
+      }
+    ],
+    "Documentation": "sorts the array. a custom compare function can be optionally passed.The function prototype as to be the following."
+  },
+  {
+    "Name": "reverse",
+    "Parameters": [],
+    "Documentation": "Reverse the elements of the array in place"
+  },
+  {
+    "Name": "slice",
+    "Parameters": [
+      {
+        "Name": "start",
+        "Documentation": "Start index"
+      },
+      {
+        "Name": "end",
+        "Documentation": "End index",
+        "Optional": true
+      }
+    ],
+    "Documentation": "returns a section of the array as new array. Copies from start to the end (not included). If start is negative the index is calculated as length + start, if end is negative the index is calculated as length + start. If end is omitted end is equal to the array length."
+  },
+  {
+    "Name": "call",
+    "VariadicArguments": true,
+    "Parameters": [
+      {
+        "Name": "_this",
+        "Documentation": "Environmental object that will be used in the call"
+      },
+      {
+        "Name": "args...",
+        "Documentation": "Arguments"
+      }
+    ],
+    "Documentation": "Calls the function with the specified environment object(’this’) and parameters"
+  },
+  {
+    "Name": "pcall",
+    "VariadicArguments": true,
+    "Parameters": [
+      {
+        "Name": "_this",
+        "Documentation": "Environmental object that will be used in the call"
+      },
+      {
+        "Name": "args...",
+        "Documentation": "Arguments"
+      }
+    ],
+    "Documentation": "Calls the function with the specified environment object(’this’) and parameters, this function will not invoke the error callback in case of failure(pcall stays for 'protected call')"
+  },
+  {
+    "Name": "acall",
+    "Parameters": [
+      {
+        "Name": "array_args",
+        "Documentation": "Array of Arguments"
+      }
+    ],
+    "Documentation": "Calls the function with the specified environment object(’this’) and parameters. The function accepts an array containing the parameters that will be passed to the called function."
+  },
+  {
+    "Name": "pacall",
+    "Parameters": [
+      {
+        "Name": "array_args",
+        "Documentation": "Array of Arguments"
+      }
+    ],
+    "Documentation": "calls the function with the specified environment object(’this’) and parameters. The function accepts an array containing the parameters that will be passed to the called function.This function will not invoke the error callback in case of failure(pacall stays for 'protected array call')"
+  },
+  {
+    "Name": "bindenv",
+    "Parameters": [
+      {
+        "Name": "env",
+        "Documentation": "Object to bind"
+      }
+    ],
+    "Documentation": "clones the function(aka closure) and bind the enviroment object to it(table,class or instance). the this parameter of the newly create function will always be set to env. Note that the created function holds a weak reference to its environment object so cannot be used to control its lifetime"
+  },
+  {
+    "Name": "instance",
+    "Parameters": [],
+    "Documentation": "Returns a new instance of the class. this function does not invoke the instance constructor. The constructor must be explicitly called( eg. class_inst.constructor(class_inst) )"
+  },
+  {
+    "Name": "getattributes",
+    "Parameters": [
+      {
+        "Name": "membername",
+        "Documentation": "Name of the member"
+      }
+    ],
+    "Documentation": "Returns the attributes of the specified member. if the parameter member is null the function returns the class level attributes."
+  },
+  {
+    "Name": "getattributes",
+    "Parameters": [
+      {
+        "Name": "membername",
+        "Documentation": "Name of the member"
+      },
+      {
+        "Name": "attr",
+        "Documentation": "Previous attribute value"
+      }
+    ],
+    "Documentation": "Returns the attributes of the specified member. if the parameter member is null the function returns the class level attributes."
+  },
+  {
+    "Name": "rawin",
+    "Parameters": [
+      {
+        "Name": "key",
+        "Documentation": "Slot name"
+      }
+    ],
+    "Documentation": "Returns true if the slot ‘key’ exists. the function has the same eddect as the operator 'in' but does not employ delegation"
+  },
+  {
+    "Name": "getclass",
+    "Parameters": [],
+    "Documentation": "Returns the class that created the instance"
+  },
+  {
+    "Name": "getstatus",
+    "Parameters": [],
+    "Documentation": "Returns the status of the generator as string : “running”, ”dead” or ”suspended”"
+  },
+  {
+    "Name": "call",
+    "VariadicArguments": true,
+    "Parameters": [
+      {
+        "Name": "...",
+        "Documentation": "Parameters"
+      }
+    ],
+    "Documentation": "Starts the thread with the specified parameters"
   }
 ]

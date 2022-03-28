@@ -14,10 +14,10 @@ namespace SquirrelSyntaxHighlight.Editor.QuickInfo
 {
   internal class QuickInfoSource : IQuickInfoSource
   {
-    private QuickInfoSourceProvider    Provider;
-    private ITextBuffer                SubjectBuffer;
-    private Dictionary<string, string> Dictionary;
-    private CodeDatabaseService        CodeDatabase;
+    private QuickInfoSourceProvider     Provider;
+    private ITextBuffer                 SubjectBuffer;
+    private List<Tuple<string, string>> KnownItems;
+    private CodeDatabaseService         CodeDatabase;
 
     public QuickInfoSource(
         QuickInfoSourceProvider _Provider, 
@@ -29,13 +29,13 @@ namespace SquirrelSyntaxHighlight.Editor.QuickInfo
       SubjectBuffer = _SubjectBuffer;
       CodeDatabase  = _CodeDatabase;
 
-      Dictionary = new Dictionary<string, string>();
+      KnownItems = new List<Tuple<string, string>>();
 
       foreach (var Function in CodeDatabase.GetBuiltinFunctionsInfo())
-        Dictionary.Add(Function.Name, Function.ToString() + "\n" + Function.Documentation);
+        KnownItems.Add(new Tuple<string, string>(Function.Name, Function.ToString() + "\n" + Function.Documentation));
 
       foreach (var Variable in CodeDatabase.GetBuiltinVariables())
-        Dictionary.Add(Variable.Name, Variable.ToString() + "\n" + Variable.Documentation);
+        KnownItems.Add(new Tuple<string, string>(Variable.Name, Variable.ToString() + "\n" + Variable.Documentation));
     }
 
     public void AugmentQuickInfoSession(
@@ -60,24 +60,17 @@ namespace SquirrelSyntaxHighlight.Editor.QuickInfo
       TextExtent              Extent     = Navigator.GetExtentOfWord(SubjectTriggerPoint.Value);
       string                  SearchText = Extent.Span.GetText();
 
-      foreach (string Key in Dictionary.Keys)
+      foreach (Tuple<string, string> Item in KnownItems)
       {
-        int FoundIndex = SearchText.IndexOf(Key, StringComparison.CurrentCultureIgnoreCase);
+        int FoundIndex = SearchText.IndexOf(Item.Item1, StringComparison.CurrentCultureIgnoreCase);
         
         if (FoundIndex > -1)
         {
           _ApplicableToSpan = CurrentSnapshot.CreateTrackingSpan(
-              Extent.Span.Start + FoundIndex, Key.Length, SpanTrackingMode.EdgeInclusive
+              Extent.Span.Start + FoundIndex, Item.Item1.Length, SpanTrackingMode.EdgeInclusive
             );
 
-          string Value;
-
-          Dictionary.TryGetValue(Key, out Value);
-          
-          if (Value != null)
-            _QuickInfoContent.Add(Value);
-          else
-            _QuickInfoContent.Add("");
+          _QuickInfoContent.Add(Item.Item2 ?? "");
 
           return;
         }

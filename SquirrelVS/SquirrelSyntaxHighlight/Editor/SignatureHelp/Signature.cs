@@ -24,16 +24,19 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
     private ITrackingSpan                  m_ApplicableToSpan;
     private ReadOnlyCollection<IParameter> m_Parameters;
     private string                         m_PrintContent;
+    private string                         m_Name;
 
     internal Signature(
         ITextBuffer                    _SubjectBuffer, 
         string                         _Content, 
+        string                         _Name,
         string                         _Documentation, 
         ReadOnlyCollection<IParameter> _Parameters
       )
     {
       m_SubjectBuffer = _SubjectBuffer;
       m_Content       = _Content;
+      m_Name          = _Name;
       m_Documentation = _Documentation;
       m_Parameters    = _Parameters;
 
@@ -138,6 +141,13 @@ namespace SquirrelSyntaxHighlight.Editor.SignatureHelp
       get { return (m_PrintContent); }
 
       internal set { m_PrintContent = value; }
+    }
+
+    public string Name
+    {
+      get { return (m_Name); }
+
+      internal set { m_Name = value; }
     }
 
     public event EventHandler<CurrentParameterChangedEventArgs> CurrentParameterChanged;
