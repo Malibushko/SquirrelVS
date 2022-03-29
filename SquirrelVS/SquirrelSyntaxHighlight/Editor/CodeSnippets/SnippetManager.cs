@@ -141,7 +141,7 @@ namespace SquirrelSyntaxHighlight.Editor.CodeSnippets
 
       var BufferInfo = SquirrelTextBufferInfo.ForBuffer(Site, _TextView.TextBuffer);
 
-      var Node = BufferInfo.GetNodeAt(CaretSpan);
+      var Node = BufferInfo.GetNodeAt(CaretSpan, _IsAccurate: false);
 
       if (Node == null)
         return false;

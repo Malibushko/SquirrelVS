@@ -391,9 +391,15 @@ namespace SquirrelSyntaxHighlight.Editor
     }
 
     public TSNode GetNodeAt(
-        Span _Span
+        Span _Span,
+        bool _IsAccurate = true
       )
     {
+      TSNode Root = api.TsTreeRootNode(Tree.Value);
+
+      if (!_IsAccurate)
+        return api.TsNodeDescendantForByteRange(Root, (uint)_Span.Start, (uint)_Span.End);
+
       int SnapStartPosition = _Span.Start;
 
       for (; SnapStartPosition < _Span.End; ++SnapStartPosition)
@@ -413,10 +419,7 @@ namespace SquirrelSyntaxHighlight.Editor
       if (SnapStartPosition == SnapEndPosition)
         return null;
 
-      TSNode Root       = api.TsTreeRootNode(Tree.Value);
-      TSNode Descendant = api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition);
-      
-      return Descendant;
+      return api.TsNodeDescendantForByteRange(Root, (uint)SnapStartPosition, (uint)SnapEndPosition);
     }
 
     public IEnumerable<Tuple<TSNode, string>> GetNodeWithSymbols(
